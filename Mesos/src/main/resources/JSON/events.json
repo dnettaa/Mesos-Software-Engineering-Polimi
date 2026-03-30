@@ -1,0 +1,89 @@
+[
+  {
+    "id": "EV01",
+    "era": "Era1",
+    "type": "HUNT",
+    "prestigeReward": 1
+  },
+  {
+    "id": "EV02",
+    "era": "Era1",
+    "type": "SUSTENANCE",
+    "prestigePenalty": 1,
+    "isFinal": false
+  },
+  {
+    "id": "EV03",
+    "era": "Era1",
+    "type": "SHAMANIC_RITUAL",
+    "majorityReward": 5,
+    "minorityPenalty": 3,
+    "isFinal": false
+  },
+  {
+    "id": "EV04",
+    "era": "Era1",
+    "type": "CAVE_PAINTINGS",
+    "requiredArtists": 1,
+    "prestigePenalty": 2,
+    "rewardPerArtist": 1
+  },
+  {
+    "id": "EV05",
+    "era": "Era2",
+    "type": "HUNT",
+    "prestigeReward": 2
+  },
+  {
+    "id": "EV06",
+    "era": "Era2",
+    "type": "SUSTENANCE",
+    "prestigePenalty": 2,
+    "isFinal": false
+  },
+  {
+    "id": "EV07",
+    "era": "Era2",
+    "type": "SHAMANIC_RITUAL",
+    "majorityReward": 10,
+    "minorityPenalty": 5,
+    "isFinal": false
+  },
+  {
+    "id": "EV08",
+    "era": "Era2",
+    "type": "CAVE_PAINTINGS",
+    "requiredArtists": 2,
+    "prestigePenalty": 2,
+    "rewardPerArtist": 2
+  },
+  {
+    "id": "EV09",
+    "era": "Era3",
+    "type": "HUNT",
+    "prestigeReward": 3
+  },
+  {
+    "id": "EV10",
+    "era": "Era3",
+    "type": "CAVE_PAINTINGS",
+    "requiredArtists": 3,
+    "prestigePenalty": 2,
+    "rewardPerArtist": 3
+  },
+  {
+    "id": "EV11",
+    "era": "Era3",
+    "type": "SHAMANIC_RITUAL",
+    "majorityReward": 15,
+    "minorityPenalty": 7,
+    "isFinal": true
+  },
+  {
+    "id": "EV12",
+    "era": "Era3",
+    "type": "SUSTENANCE",
+    "prestigePenalty": 3,
+    "isFinal": true
+  }
+]

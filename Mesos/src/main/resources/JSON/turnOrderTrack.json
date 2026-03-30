@@ -1,0 +1,18 @@
+[
+  {
+    "numPlayers": 2,
+    "foodBonus": [1,0]
+  },
+  {
+    "numPlayers": 3,
+    "foodBonus": [2,0,0]
+  },
+  {
+    "numPlayers": 4,
+    "foodBonus": [2,1,0,0]
+  },
+  {
+    "numPlayers": 5,
+    "foodBonus": [3,1,0,0,0]
+  }
+]
