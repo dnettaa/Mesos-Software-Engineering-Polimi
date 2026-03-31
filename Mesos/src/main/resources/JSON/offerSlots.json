@@ -1,0 +1,51 @@
+[
+  {
+    "slotID": "A",
+    "upSel": 0,
+    "downSel": 0,
+    "foodReward": 3,
+    "minPlayers": 5
+  },
+  {
+    "slotID": "B",
+    "upSel": 0,
+    "downSel": 1,
+    "foodReward": 0,
+    "minPlayers": 2
+  },
+  {
+    "slotID": "C",
+    "upSel": 1,
+    "downSel": 0,
+    "foodReward": 0,
+    "minPlayers": 2
+  },
+  {
+    "slotID": "D",
+    "upSel": 0,
+    "downSel": 2,
+    "foodReward": 0,
+    "minPlayers": 3
+  },
+  {
+    "slotID": "E",
+    "upSel": 1,
+    "downSel": 1,
+    "foodReward": 0,
+    "minPlayers": 2
+  },
+  {
+    "slotID": "F",
+    "upSel": 2,
+    "downSel": 0,
+    "foodReward": 0,
+    "minPlayers": 2
+  },
+  {
+    "slotID": "G",
+    "upSel": 2,
+    "downSel": 1,
+    "foodReward": 0,
+    "minPlayers": 4
+  }
+]
