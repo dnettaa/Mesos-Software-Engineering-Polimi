@@ -14,6 +14,8 @@ import it.polimi.ingsw.model.enums.CharacterType;
  * (Characters and Buildings) during the various rounds.
  * Contains the logic to group members by type and to calculate
  * the parameters necessary for resolving Events and the final score.
+ *
+ * @author Vadym Kitsul
  */
 public class Tribe {
 

@@ -5,6 +5,8 @@ package it.polimi.ingsw.model.player;
  * The class manages the player's personal state, including their resources
  * (food and prestige points), and contains a reference to their Tribe ({@link Tribe}),
  * where acquired cards are collected.
+ *
+ * @author Vadym Kitsul
  */
 
 public class Player {
