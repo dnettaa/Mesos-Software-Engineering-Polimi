@@ -12,9 +12,9 @@ import it.polimi.ingsw.model.game.Era;
  */
 public abstract class EventCard extends TribeCard {
 
-    protected boolean isFinal;
+    private boolean isFinal;
 
-    public EventCard(Era era, String id) {
+    protected EventCard(Era era, String id) {
 
         super(era, id);
     }

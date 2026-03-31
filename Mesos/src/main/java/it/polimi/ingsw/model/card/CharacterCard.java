@@ -11,7 +11,7 @@ import it.polimi.ingsw.model.game.Era;
  */
 public abstract class CharacterCard extends TribeCard {
 
-    public CharacterCard(Era era, String id) {
+    protected CharacterCard(Era era, String id) {
         super(era, id);
     }
 

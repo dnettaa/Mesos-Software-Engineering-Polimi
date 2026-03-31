@@ -9,7 +9,7 @@ import it.polimi.ingsw.model.game.Era;
  */
 public abstract class TribeCard extends Card {
 
-    public TribeCard(Era era, String id) {
+    protected TribeCard(Era era, String id) {
         super(era, id);
     }
 }

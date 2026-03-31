@@ -10,10 +10,10 @@ import it.polimi.ingsw.model.game.Era;
  */
 public abstract class Card {
 
-    protected Era era;
-    protected String id;
+    private final Era era;
+    private final String id;
 
-    public Card(Era era, String id) {
+    protected Card(Era era, String id) {
         this.era = era;
         this.id = id;
     }

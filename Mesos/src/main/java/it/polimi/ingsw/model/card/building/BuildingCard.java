@@ -3,7 +3,7 @@ package it.polimi.ingsw.model.card.building;
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.CharacterCard;
 import it.polimi.ingsw.model.player.Player;
-import it.polimi.ingsw.model.card.Era;
+import it.polimi.ingsw.model.game.Era;
 
 /**
  * Abstract class representing a building card.
@@ -15,14 +15,22 @@ import it.polimi.ingsw.model.card.Era;
  */
 public abstract class BuildingCard extends Card {
 
-    protected int cost;
-    protected int prestigePoints;
+    private final int cost;
+    private final int prestigePoints;
 
-    public BuildingCard(Era era, String id, int cost, int prestigePoints)
+    protected BuildingCard(Era era, String id, int cost, int prestigePoints)
     {
         super(era, id);
         this.cost = cost;
         this.prestigePoints = prestigePoints;
+    }
+
+    public int getCost() {
+        return cost;
+    }
+
+    public int getPrestigePoints() {
+        return prestigePoints;
     }
 
     /**
