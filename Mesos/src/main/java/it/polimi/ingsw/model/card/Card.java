@@ -1,4 +1,5 @@
 package it.polimi.ingsw.model.card;
+import it.polimi.ingsw.model.game.Era;
 
 /**
  * Abstract base class representing a generic card in the game.

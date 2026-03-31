@@ -2,6 +2,7 @@ package it.polimi.ingsw.model.card;
 
 import java.util.List;
 import it.polimi.ingsw.model.player.Player;
+import it.polimi.ingsw.model.game.Era;
 
 /**
  * Abstract class representing an event card.

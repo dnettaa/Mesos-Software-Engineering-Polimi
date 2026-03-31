@@ -1,4 +1,5 @@
 package it.polimi.ingsw.model.card;
+import it.polimi.ingsw.model.game.Era;
 
 /**
  * Abstract class representing a card that belongs to the tribe deck.
