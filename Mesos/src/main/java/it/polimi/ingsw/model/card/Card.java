@@ -1,5 +1,12 @@
 package it.polimi.ingsw.model.card;
 
+/**
+ * Abstract base class representing a generic card in the game.
+ * Each card belongs to an era and has a unique id.
+ * This class is extended by all specific card types in the game.
+ *
+ * @author Andrea Markvukaj
+ */
 public abstract class Card {
 
     protected Era era;

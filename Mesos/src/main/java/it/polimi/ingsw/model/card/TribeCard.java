@@ -1,9 +1,14 @@
 package it.polimi.ingsw.model.card;
 
-public abstract class TribeCard extends Card{
+/**
+ * Abstract class representing a card that belongs to the tribe deck.
+ * This includes CharacterCard and EventCard.
+ *
+ * @author Andrea Markvukaj
+ */
+public abstract class TribeCard extends Card {
 
-    public TribeCard(Era era, String id)
-    {
+    public TribeCard(Era era, String id) {
         super(era, id);
     }
 }
