@@ -127,7 +127,6 @@ public class CardFactory {
             }else{
                 deck.addLast(event);
             }
-
         }
 
         //Shuffle buckets
@@ -336,8 +335,8 @@ public class CardFactory {
         return new SustenanceEventCard(
                 Era.valueOf(obj.get("era").getAsString()),
                 obj.get("id").getAsString(),
-                obj.get("prestigePenalty").getAsInt(),
-                obj.get("isFinal").getAsBoolean()
+                obj.get("isFinal").getAsBoolean(),
+                obj.get("prestigePenalty").getAsInt()
         );
     }
 
@@ -351,6 +350,7 @@ public class CardFactory {
         return new HuntEventCard(
                 Era.valueOf(obj.get("era").getAsString()),
                 obj.get("id").getAsString(),
+                obj.get("isFinal").getAsBoolean(),
                 obj.get("prestigeReward").getAsInt()
         );
     }
@@ -365,9 +365,9 @@ public class CardFactory {
         return new ShamanicRitualEventCard(
                 Era.valueOf(obj.get("era").getAsString()),
                 obj.get("id").getAsString(),
+                obj.get("isFinal").getAsBoolean(),
                 obj.get("majorityReward").getAsInt(),
-                obj.get("minorityPenalty").getAsInt(),
-                obj.get("isFinal").getAsBoolean()
+                obj.get("minorityPenalty").getAsInt()
         );
     }
 
@@ -381,6 +381,7 @@ public class CardFactory {
         return new CavePaintingsEventCard(
                 Era.valueOf(obj.get("era").getAsString()),
                 obj.get("id").getAsString(),
+                obj.get("isFinal").getAsBoolean(),
                 obj.get("requiredArtists").getAsInt(),
                 obj.get("prestigePenalty").getAsInt(),
                 obj.get("rewardPerArtist").getAsInt()

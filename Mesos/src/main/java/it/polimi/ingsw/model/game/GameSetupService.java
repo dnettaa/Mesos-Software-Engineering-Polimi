@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 
 /**
  * Class for initial game setup, producing a functioning {@link Game}
@@ -35,15 +36,12 @@ public class GameSetupService {
         List<Player> players = setupPlayers(playerSelection);
 
         //Creating Board
-        Board board = setupBoard(numPlayers);
+        Board board = setupBoard(numPlayers, players);
 
         //Assign initial food to each player
         assignInitialFood(players);
 
-        //Initial order
-        List<Player> initialOrder = assignRandomOrder(players, board.getTurnOrderTrack());
-
-        return new Game(gameID, players, board, 1, GamePhase.TotemPlacement, GameState.InProgress, initialOrder, 0, new ArrayList<>());
+        return new Game(gameID, players, board, 1, GamePhase.TotemPlacement, GameState.InProgress, players, 0, new ArrayList<>());
     }
 
     /**
@@ -72,7 +70,7 @@ public class GameSetupService {
      * @param numPlayers number of players
      * @return a functioning Board
      */
-    private Board setupBoard(int numPlayers) {
+    private Board setupBoard(int numPlayers, List<Player> players) {
 
         //Creating decks
         TribeDeck tribeDeck = CardFactory.createTribeDeck(numPlayers);
@@ -82,7 +80,7 @@ public class GameSetupService {
         OfferTrack offerTrack = setupOfferTrack(numPlayers);
 
         //Creating TurnOrderTrack
-        TurnOrderTrack turnOrderTrack = setupTurnOrderTrack(numPlayers);
+        TurnOrderTrack turnOrderTrack = setupTurnOrderTrack(numPlayers, players);
 
         //Creating Rows
         CardRow upperRow = new CardRow(new ArrayList<TribeCard>(), new ArrayList<BuildingCard>());
@@ -131,7 +129,7 @@ public class GameSetupService {
      * @param numPlayers number of players
      * @return a functioning OfferTrack
      */
-    private TurnOrderTrack setupTurnOrderTrack(int numPlayers){
+    private TurnOrderTrack setupTurnOrderTrack(int numPlayers, List<Player> players){
 
         JsonArray turnOrderTrack;
         InputStream is = GameSetupService.class.getResourceAsStream("/JSON/turnOrderTrack.json");
@@ -154,7 +152,9 @@ public class GameSetupService {
             }
         }
 
-        return new TurnOrderTrack(foodBonus, numPlayers);
+        Collections.shuffle(players);
+
+        return new TurnOrderTrack(players, foodBonus, numPlayers);
     }
 
     /**
@@ -197,6 +197,7 @@ public class GameSetupService {
      */
     private void setupUpperRow(TribeDeck tribeDeck, BuildingDeck buildingDeck, int numPlayers, CardRow upperRow){
 
+        //controllare che size sia 0 se vuota
         int count = upperRow.getTribeCards().size();
 
         while(count != numPlayers + 4){
@@ -222,11 +223,11 @@ public class GameSetupService {
 
         for (int i = 0; i < players.size(); i++) {
             switch(i + 1) {
-                case 1 -> player.addFood(2);
-                case 2, 3 -> player.addFood(3);
-                case 4, 5 -> player.addFood(4);
+                case 1 -> players.get(i).addFood(2);
+                case 2, 3 -> players.get(i).addFood(3);
+                case 4, 5 -> players.get(i).addFood(4);
             }
         }
     }
-
 }
+

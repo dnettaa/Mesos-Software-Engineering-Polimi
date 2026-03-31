@@ -3,7 +3,8 @@
     "id": "EV01",
     "era": "Era1",
     "type": "HUNT",
-    "prestigeReward": 1
+    "prestigeReward": 1,
+    "isFinal": false
   },
   {
     "id": "EV02",
@@ -26,13 +27,15 @@
     "type": "CAVE_PAINTINGS",
     "requiredArtists": 1,
     "prestigePenalty": 2,
-    "rewardPerArtist": 1
+    "rewardPerArtist": 1,
+    "isFinal": false
   },
   {
     "id": "EV05",
     "era": "Era2",
     "type": "HUNT",
-    "prestigeReward": 2
+    "prestigeReward": 2,
+    "isFinal": false
   },
   {
     "id": "EV06",
@@ -55,13 +58,15 @@
     "type": "CAVE_PAINTINGS",
     "requiredArtists": 2,
     "prestigePenalty": 2,
-    "rewardPerArtist": 2
+    "rewardPerArtist": 2,
+    "isFinal": false
   },
   {
     "id": "EV09",
     "era": "Era3",
     "type": "HUNT",
-    "prestigeReward": 3
+    "prestigeReward": 3,
+    "isFinal": false
   },
   {
     "id": "EV10",
@@ -69,7 +74,8 @@
     "type": "CAVE_PAINTINGS",
     "requiredArtists": 3,
     "prestigePenalty": 2,
-    "rewardPerArtist": 3
+    "rewardPerArtist": 3,
+    "isFinal": false
   },
   {
     "id": "EV11",
