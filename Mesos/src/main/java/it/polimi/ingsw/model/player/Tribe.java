@@ -8,7 +8,7 @@ import java.util.Map;
 
 import it.polimi.ingsw.model.card.CharacterCard;
 import it.polimi.ingsw.model.card.BuildingCard;
-import it.polimi.ingsw.model.enums.CharacterType;
+import it.polimi.ingsw.model.card.CharacterType;
 
 /**
  * Represents a player's Tribe, managing all acquired cards
@@ -33,6 +33,14 @@ public class Tribe {
     public Tribe() {
         this.members = new HashMap<>();
         this.buildings = new ArrayList<>();
+    }
+
+    public Map<CharacterType, List<CharacterCard>> getMembers(){
+        return members;
+    }
+
+    public List<BuildingCard> getBuildings(){
+        return buildings;
     }
 
     /**

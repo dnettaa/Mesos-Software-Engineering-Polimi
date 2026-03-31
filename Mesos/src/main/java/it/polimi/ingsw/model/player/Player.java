@@ -25,10 +25,10 @@ public class Player {
      * @param totemColor The totem color assigned to the player.
      */
 
-    public Player(String nickname, TotemColor totemColor) {
+    public Player(String nickname, TotemColor totemColor, Tribe tribe, int food, int prestigePoints) {
         this.nickname = nickname;
         this.totemColor = totemColor;
-        this.tribe = new Tribe();
+        this.tribe = tribe;
         this.food = 0;
         this.prestigePoints = 0;
     }

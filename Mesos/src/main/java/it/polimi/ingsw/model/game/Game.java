@@ -1,4 +1,8 @@
 package it.polimi.ingsw.model.game;
+import it.polimi.ingsw.model.player.*;
+import it.polimi.ingsw.model.card.*;
+import it.polimi.ingsw.model.card.building.*;
+import it.polimi.ingsw.model.board.*;
 
 import java.util.ArrayList;
 import java.util.List;

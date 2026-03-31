@@ -1,4 +1,7 @@
 package it.polimi.ingsw.model.game;
+import it.polimi.ingsw.model.player.*;
+import it.polimi.ingsw.model.board.*;
+import it.polimi.ingsw.model.card.*;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -41,7 +44,8 @@ public class GameSetupService {
         //Assign initial food to each player
         assignInitialFood(players);
 
-        return new Game(gameID, players, board, 1, GamePhase.TotemPlacement, GameState.InProgress, players, 0, new ArrayList<>());
+        return new Game(gameID, players, board, 1, GamePhase.TotemPlacement, GameState.InProgress,
+                new ArrayList<Player>(board.getTurnOrderTrack().getPlayersInOrder()), 0, new ArrayList<OfferSlot>());
     }
 
     /**

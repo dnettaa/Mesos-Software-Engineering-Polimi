@@ -2,6 +2,7 @@ package it.polimi.ingsw.model.game;
 
 import it.polimi.ingsw.model.card.*;
 import it.polimi.ingsw.model.card.building.*;
+import it.polimi.ingsw.model.board.*;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
