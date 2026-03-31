@@ -1,6 +1,7 @@
 package it.polimi.ingsw.model.player;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ public class Tribe {
      * @return The number of cards of that type; will be 0 if none are present.
      */
     public int countByType(CharacterType type) {
-        return this.members.getOrDefault(type, new ArrayList<>()).size();
+        return this.members.getOrDefault(type, Collections.emptyList()).size();
     }
 
     /**
@@ -69,7 +70,7 @@ public class Tribe {
      * @return A list containing the cards of the specified type.
      */
     public List<CharacterCard> getByType(CharacterType type) {
-        return new ArrayList<>(this.members.getOrDefault(type, new ArrayList<>()));
+        return new ArrayList<>(this.members.getOrDefault(type, Collections.emptyList()));
     }
 
     /**
@@ -122,13 +123,9 @@ public class Tribe {
      * @return The number of different Character types of which at least one card is owned.
      */
     public int countDistinctTypes() {
-        int distinctCount = 0;
-        for (List<CharacterCard> list : this.members.values()) {
-            if (!list.isEmpty()) {
-                distinctCount++;
-            }
-        }
-        return distinctCount;
+        return (int) this.members.values().stream()
+                .filter(list -> !list.isEmpty())
+                .count();
     }
 
     /**
