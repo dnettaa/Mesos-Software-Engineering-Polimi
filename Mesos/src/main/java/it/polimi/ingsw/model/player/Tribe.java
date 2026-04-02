@@ -6,9 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import it.polimi.ingsw.model.card.CharacterCard;
-import it.polimi.ingsw.model.card.BuildingCard;
-import it.polimi.ingsw.model.card.CharacterType;
+import it.polimi.ingsw.model.card.building.*;
+import it.polimi.ingsw.model.card.*;
 
 /**
  * Represents a player's Tribe, managing all acquired cards
@@ -88,7 +87,7 @@ public class Tribe {
      */
     public int countShamanIcons() {
         return getByType(CharacterType.SHAMAN).stream()
-                .mapToInt(CharacterCard::getIconCount)
+                .mapToInt(CharacterCard::getShamanSymbols)
                 .sum();
     }
 
@@ -99,7 +98,7 @@ public class Tribe {
      */
     public int countDistinctInventionIcons() {
         return (int) getByType(CharacterType.INVENTOR).stream()
-                .map(CharacterCard::getInventionIcon)
+                .map(CharacterCard::getInvetionType)
                 .distinct()
                 .count();
     }
@@ -111,7 +110,7 @@ public class Tribe {
      */
     public int getBuildingDiscount() {
         return getByType(CharacterType.BUILDER).stream()
-                .mapToInt(CharacterCard::getDiscountValue)
+                .mapToInt(CharacterCard::getBuilderDiscount)
                 .sum();
     }
 
