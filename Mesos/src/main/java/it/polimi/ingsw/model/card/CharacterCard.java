@@ -28,7 +28,7 @@ public abstract class CharacterCard extends TribeCard {
     }
 
     /**
-     * Returns the type of the character (SHAMAN, HUNTER, ...).
+     * Returns the type of the character.
      * See enum class <<CharacterType>>.
      *
      * @return the character type
