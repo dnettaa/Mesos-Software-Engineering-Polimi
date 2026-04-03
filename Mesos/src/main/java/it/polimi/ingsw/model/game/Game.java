@@ -204,28 +204,24 @@ public class Game {
             throw new IllegalArgumentException("Wrong chosen cards");
         }
 
+        int totalCost = 0;
+
         for(Card card: chosenUpper){
             if(!pickableUpper.contains(card) || !card.isPickable()){
                 throw new IllegalArgumentException("Wrong chosen cards");
             }
+            totalCost += card.getCostFor(player);
         }
 
         for(Card card: chosenLower){
             if(!pickableLower.contains(card) || !card.isPickable()){
                 throw new IllegalArgumentException("Wrong chosen cards");
             }
+            totalCost += card.getCostFor(player);
         }
 
-        int totalCost = 0;
-        for (Card card : chosenUpper) {
-            totalCost += card.getCostFor(player);
-        }
-        for (Card card : chosenLower) {
-            totalCost += card.getCostFor(player);
-        }
         if (totalCost > player.getFood()) {
             throw new IllegalArgumentException("Not enough food for buildings");
         }
-
     }
 }
