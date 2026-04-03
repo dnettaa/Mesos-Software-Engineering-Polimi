@@ -4,7 +4,7 @@ import it.polimi.ingsw.model.player.*;
 import it.polimi.ingsw.model.card.CharacterCard;
 import it.polimi.ingsw.model.card.CharacterType;
 import it.polimi.ingsw.model.card.BuilderCard;
-import it.polimi.ingsw.model.card.BuildingCard;
+import it.polimi.ingsw.model.card.building.BuildingCard;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class FinalScoringCalculator {
             totalBonus += calculateBuilderPP(player);
             totalBonus += calculateInventorPP(player);
             totalBonus += calculateArtistPP(player);
-            totalBonus += calculateBuildingPP(player, players);
+            totalBonus += calculateBuildingPP(player);
 
             player.addPP(totalBonus);
         }
@@ -41,10 +41,8 @@ public class FinalScoringCalculator {
      * @return The total PP from Builders.
      */
     private static int calculateBuilderPP(Player player) {
-        Tribe tribe = player.getTribe();
-        return tribe.getByType(CharacterType.BUILDER).stream()
-                .map(card -> (BuilderCard) card) // Cast necessario per accedere al metodo specifico
-                .mapToInt(BuilderCard::getBuilderPrestige)
+        return player.getTribe().getByType(CharacterType.BUILDER).stream()
+                .mapToInt(c -> ((BuilderCard) c).getBuilderPrestige())
                 .sum();
     }
 
@@ -79,10 +77,9 @@ public class FinalScoringCalculator {
      * Calculates the Prestige Points provided by Building cards.
      * This includes the base PP printed on the card plus any end-game effect PP.
      * @param player The player to calculate the score for.
-     * @param players The list of all players.
      * @return The total PP from Buildings.
      */
-    private static int calculateBuildingPP(Player player, List<Player> players) {
+    private static int calculateBuildingPP(Player player) {
         Tribe tribe = player.getTribe();
         int totalBuildingPP = 0;
 
