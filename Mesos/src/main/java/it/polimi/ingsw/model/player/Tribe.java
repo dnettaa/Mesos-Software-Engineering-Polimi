@@ -87,7 +87,7 @@ public class Tribe {
      */
     public int countShamanIcons() {
         return getByType(CharacterType.SHAMAN).stream()
-                .mapToInt(CharacterCard::getShamanSymbols)
+                .mapToInt(c -> ((ShamanCard) c).getShamanSymbols())
                 .sum();
     }
 
@@ -98,7 +98,7 @@ public class Tribe {
      */
     public int countDistinctInventionIcons() {
         return (int) getByType(CharacterType.INVENTOR).stream()
-                .map(CharacterCard::getInvetionType)
+                .map(c -> ((InventorCard) c).getInventionType())
                 .distinct()
                 .count();
     }
@@ -110,7 +110,7 @@ public class Tribe {
      */
     public int getBuildingDiscount() {
         return getByType(CharacterType.BUILDER).stream()
-                .mapToInt(CharacterCard::getBuilderDiscount)
+                .mapToInt(c -> ((BuilderCard) c).getBuilderDiscount())
                 .sum();
     }
 
