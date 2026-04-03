@@ -1,5 +1,4 @@
 package it.polimi.ingsw.model.card;
-
 import java.util.List;
 import it.polimi.ingsw.model.player.Player;
 import it.polimi.ingsw.model.game.Era;
@@ -12,11 +11,12 @@ import it.polimi.ingsw.model.game.Era;
  */
 public abstract class EventCard extends TribeCard {
 
-    private boolean isFinal;
+    private final boolean isFinal;
 
-    protected EventCard(Era era, String id) {
+    protected EventCard(Era era, String id, boolean isFinal) {
 
         super(era, id);
+        this.isFinal = isFinal;
     }
 
     /**
@@ -28,6 +28,19 @@ public abstract class EventCard extends TribeCard {
         return isFinal;
     }
 
+    @Override
+    public boolean isPickable() {
+        return false;
+    }
+
+    /**
+     * Event cards have no cost.
+     */
+    @Override
+    public int getCostFor(Player player) {
+        return 0;
+    }
+
     /**
      * Resolves the event's effect on all players.
      * Each subclass will implement its own resolving event logic by overriding this method.
@@ -35,4 +48,5 @@ public abstract class EventCard extends TribeCard {
      * @param players the list of players
      */
     public abstract void resolveEvent(List<Player> players);
+
 }

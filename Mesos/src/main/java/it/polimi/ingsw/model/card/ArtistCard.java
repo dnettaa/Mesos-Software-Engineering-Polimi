@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.card;
 import it.polimi.ingsw.model.game.Era;
+
 /**
  * Class representing Artist Card.
  *

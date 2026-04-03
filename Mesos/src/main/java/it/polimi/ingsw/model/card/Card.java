@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.card;
 import it.polimi.ingsw.model.game.Era;
+import it.polimi.ingsw.model.player.Player;
 
 /**
  * Abstract base class representing a generic card in the game.
@@ -25,4 +26,15 @@ public abstract class Card {
     public String getId() {
         return id;
     }
+
+    public boolean isPickable() {
+        return true;
+    }
+
+    public abstract void applyTo(Player player);
+
+    public int getCostFor(Player player) {
+        return 0;
+    }
+
 }   

@@ -1,8 +1,7 @@
 package it.polimi.ingsw.model.card.building;
-
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.CharacterCard;
-import it.polimi.ingsw.model.player.Player;
+import it.polimi.ingsw.model.player.*;
 import it.polimi.ingsw.model.game.Era;
 
 /**
@@ -25,8 +24,15 @@ public abstract class BuildingCard extends Card {
         this.prestigePoints = prestigePoints;
     }
 
-    public int getCost() {
-        return cost;
+    @Override
+    public void applyTo(Player player) {
+        player.spendFood(getCostFor(player));
+        player.getTribe().addBuilding(this);
+    }
+
+    @Override
+    public int getCostFor(Player player) {
+        return Math.max(0, cost - player.getTribe().getBuildingDiscount());
     }
 
     public int getPrestigePoints() {

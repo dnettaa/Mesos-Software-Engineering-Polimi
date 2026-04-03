@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.card;
 import it.polimi.ingsw.model.game.Era;
+
 /**
  * Class representing Inventor Card.
  * Inventor Card provides an invention icon,
@@ -15,6 +16,7 @@ public class InventorCard extends CharacterCard {
         super(era, id);
         this.inventionType = inventionType;
     }
+
     /**
      * Returns the invention type associated with this card.
      * See enum class <<InventionType>>.

@@ -1,4 +1,5 @@
 package it.polimi.ingsw.model.card;
+
 /**
  * Enumeration representing the different Character Cards.
  * Each {@link CharacterCard} is associated with one CharacterType,

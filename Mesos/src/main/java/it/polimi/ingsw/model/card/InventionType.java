@@ -1,4 +1,5 @@
 package it.polimi.ingsw.model.card;
+
 /**
  * Enumeration representing the different Invention Types in the game.
  * Each {@link InventorCard} displays its own invention type icon.

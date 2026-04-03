@@ -12,4 +12,5 @@ public abstract class TribeCard extends Card {
     protected TribeCard(Era era, String id) {
         super(era, id);
     }
+
 }

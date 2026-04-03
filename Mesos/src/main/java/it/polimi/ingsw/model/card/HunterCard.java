@@ -1,6 +1,7 @@
 package it.polimi.ingsw.model.card;
 import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.model.player.Tribe;
+
 /**
  * Class representing Hunter Card.
  * Hunter Card may grant a food bonus when acquired.
@@ -15,6 +16,7 @@ public class HunterCard extends CharacterCard{
         super(era, id);
         this.hunterFoodBonus = hunterFoodBonus;
     }
+
     /**
      * Checks if this specific HunterCard has food bonus.
      * If the hunterFoodBonus flag is true, the player gains a bonus amount (1) of food.

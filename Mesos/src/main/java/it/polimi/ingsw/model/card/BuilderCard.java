@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.card;
 import it.polimi.ingsw.model.game.Era;
+
 /**
  * Class representing Builder Card.
  * Builder Card provides a discount acquiring new buildings.
@@ -17,6 +18,7 @@ public class BuilderCard extends CharacterCard{
         this.builderDiscount = builderDiscount;
         this.builderPrestige = builderPrestige;
     }
+
     /**
      * Returns the building cost discount provided by this card.
      *
@@ -25,6 +27,7 @@ public class BuilderCard extends CharacterCard{
     public int getBuilderDiscount() {
         return builderDiscount;
     }
+
     /**
      * Returns the prestige points granted by this card.
      *

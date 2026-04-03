@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.card;
 import it.polimi.ingsw.model.game.Era;
+
 /**
  * Class representing Shaman Card.
  * Shaman Card gives a certain number of shaman symbols to the player's tribe,
@@ -15,6 +16,7 @@ public class ShamanCard extends CharacterCard{
         super(era, id);
         this.shamanSymbols = shamanSymbols;
     }
+
     /**
      * Returns the number of shaman symbols provided by this card.
      *
