@@ -37,6 +37,15 @@ public abstract class CharacterCard extends TribeCard {
      */
     public abstract CharacterType getType();
 
+    /**
+     * Applies this character card to the given player.
+     * Behavior:
+     * Adding the character to the player's tribe.
+     * Granting food based on {@link #getFoodOnAcquired(Tribe)}
+     * Triggering building effects that react to character acquisition.
+     *
+     * @param player the player acquiring the card
+     */
     @Override
     public void applyTo(Player player) {
         player.getTribe().addCharacter(this);

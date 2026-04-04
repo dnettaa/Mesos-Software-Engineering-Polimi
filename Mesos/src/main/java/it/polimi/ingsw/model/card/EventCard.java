@@ -28,6 +28,11 @@ public abstract class EventCard extends TribeCard {
         return isFinal;
     }
 
+    /**
+     * Event Card are not pickable
+     *
+     * @return false
+     */
     @Override
     public boolean isPickable() {
         return false;
@@ -35,6 +40,8 @@ public abstract class EventCard extends TribeCard {
 
     /**
      * Event cards have no cost.
+     *
+     * @return false
      */
     @Override
     public int getCostFor(Player player) {
