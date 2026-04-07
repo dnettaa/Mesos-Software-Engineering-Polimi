@@ -19,7 +19,9 @@ public class HunterCard extends CharacterCard{
 
     /**
      * Checks if this specific HunterCard has food bonus.
-     * If the hunterFoodBonus flag is true, the player gains a bonus amount (1) of food.
+     * If this card has the food bonus enabled, the player gains a number of food
+     * equal to the total number of Hunter characters currently in the tribe
+     * (including this card).
      *
      * @param tribe the tribe acquiring the card
      * @return food amount gained
