@@ -1,4 +1,5 @@
 package it.polimi.ingsw.model.game;
+import it.polimi.ingsw.model.board.TurnOrderTrack;
 import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.player.*;
 import it.polimi.ingsw.model.card.*;
@@ -136,15 +137,137 @@ public class Game {
         currentPlayerIndex++;
         if(currentPlayerIndex == players.size()){
             currentPlayerIndex = 0;
+
+            for (Player p : players) {
+                for (BuildingCard b : p.getTribe().getBuildings()) {
+                    if (b.requiresExtraCardPhase()) {
+                        currentPlayerIndex = players.indexOf(p);
+                        phase = GamePhase.ExtraCard;
+                        return;
+                    }
+                }
+            }
+
             phase = GamePhase.EventResolution;
         }
     }
 
+    /**
+     * Resolves all event cards in the lower row.
+     * On the last round, also resolves events from the upper row.
+     * Sustenance events are always resolved last.
+     * Same-type events are resolved in Era order.
+     * Transitions to EndRound phase.
+     */
+    public void resolveEvents(){
+        validateState();
+        validatePhase(GamePhase.EventResolution);
+
+        List<EventCard> events = board.getLowerRowEvents();
+        if(currentRound == 10){
+            events.addAll(board.getUpperRowEvents());
+        }
+
+        events.sort((a, b) -> {
+            int cmp = Boolean.compare(a.isFinal(), b.isFinal());
+            if (cmp != 0) return cmp;
+            boolean aIsSustenance = a instanceof SustenanceEventCard;
+            boolean bIsSustenance = b instanceof SustenanceEventCard;
+            cmp = Boolean.compare(aIsSustenance, bIsSustenance);
+            if (cmp != 0) return cmp;
+            return a.getEra().compareTo(b.getEra());
+        });
+
+        for(EventCard e: events){
+            e.resolveEvent(players);
+        }
+
+        phase = GamePhase.EndRound;
+    }
+
+    /**
+     * Ends the current round. If not the last round, sets up the board
+     * for the next round and transitions to TotemPlacement.
+     * If it's the last round, transitions to EndGame phase.
+     */
+    public void endRound(){
+        validateState();
+        validatePhase(GamePhase.EndRound);
+
+        if(currentRound < 10) {
+            board.setupNewRound();
+            placementOrder = new ArrayList<Player>(board.getPlacementOrder());
+            currentPlayerIndex = 0;
+            currentRound++;
+            phase = GamePhase.TotemPlacement;
+        }else{
+            phase = GamePhase.EndGame;
+        }
+    }
+
+    /**
+     * Calculates the final scoring for all players and ends the game.
+     * Transitions the game state to Finished.
+     */
+    public void endGame(){
+        validateState();
+        validatePhase(GamePhase.EndGame);
+
+        FinalScoringCalculator.calculate(players);
+        state = GameState.Finished;
+    }
 
 
+    /**
+     * Allows the player with the ExtraPick building to take an additional
+     * card from the upper row. Transitions to EventResolution phase.
+     *
+     * @param player the player taking the extra card
+     * @param card the card chosen from the upper row
+     */
+    public void takeExtraCard(Player player, Card card){
+        validateState();
+        validatePhase(GamePhase.ExtraCard);
+
+        if(!player.equals(players.get(currentPlayerIndex))){
+            throw new IllegalArgumentException("Wrong player!");
+        }
+
+        if(!card.isPickable() || !board.getUpperRowCards().contains(card)){
+            throw new IllegalArgumentException("Wrong chosen card");
+        }
+
+        if(card.getCostFor(player) > player.getFood()){
+            throw new IllegalArgumentException("Not enough food");
+        }
+
+        card.applyTo(player);
+        board.removeCardFrom(board.getUpperRow(), card);
+
+        phase = GamePhase.EventResolution;
+    }
 
 
+    /**
+     * Applies the turn order bonus or penalty to the player.
+     * If the player lands on a food bonus slot, they receive food.
+     * If the player lands on the last slot, they pay 1 food or lose 2 PP.
+     *
+     * @param player the player returning to the turn order track
+     */
+    private void applyTurnOrderBonus(Player player){
+        int bonus = board.getFoodBonus(player);
 
+        if(bonus > 0){
+            player.addFood(bonus);
+        }else if(bonus < 0){
+            if (player.getFood() >= Math.abs(bonus)) {
+                player.spendFood(Math.abs(bonus));
+            }else{
+                player.losePP(2);
+            }
+        }
+    }
 
     /**
      * Check if the state is "In progress"
