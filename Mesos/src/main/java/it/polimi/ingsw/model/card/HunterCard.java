@@ -26,10 +26,11 @@ public class HunterCard extends CharacterCard{
      */
     @Override
     public int getFoodOnAcquired(Tribe tribe) {
-        if(hunterFoodBonus) {
-            return 1;
+        if(!hunterFoodBonus) {
+            return 0;
         }
-        return 0;
+
+        return tribe.countByType(CharacterType.HUNTER);
     }
 
     @Override
