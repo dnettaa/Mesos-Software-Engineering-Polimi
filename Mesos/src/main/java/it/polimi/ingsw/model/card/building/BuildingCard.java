@@ -1,8 +1,7 @@
 package it.polimi.ingsw.model.card.building;
-
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.CharacterCard;
-import it.polimi.ingsw.model.player.Player;
+import it.polimi.ingsw.model.player.*;
 import it.polimi.ingsw.model.game.Era;
 
 /**
@@ -25,8 +24,31 @@ public abstract class BuildingCard extends Card {
         this.prestigePoints = prestigePoints;
     }
 
-    public int getCost() {
-        return cost;
+    /**
+     * Applies this building card to the given player.
+     * Behavior:
+     * Spending food according to {@link #getCostFor(Player)}.
+     * Adding the building to the player's tribe.
+     *
+     * @param player the player acquiring the building
+     */
+    @Override
+    public void applyTo(Player player) {
+        player.spendFood(getCostFor(player));
+        player.getTribe().addBuilding(this);
+    }
+
+    /**
+     * Returns the cost required for the specified player to acquire this building.
+     * The cost may be reduced by effects provided
+     * by other cards (see builder cards) in the player's tribe.
+     *
+     * @param player the player attempting to acquire the building
+     * @return the effective cost after discounts (never negative)
+     */
+    @Override
+    public int getCostFor(Player player) {
+        return Math.max(0, cost - player.getTribe().getBuildingDiscount());
     }
 
     public int getPrestigePoints() {
