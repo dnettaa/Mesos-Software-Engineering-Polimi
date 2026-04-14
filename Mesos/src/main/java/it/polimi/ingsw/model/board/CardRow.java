@@ -1,10 +1,10 @@
 package it.polimi.ingsw.model.board;
 
 import it.polimi.ingsw.model.card.Card;
+import it.polimi.ingsw.model.card.CharacterCard;
 import it.polimi.ingsw.model.card.TribeCard;
 import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.card.EventCard;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +51,16 @@ public class CardRow {
         buildingCards.add(card);
     }
 
+    /**
+     * Adds multiple building cards to the row.
+     *
+     * @param cards the building cards to add
+     */
+    public void addBuildingCards(List<BuildingCard> cards){
+        for(BuildingCard card : cards){
+            addBuildingCard(card);
+        }
+    }
 
     /**
      * Removes a tribe card from the row.
@@ -58,7 +68,7 @@ public class CardRow {
      * @param card the tribe card to remove
      * @throws IllegalArgumentException if the card is not present
      */
-    public void removeTribeCard(TribeCard card){
+    private void removeTribeCard(TribeCard card){
         if(!tribeCards.remove(card)){
             throw new IllegalArgumentException("Tribe card is not present in this row");
         }
@@ -70,9 +80,18 @@ public class CardRow {
      * @param card the building card to remove
      * @throws IllegalArgumentException if the card is not present
      */
-    public void removeBuildingCard(BuildingCard card){
+    private void removeBuildingCard(BuildingCard card){
         if(!buildingCards.remove(card)){
             throw new IllegalArgumentException("Building card is not present in this row");
+        }
+    }
+
+    //questa logica poi andrà spostata nelle carte
+    public void removeCard(Card card){
+        if(card instanceof BuildingCard){
+            removeBuildingCard((BuildingCard) card);
+        } else {
+            removeTribeCard((TribeCard) card);
         }
     }
 
@@ -83,6 +102,41 @@ public class CardRow {
      */
     public List<TribeCard> getTribeCards(){
         return new ArrayList<>(tribeCards);
+    }
+
+    /**
+     * Returns the character cards currently in the row.
+     *
+     * @return a list containing only the character cards in the row
+     */
+    public List<CharacterCard> getCharacterCards(){
+        List<CharacterCard> characters = new ArrayList<>();
+
+        for(TribeCard card : tribeCards){
+            if(card.isPickable()){
+                characters.add((CharacterCard) card);
+            }
+        }
+
+        return characters;
+    }
+
+
+    /**
+     * Returns the event cards currently in the row.
+     *
+     * @return a list containing only the event cards in the row
+     */
+    public List<EventCard> getEventCards(){
+        List<EventCard> events = new ArrayList<>();
+
+        for(TribeCard card : tribeCards){
+            if(!card.isPickable()){
+                events.add((EventCard) card);
+            }
+        }
+
+        return events;
     }
 
     /**
@@ -102,8 +156,10 @@ public class CardRow {
      */
     public List<Card> getAllCards(){
         List<Card> allCards = new ArrayList<>();
+
         allCards.addAll(tribeCards);
         allCards.addAll(buildingCards);
+
         return allCards;
     }
 
@@ -123,24 +179,29 @@ public class CardRow {
         buildingCards.clear();
     }
 
+
     /**
-     * Checks whether the row contains the specified tribe card.
+     * Returns the event cards currently in the row.
      *
-     * @param card the card to search for
-     * @return true if the card is present
+     * @return a list containing only the event cards in the row
      */
-    public boolean containsTribeCard(TribeCard card){
-        return tribeCards.contains(card);
+    public void moveTribeCardsTo(CardRow destination){
+        for(TribeCard card : new ArrayList<>(tribeCards)){
+            destination.addTribeCard(card);
+        }
+        clearTribeCards();
     }
 
     /**
-     * Checks whether the row contains the specified building card.
+     * Moves all tribe cards from this row to the destination row.
      *
-     * @param card the card to search for
-     * @return true if the card is present
+     * @param destination the destination row
      */
-    public boolean containsBuildingCard(BuildingCard card){
-        return buildingCards.contains(card);
+    public void moveBuildingCardsTo(CardRow destination){
+        for(BuildingCard card : new ArrayList<>(buildingCards)){
+            destination.addBuildingCard(card);
+        }
+        clearBuildingCards();
     }
 
     /**
