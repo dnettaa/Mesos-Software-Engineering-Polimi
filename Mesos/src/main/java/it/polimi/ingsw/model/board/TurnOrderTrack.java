@@ -76,6 +76,10 @@ public class TurnOrderTrack {
         return new ArrayList<>(order);
     }
 
+    public int getNumPlayers(){
+        return numPlayers;
+    }
+
     /**
      * Places the given player in the first free position of the turn order track.
      *
@@ -96,5 +100,4 @@ public class TurnOrderTrack {
     public void clear(){
         order.clear();
     }
-
 }
