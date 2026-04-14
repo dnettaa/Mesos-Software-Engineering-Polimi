@@ -182,7 +182,7 @@ public class GameSetupService {
 
             TribeCard card = tribeDeck.draw();
 
-            if(card instanceof EventCard){
+            if(!card.isPickable()){
                 upperRow.addTribeCard(card);
             }else{
                 tribeCards.add(card);
