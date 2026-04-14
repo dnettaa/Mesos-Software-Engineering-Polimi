@@ -37,7 +37,7 @@ public class OfferTrack {
      * @return the matching offer slot
      * @throws IllegalArgumentException if no slot with the given id exists
      */
-    private OfferSlot getSlot(char slotID) {
+    public OfferSlot getSlot(char slotID) {
         for(OfferSlot slot : slots){
             if(slot.getSlotID() == slotID){
                 return slot;
