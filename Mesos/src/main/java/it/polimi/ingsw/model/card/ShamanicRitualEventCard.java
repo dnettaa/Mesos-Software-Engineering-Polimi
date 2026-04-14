@@ -4,6 +4,18 @@ import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.model.player.Player;
 import java.util.List;
 
+/**
+ * Represents the Shamanic Ritual event.
+ * During this event, players compare the total number of Shaman icons
+ * in their tribe.
+ * Players with the highest number of icons gain prestige points,
+ * while players with the lowest number lose prestige points.
+ * In case of ties, the effect applies to all tied players.
+ * Building cards may modify the number of icons, double the reward
+ * for the majority, or prevent the minority penalty.
+ *
+ * @author Andrea Markvukaj
+ */
 public class ShamanicRitualEventCard extends EventCard {
 
     private final int majorityReward;
@@ -16,9 +28,19 @@ public class ShamanicRitualEventCard extends EventCard {
         this.minorityPenalty = minorityPenalty;
     }
 
+    /**
+     * Resolves the Shamanic Ritual event for all players.
+     * The total number of Shaman icons is calculated for each player,
+     * including bonuses provided by Building cards.
+     * Players with the highest value receive a reward, which may be doubled
+     * by certain Building cards.
+     * Players with the lowest value receive a penalty, unless prevented by a Building effect.
+     *
+     * @param players the list of players affected by the event
+     */
     @Override
     public void resolveEvent(List<Player> players) {
-        //calcolo icone per ogni player
+
         int[] icons = new int[players.size()];
 
         for (int i = 0; i < players.size(); i++) {
@@ -32,7 +54,7 @@ public class ShamanicRitualEventCard extends EventCard {
 
             icons[i] = totalIcons;
         }
-        //trovo max e min
+
         int max = icons[0];
         int min = icons[0];
 
@@ -42,11 +64,12 @@ public class ShamanicRitualEventCard extends EventCard {
             if (value < min)
                 min = value;
         }
-        //applico effetti
+
         for(int i = 0; i < players.size(); i++) {
+
             Player p = players.get(i);
             int value = icons[i];
-            //chi e' in maggioranza
+
             if(value == max) {
                 int reward = majorityReward;
 
@@ -58,7 +81,7 @@ public class ShamanicRitualEventCard extends EventCard {
 
                 p.addPP(reward);
             }
-            //chi e' in minoranza
+
             if (value == min) {
 
                 boolean avoidsPenalty = false;
@@ -69,7 +92,7 @@ public class ShamanicRitualEventCard extends EventCard {
                         break;
                     }
                 }
-                // se non ha il building si becca la penalita'
+
                 if (!avoidsPenalty) {
                     p.losePP(minorityPenalty);
                 }

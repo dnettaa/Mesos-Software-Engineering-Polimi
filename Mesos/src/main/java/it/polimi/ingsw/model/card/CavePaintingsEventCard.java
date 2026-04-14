@@ -4,6 +4,18 @@ import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.model.player.Player;
 import java.util.List;
 
+/**
+ * Represents the Cave Paintings event.
+ * During this event, each player is evaluated based on the number of
+ * Artist characters in their tribe.
+ * Players with fewer Artists than the required threshold lose prestige points,
+ * while players meeting or exceeding the requirement gain prestige points
+ * for each Artist they own.
+ * Building cards may grant additional food bonuses for each Artist.
+ *
+ * @author Andrea Markvukaj
+ */
+
 public class CavePaintingsEventCard extends EventCard {
 
     private final int requiredArtists;
@@ -18,24 +30,34 @@ public class CavePaintingsEventCard extends EventCard {
         this.rewardPerArtist = rewardPerArtist;
     }
 
+    /**
+     * Resolves the Cave Paintings event for all players.
+     * Each player either gains or loses prestige points depending on whether
+     * they meet the required number of Artist characters.
+     * Additional food bonuses provided by Building cards are also applied
+     * based on the number of Artists.
+     *
+     * @param players the list of players affected by the event
+     */
     @Override
     public void resolveEvent(List<Player> players) {
 
         for (Player p : players) {
 
             int artists = p.getTribe().countByType(CharacterType.ARTIST);
-            // bonus food dai building, se ho la building card ho 1 cibo bonus per ogni artista (ma va verificato se ho il building o meno)
+
             int bonusFood = 0;
+
             for (BuildingCard b : p.getTribe().getBuildings()) {
                 bonusFood += artists * b.getPaintingsBonusFood();
             }
-            // logica evento
+
             if (artists < requiredArtists) {
                 p.losePP(prestigePenalty);
             } else {
                 p.addPP(artists * rewardPerArtist);
             }
-            // applico il foodbonus se > 0
+
             if (bonusFood > 0) {
                 p.addFood(bonusFood);
             }
