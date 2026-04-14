@@ -1,10 +1,10 @@
 package it.polimi.ingsw.model.board;
 
 import it.polimi.ingsw.model.card.Card;
+import it.polimi.ingsw.model.card.CharacterCard;
 import it.polimi.ingsw.model.card.TribeCard;
 import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.card.EventCard;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,6 +76,11 @@ public class CardRow {
         }
     }
 
+
+    public void removeCard(Card card){
+        card.removeFrom(this);
+    }
+
     /**
      * Returns all tribe cards currently in the row.
      *
@@ -83,6 +88,30 @@ public class CardRow {
      */
     public List<TribeCard> getTribeCards(){
         return new ArrayList<>(tribeCards);
+    }
+
+    public List<CharacterCard> getCharacterCards(){
+        List<CharacterCard> characters = new ArrayList<>();
+
+        for(TribeCard card : tribeCards){
+            if(card.isCharacterCard()){
+                characters.add(card.asCharacterCard());
+            }
+        }
+
+        return characters;
+    }
+
+    public List<EventCard> getEventCards(){
+        List<EventCard> events = new ArrayList<>();
+
+        for(TribeCard card : tribeCards){
+            if(card.isEventCard()){
+                events.add(card.asEventCard());
+            }
+        }
+
+        return events;
     }
 
     /**
@@ -123,24 +152,18 @@ public class CardRow {
         buildingCards.clear();
     }
 
-    /**
-     * Checks whether the row contains the specified tribe card.
-     *
-     * @param card the card to search for
-     * @return true if the card is present
-     */
-    public boolean containsTribeCard(TribeCard card){
-        return tribeCards.contains(card);
+    public void moveTribeCardsTo(CardRow destination){
+        for(TribeCard card : tribeCards){
+            destination.addTribeCard(card);
+        }
+        clearTribeCards();
     }
 
-    /**
-     * Checks whether the row contains the specified building card.
-     *
-     * @param card the card to search for
-     * @return true if the card is present
-     */
-    public boolean containsBuildingCard(BuildingCard card){
-        return buildingCards.contains(card);
+    public void moveBuildingCardsTo(CardRow destination){
+        for(BuildingCard card : buildingCards){
+            destination.addBuildingCard(card);
+        }
+        clearBuildingCards();
     }
 
     /**

@@ -17,6 +17,9 @@ public class BuildingDeck {
     private final List<BuildingCard> eraOneCards;
     private final List<BuildingCard> eraTwoCards;
     private final List<BuildingCard> eraThreeCards;
+    private boolean eraOne;
+    private boolean eraTwo;
+    private boolean eraThree;
 
     /**
      * Creates a new building deck with the given cards divided by era.
@@ -29,6 +32,9 @@ public class BuildingDeck {
         this.eraOneCards = new ArrayList<>(eraOneCards);
         this.eraTwoCards = new ArrayList<>(eraTwoCards);
         this.eraThreeCards = new ArrayList<>(eraThreeCards);
+        this.eraOne = false;
+        this.eraTwo = false;
+        this.eraThree = false;
     }
 
     /**
