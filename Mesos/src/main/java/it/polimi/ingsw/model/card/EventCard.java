@@ -49,6 +49,15 @@ public abstract class EventCard extends TribeCard {
     }
 
     /**
+     * Event cards cannot be applied to a player.
+     *
+     */
+    @Override
+    public void applyTo(Player player) {
+        throw new UnsupportedOperationException("Event cards cannot be applied to a player");
+    }
+
+    /**
      * Resolves the event's effect on all players.
      * Each subclass will implement its own resolving event logic by overriding this method.
      *
