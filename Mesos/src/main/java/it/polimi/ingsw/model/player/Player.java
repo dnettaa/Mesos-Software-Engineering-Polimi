@@ -29,8 +29,8 @@ public class Player {
         this.nickname = nickname;
         this.totemColor = totemColor;
         this.tribe = tribe;
-        this.food = 0;
-        this.prestigePoints = 0;
+        this.food = food;
+        this.prestigePoints = prestigePoints;
     }
 
     /**

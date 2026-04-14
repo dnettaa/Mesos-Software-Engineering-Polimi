@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.game;
 import it.polimi.ingsw.model.board.TurnOrderTrack;
+import it.polimi.ingsw.model.board.OfferSlot;
 import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.player.*;
 import it.polimi.ingsw.model.card.*;
@@ -260,10 +261,13 @@ public class Game {
 
         if(bonus > 0){
             player.addFood(bonus);
-        }else if(bonus < 0){
-            if (player.getFood() >= Math.abs(bonus)) {
+            for(BuildingCard b : player.getTribe().getBuildings()){
+                b.onTurnOrderPlaced(bonus, player);
+            }
+        } else if(bonus < 0){
+            if(player.getFood() >= Math.abs(bonus)){
                 player.spendFood(Math.abs(bonus));
-            }else{
+            } else {
                 player.losePP(2);
             }
         }
