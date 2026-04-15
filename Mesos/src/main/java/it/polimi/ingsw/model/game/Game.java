@@ -1,6 +1,6 @@
 package it.polimi.ingsw.model.game;
 
-import it.polimi.ingsw.model.game.state.*;
+import it.polimi.ingsw.model.game.phase.*;
 import it.polimi.ingsw.model.board.OfferSlot;
 import it.polimi.ingsw.model.board.Board;
 import it.polimi.ingsw.model.card.building.BuildingCard;
@@ -8,7 +8,6 @@ import it.polimi.ingsw.model.player.*;
 import it.polimi.ingsw.model.card.*;
 
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * Main class representing a Mesos game session.
