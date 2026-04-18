@@ -68,4 +68,17 @@ public class SustenanceEventCard extends EventCard {
         }
     }
 
+    /**
+     * Adds this event to the sustenance events list during event resolution.
+     * Sustenance events are resolved after all other events,
+     * therefore they are collected in a separate list.
+     *
+     * @param normal the list of standard events (unused here)
+     * @param sustenance the list of sustenance events
+     */
+    @Override
+    public void addToList(List<EventCard> normal, List<EventCard> sustenance) {
+        sustenance.add(this);
+    }
+
 }
