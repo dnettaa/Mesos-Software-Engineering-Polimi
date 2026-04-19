@@ -35,7 +35,7 @@ public abstract class BuildingCard extends Card {
     @Override
     public void applyTo(Player player) {
         player.spendFood(getCostFor(player));
-        player.getTribe().addBuilding(this);
+        player.getTribe().getBuildings().add(this);
     }
 
     /**

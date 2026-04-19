@@ -58,6 +58,20 @@ public abstract class EventCard extends TribeCard {
     }
 
     /**
+     * Adds this event to the appropriate list during event resolution.
+     * By default, events are considered normal events and are added
+     * to the {@code normal} list.
+     * Subclasses may override this method to change their classification
+     * (see Sustenance event resolution order).
+     *
+     * @param normal the list of standard events
+     * @param sustenance the list of sustenance events
+     */
+    public void addToList(List<EventCard> normal, List<EventCard> sustenance) {
+        normal.add(this);
+    }
+
+    /**
      * Resolves the event's effect on all players.
      * Each subclass will implement its own resolving event logic by overriding this method.
      *

@@ -1,6 +1,4 @@
 package it.polimi.ingsw.model.card;
-import it.polimi.ingsw.model.card.building.BuildingCard;
-import it.polimi.ingsw.model.player.Player;
 import it.polimi.ingsw.model.player.Tribe;
 import it.polimi.ingsw.model.game.Era;
 
@@ -29,30 +27,4 @@ public abstract class CharacterCard extends TribeCard {
         return 0;
     }
 
-    /**
-     * Returns the type of the character.
-     * See enum class <<CharacterType>>.
-     *
-     * @return the character type
-     */
-    public abstract CharacterType getType();
-
-    /**
-     * Applies this character card to the given player.
-     * Behavior:
-     * Adding the character to the player's tribe.
-     * Granting food based on {@link #getFoodOnAcquired(Tribe)}
-     * Triggering building effects that react to character acquisition.
-     *
-     * @param player the player acquiring the card
-     */
-    @Override
-    public void applyTo(Player player) {
-        player.getTribe().addCharacter(this);
-        player.addFood(getFoodOnAcquired(player.getTribe()));
-
-        for(BuildingCard b : player.getTribe().getBuildings()) {
-            b.onCharacterAdded(this, player);
-        }
-    }
 }

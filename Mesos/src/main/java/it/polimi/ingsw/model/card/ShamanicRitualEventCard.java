@@ -65,25 +65,28 @@ public class ShamanicRitualEventCard extends EventCard {
                 min = value;
         }
 
-        for(int i = 0; i < players.size(); i++) {
+        //  REWARD PHASE
+        for (int i = 0; i < players.size(); i++) {
+            if (icons[i] == max) {
 
-            Player p = players.get(i);
-            int value = icons[i];
-
-            if(value == max) {
+                Player p = players.get(i);
                 int reward = majorityReward;
 
-                for(BuildingCard b : p.getTribe().getBuildings()) {
-                    if(b.doublesWinnerReward()) {
-                        reward = reward * 2;
+                for (BuildingCard b : p.getTribe().getBuildings()) {
+                    if (b.doublesWinnerReward()) {
+                        reward *= 2;
                     }
                 }
 
                 p.addPP(reward);
             }
+        }
 
-            if (value == min) {
+        //  PENALTY PHASE
+        for (int i = 0; i < players.size(); i++) {
+            if (icons[i] == min) {
 
+                Player p = players.get(i);
                 boolean avoidsPenalty = false;
 
                 for (BuildingCard b : p.getTribe().getBuildings()) {
