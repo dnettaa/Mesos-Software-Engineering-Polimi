@@ -1,0 +1,84 @@
+@startuml
+title 3. Take Cards (Socket)
+
+legend top
+This diagram represents the action of taking cards from the board.
+The client sends a TakeCardsRequest specifying the chosen cards from the upper and lower rows.
+The Controller delegates the request to the InGamePhase, which invokes the Game model.
+The model validates the move, including card selection consistency and resource costs.
+If successful, the updated game state is returned; otherwise, an error message is sent.
+endlegend
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequence {
+    ArrowColor #2F4F4F
+    LifeLineBorderColor #708090
+    LifeLineBackgroundColor #F8F8F8
+    ParticipantBorderColor #5F6F7F
+    ParticipantBackgroundColor #EAEFF7
+    ActorBorderColor #5F6F7F
+    ActorBackgroundColor #EAEFF7
+    GroupBorderColor #444444
+    GroupBackgroundColor #FDFDFD
+    BoxBorderColor #7F8C8D
+    BoxBackgroundColor #FAFAFA
+}
+
+actor Player
+
+box "Client Node" #DDF3F4
+participant View
+participant VirtualSocketServer
+end box
+
+box "Server Node" #F7F5D6
+participant "SocketClientHandler\n(VirtualView)" as Handler
+participant Controller
+participant InGamePhase
+participant "Game\n(Model)" as Game
+end box
+
+Player -> View : selectCards(upper, lower)
+View -> VirtualSocketServer : takeCards(nickname, upper, lower)
+VirtualSocketServer -> Handler : TakeCardsRequest(nickname, upper, lower)
+
+note right of Handler
+The request contains the cards\nselected from the upper and lower rows.
+end note
+
+Handler -> Controller : takeCards(nickname, upper, lower)
+Controller -> InGamePhase : handleTakeCards(this, nickname, upper, lower)
+InGamePhase -> Game : takeCards(player, upper, lower)
+
+alt [Valid move]
+    Game --> InGamePhase : return
+    InGamePhase --> Controller : success
+    Controller -> Handler : GameUpdated(gameState)
+    Handler -> VirtualSocketServer : GameUpdated(gameState)
+    VirtualSocketServer -> View : updateBoard(gameState)
+else [Insufficient food]
+    Game --> InGamePhase : throw InsufficientFoodException
+    InGamePhase --> Controller : propagate exception
+    Controller -> Handler : Error("Not enough food")
+    Handler -> VirtualSocketServer : Error("Not enough food")
+    VirtualSocketServer -> View : showError("Not enough food")
+else [Invalid card selection]
+    Game --> InGamePhase : throw InvalidMoveException
+    InGamePhase --> Controller : propagate exception
+    Controller -> Handler : Error("Invalid card selection")
+    Handler -> VirtualSocketServer : Error("Invalid card selection")
+    VirtualSocketServer -> View : showError("Invalid card selection")
+end
+
+note right of Game
+The model validates:
+- current phase
+- active player
+- selected cards consistency
+- food cost, if buildings are chosen
+Then it updates the player's state and the board.
+end note
+
+@enduml

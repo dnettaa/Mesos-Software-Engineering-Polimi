@@ -1,0 +1,77 @@
+@startuml
+title 2. Place Totem (Socket)
+
+legend top
+This diagram shows the totem placement process during the game phase.
+The client sends a PlaceTotemRequest specifying the selected offer slot.
+The request is handled by the Controller and delegated to the current InGamePhase,
+which invokes the Game model. The model validates turn order and slot availability.
+If the move is valid, the updated game state is returned; otherwise, an error is generated.
+endlegend
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequence {
+    ArrowColor #2F4F4F
+    LifeLineBorderColor #708090
+    LifeLineBackgroundColor #F8F8F8
+    ParticipantBorderColor #5F6F7F
+    ParticipantBackgroundColor #EAEFF7
+    ActorBorderColor #5F6F7F
+    ActorBackgroundColor #EAEFF7
+    GroupBorderColor #444444
+    GroupBackgroundColor #FDFDFD
+    BoxBorderColor #7F8C8D
+    BoxBackgroundColor #FAFAFA
+}
+
+actor Player
+
+box "Client Node" #DDF3F4
+participant View
+participant VirtualSocketServer
+end box
+
+box "Server Node" #F7F5D6
+participant "SocketClientHandler\n(VirtualView)" as Handler
+participant Controller
+participant InGamePhase
+participant "Game\n(Model)" as Game
+end box
+
+Player -> View : selectOfferSlot(slotID)
+View -> VirtualSocketServer : placeTotem(nickname, slotID)
+VirtualSocketServer -> Handler : PlaceTotemRequest(nickname, slotID)
+
+note right of Handler
+Network message received\nfrom the client.
+end note
+
+Handler -> Controller : placeTotem(nickname, slotID)
+Controller -> InGamePhase : handlePlaceTotem(this, nickname, slotID)
+InGamePhase -> Game : placeTotem(player, slotID)
+
+alt [Valid placement]
+    Game --> InGamePhase : return
+    InGamePhase --> Controller : success
+    Controller -> Handler : GameUpdated(gameState)
+    Handler -> VirtualSocketServer : GameUpdated(gameState)
+    VirtualSocketServer -> View : updateBoard(gameState)
+else [Invalid placement]
+    Game --> InGamePhase : throw InvalidMoveException
+    InGamePhase --> Controller : propagate exception
+    Controller -> Handler : Error("Slot occupied or wrong turn")
+    Handler -> VirtualSocketServer : Error("Slot occupied or wrong turn")
+    VirtualSocketServer -> View : showError("Slot occupied or wrong turn")
+end
+
+note right of Game
+The model validates:
+- current phase
+- active player
+- slot availability
+Then it updates the game state.
+end note
+
+@enduml
