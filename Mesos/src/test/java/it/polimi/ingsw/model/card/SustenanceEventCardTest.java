@@ -29,4 +29,27 @@ class SustenanceEventCardTest {
         assertEquals(0, player.getFood());
         assertEquals(4, player.getPrestigePoints());
     }
+    /**
+     * Verifies that the SustenanceEventCard correctly adds itself to the
+     * sustenance events list and ignores the normal events list.
+     */
+
+    @Test
+    void testAddToList() {
+        // Setup
+        SustenanceEventCard event = new SustenanceEventCard(Era.Era1, "SU1", false, 3);
+
+        List<EventCard> normalEvents = new java.util.ArrayList<>();
+        List<EventCard> sustenanceEvents = new java.util.ArrayList<>();
+
+        // Execution
+        event.addToList(normalEvents, sustenanceEvents);
+
+        // Verification
+        assertTrue(normalEvents.isEmpty());
+
+        assertEquals(1, sustenanceEvents.size());
+
+        assertEquals(event, sustenanceEvents.getFirst());
+    }
 }
