@@ -38,7 +38,7 @@ public class CardRow {
      *
      * @param card the tribe card to add
      */
-    public void addTribeCard(TribeCard card){
+    public void addTribeCard(TribeCard card) {
         tribeCards.add(card);
     }
 
@@ -52,47 +52,16 @@ public class CardRow {
     }
 
     /**
-     * Adds multiple building cards to the row.
+     * Removes the given card from this row.
+     * <p>
+     * The removal logic is delegated to the card itself,
+     * so that the correct internal list is updated without
+     * using type checks.
      *
-     * @param cards the building cards to add
+     * @param card the card to remove
      */
-    public void addBuildingCards(List<BuildingCard> cards){
-        for(BuildingCard card : cards){
-            addBuildingCard(card);
-        }
-    }
-
-    /**
-     * Removes a tribe card from the row.
-     *
-     * @param card the tribe card to remove
-     * @throws IllegalArgumentException if the card is not present
-     */
-    private void removeTribeCard(TribeCard card){
-        if(!tribeCards.remove(card)){
-            throw new IllegalArgumentException("Tribe card is not present in this row");
-        }
-    }
-
-    /**
-     * Removes a building card from the row.
-     *
-     * @param card the building card to remove
-     * @throws IllegalArgumentException if the card is not present
-     */
-    private void removeBuildingCard(BuildingCard card){
-        if(!buildingCards.remove(card)){
-            throw new IllegalArgumentException("Building card is not present in this row");
-        }
-    }
-
-    //questa logica poi andrà spostata nelle carte
     public void removeCard(Card card){
-        if(card instanceof BuildingCard){
-            removeBuildingCard((BuildingCard) card);
-        } else {
-            removeTribeCard((TribeCard) card);
-        }
+        card.removeFrom(this);
     }
 
     /**
@@ -100,7 +69,7 @@ public class CardRow {
      *
      * @return a copy of the tribe cards in the row
      */
-    public List<TribeCard> getTribeCards(){
+    public List<TribeCard> getTribeCards() {
         return new ArrayList<>(tribeCards);
     }
 
@@ -149,6 +118,30 @@ public class CardRow {
     }
 
     /**
+     * Returns the internal tribe-card list.
+     * <p>
+     * This method is intentionally package-private and must only be used
+     * by trusted model classes that need direct access for internal logic.
+     *
+     * @return the internal tribe-card list
+     */
+    public List<TribeCard> getTribeCardsInternal() {
+        return tribeCards;
+    }
+
+    /**
+     * Returns the internal building-card list.
+     * <p>
+     * This method is intentionally package-private and must only be used
+     * by trusted model classes that need direct access for internal logic.
+     *
+     * @return the internal building-card list
+     */
+    public List<BuildingCard> getBuildingCardsInternal() {
+        return buildingCards;
+    }
+
+    /**
      * Returns all cards currently in the row, preserving the row order:
      * tribe cards first, then building cards.
      *
@@ -181,28 +174,29 @@ public class CardRow {
 
 
     /**
-     * Returns the event cards currently in the row.
+     * Moves all tribe cards from this row to the destination row.
      *
-     * @return a list containing only the event cards in the row
+     * @param destination the destination row
      */
-    public void moveTribeCardsTo(CardRow destination){
-        for(TribeCard card : new ArrayList<>(tribeCards)){
+    public void moveTribeCardsTo(CardRow destination) {
+        for (TribeCard card : tribeCards) {
             destination.addTribeCard(card);
         }
         clearTribeCards();
     }
 
     /**
-     * Moves all tribe cards from this row to the destination row.
+     * Moves all building cards from this row to the destination row.
      *
      * @param destination the destination row
      */
-    public void moveBuildingCardsTo(CardRow destination){
-        for(BuildingCard card : new ArrayList<>(buildingCards)){
+    public void moveBuildingCardsTo(CardRow destination) {
+        for (BuildingCard card : buildingCards) {
             destination.addBuildingCard(card);
         }
         clearBuildingCards();
     }
+
 
     /**
      * Checks whether the row contains no cards at all.

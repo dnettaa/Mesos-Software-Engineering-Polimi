@@ -133,12 +133,17 @@ public class Board {
         return offerTrack.getActionFor(player);
     }
 
-    public void removeCardFromUpper(Card card){
-        upperRow.removeCard(card);
-    }
-
-    public void removeCardFromLower(Card card){
-        lowerRow.removeCard(card);
+    /**
+     * Removes the specified card from the given row of the board.
+     * <p>
+     * This method acts as an entry point for external components (e.g., the Game layer)
+     * to remove cards from the board without directly accessing its internal structure.
+     * <p>
+     * @param row the row from which the card must be removed (upper or lower row)
+     * @param card the card to remove
+     */
+    public void removeCardFrom(CardRow row, Card card){
+        row.removeCard(card);
     }
 
     /**
