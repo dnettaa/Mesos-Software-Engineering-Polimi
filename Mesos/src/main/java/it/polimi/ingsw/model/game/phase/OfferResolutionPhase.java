@@ -16,6 +16,11 @@ public class OfferResolutionPhase implements Phase {
         game.validateActivePlayerOfferResolution(player);
         game.validateChosenCards(player, chosenUpper, chosenLower);
 
+        int foodReward = game.getResolutionOrder().get(game.getCurrentPlayerIndex()).getFoodReward();
+        if (foodReward > 0) {
+            player.addFood(foodReward);
+        }
+
         for (Card upperCard : chosenUpper) {
             game.getBoard().removeCardFromUpper(upperCard);
             upperCard.applyTo(player);
