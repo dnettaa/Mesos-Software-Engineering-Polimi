@@ -31,6 +31,9 @@ public class Tribe {
      */
     public Tribe() {
         this.members = new HashMap<>();
+        for (CharacterType type : CharacterType.values()) {
+            this.members.put(type, new ArrayList<>());
+        }
         this.buildings = new ArrayList<>();
     }
 
