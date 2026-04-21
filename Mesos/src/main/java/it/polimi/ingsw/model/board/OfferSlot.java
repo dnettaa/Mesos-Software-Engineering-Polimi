@@ -100,15 +100,12 @@ public class OfferSlot {
     /**
      * Removes and returns the player currently occupying this slot.
      * After this operation, the slot becomes free.
-     *
-     * @return the removed player, or null if the slot was already free
      */
-    public Player remove(){
+    public void remove(){
         Player removedPlayer = occupant;
 
         occupant = null;
 
-        return removedPlayer;
     }
 
 

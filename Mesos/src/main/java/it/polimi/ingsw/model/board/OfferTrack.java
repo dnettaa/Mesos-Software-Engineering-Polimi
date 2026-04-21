@@ -25,11 +25,6 @@ public class OfferTrack {
         this.slots = new ArrayList<>(slots);
     }
 
-
-    public List<OfferSlot> getSlots() {
-        return slots;
-    }
-
     /**
      * Returns the slot with the given identifier.
      *
@@ -77,32 +72,6 @@ public class OfferTrack {
         }
 
         return resolutionOrder;
-    }
-
-    /**
-     * Returns the occupied slots in left-to-right resolution order.
-     *
-     * @return a list containing only the occupied slots, in track order
-     */
-    public boolean isSlotFree(char slotID){
-        return !getSlot(slotID).isOccupied();
-    }
-
-    /**
-     * Returns all currently free slots in the offer track.
-     *
-     * @return a list containing all unoccupied slots
-     */
-    public List<OfferSlot> getFreeSlots(){
-        List<OfferSlot> freeSlots = new ArrayList<>();
-
-        for(OfferSlot slot : slots){
-            if(!slot.isOccupied()){
-                freeSlots.add(slot);
-            }
-        }
-
-        return freeSlots;
     }
 
     /**
