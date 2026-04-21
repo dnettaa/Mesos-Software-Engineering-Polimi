@@ -21,8 +21,7 @@ public class ShamanicRitualEventCard extends EventCard {
     private final int majorityReward;
     private final int minorityPenalty;
 
-    public ShamanicRitualEventCard(Era era, String id, boolean isFinal,
-                                   int majorityReward, int minorityPenalty) {
+    public ShamanicRitualEventCard(Era era, String id, boolean isFinal, int majorityReward, int minorityPenalty) {
         super(era, id, isFinal);
         this.majorityReward = majorityReward;
         this.minorityPenalty = minorityPenalty;
