@@ -16,7 +16,7 @@ import java.util.List;
  *
  * @author Luca Grecchi
  */
-public class Game {
+public class Game implements GameActions{
 
     private final int gameID;
     private final List<Player> players;
