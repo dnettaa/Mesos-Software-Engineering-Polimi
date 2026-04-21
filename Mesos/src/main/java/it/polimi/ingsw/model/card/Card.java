@@ -1,4 +1,5 @@
 package it.polimi.ingsw.model.card;
+import it.polimi.ingsw.model.board.CardRow;
 import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.model.player.Player;
 
@@ -55,5 +56,16 @@ public abstract class Card {
     public int getCostFor(Player player) {
         return 0;
     }
+
+    /**
+     * Removes this card from the given card row.
+     * The specific removal logic depends on the concrete type of the card
+     * and is implemented by subclasses using polymorphism.
+     * This avoids type checks (e.g., instanceof) in the CardRow class.
+     *
+     * @param row the card row from which this card must be removed
+     * @throws IllegalArgumentException if the card is not present in the row
+     */
+    public abstract void removeFrom(CardRow row);
 
 }   
