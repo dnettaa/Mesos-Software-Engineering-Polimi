@@ -45,15 +45,6 @@ public class Board {
     }
 
     /**
-     * Returns the offer track of this board.
-     *
-     * @return the offer track
-     */
-    public OfferTrack getOfferTrack(){
-        return offerTrack;
-    }
-
-    /**
      * Returns the turn order track of this board.
      *
      * @return the turn order track
@@ -133,13 +124,16 @@ public class Board {
         return offerTrack.getActionFor(player);
     }
 
+
     public void removeCardFromUpper(Card card){
         upperRow.removeCard(card);
     }
 
+
     public void removeCardFromLower(Card card) {
         lowerRow.removeCard(card);
     }
+
     /**
      * Returns the food bonus associated with the player's current
      * position in the turn order track.

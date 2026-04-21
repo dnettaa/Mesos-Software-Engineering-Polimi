@@ -1,7 +1,6 @@
 package it.polimi.ingsw.model.board;
 
 import it.polimi.ingsw.model.card.Card;
-import it.polimi.ingsw.model.card.CharacterCard;
 import it.polimi.ingsw.model.card.TribeCard;
 import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.card.EventCard;
@@ -85,24 +84,6 @@ public class CardRow {
     }
 
     /**
-     * Returns the character cards currently in the row.
-     *
-     * @return a list containing only the character cards in the row
-     */
-    public List<CharacterCard> getCharacterCards(){
-        List<CharacterCard> characters = new ArrayList<>();
-
-        for(TribeCard card : tribeCards){
-            if(card.isPickable()){
-                characters.add((CharacterCard) card);
-            }
-        }
-
-        return characters;
-    }
-
-
-    /**
      * Returns the event cards currently in the row.
      *
      * @return a list containing only the event cards in the row
@@ -119,14 +100,6 @@ public class CardRow {
         return events;
     }
 
-    /**
-     * Returns all building cards currently in the row.
-     *
-     * @return a copy of the building cards in the row
-     */
-    public List<BuildingCard> getBuildingCards(){
-        return new ArrayList<>(buildingCards);
-    }
 
     /**
      * Returns the internal tribe-card list.
@@ -206,15 +179,5 @@ public class CardRow {
             destination.addBuildingCard(card);
         }
         clearBuildingCards();
-    }
-
-
-    /**
-     * Checks whether the row contains no cards at all.
-     *
-     * @return true if both groups are empty
-     */
-    public boolean isEmpty(){
-        return tribeCards.isEmpty() && buildingCards.isEmpty();
     }
 }
