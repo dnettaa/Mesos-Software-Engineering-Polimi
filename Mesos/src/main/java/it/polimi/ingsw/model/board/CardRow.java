@@ -52,6 +52,17 @@ public class CardRow {
     }
 
     /**
+     * Adds multiple building cards to the row.
+     * <p>
+     * @param cards the building cards to add
+     */
+    public void addBuildingCards(List<BuildingCard> cards){
+        for(BuildingCard card : cards){
+            addBuildingCard(card);
+        }
+    }
+
+    /**
      * Removes the given card from this row.
      * <p>
      * The removal logic is delegated to the card itself,

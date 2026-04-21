@@ -133,19 +133,13 @@ public class Board {
         return offerTrack.getActionFor(player);
     }
 
-    /**
-     * Removes the specified card from the given row of the board.
-     * <p>
-     * This method acts as an entry point for external components (e.g., the Game layer)
-     * to remove cards from the board without directly accessing its internal structure.
-     * <p>
-     * @param row the row from which the card must be removed (upper or lower row)
-     * @param card the card to remove
-     */
-    public void removeCardFrom(CardRow row, Card card){
-        row.removeCard(card);
+    public void removeCardFromUpper(Card card){
+        upperRow.removeCard(card);
     }
 
+    public void removeCardFromLower(Card card) {
+        lowerRow.removeCard(card);
+    }
     /**
      * Returns the food bonus associated with the player's current
      * position in the turn order track.
@@ -213,19 +207,6 @@ public class Board {
         currentEra = checkEraTransition(currentEra);
         refillUpperRow(turnOrderTrack.getNumPlayers());
         revealBuildingsForEra(currentEra);
-    }
-
-    /**
-     * Checks whether the provided row is one of the two rows
-     * managed by this board.
-     *
-     * @param row the row to validate
-     * @throws IllegalArgumentException if the row does not belong to this board
-     */
-    private void validateRowBelongsToBoard(CardRow row) {
-        if (row != upperRow && row != lowerRow) {
-            throw new IllegalArgumentException("The specified row does not belong to this board");
-        }
     }
 
     /**
