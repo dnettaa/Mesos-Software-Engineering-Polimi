@@ -107,16 +107,12 @@ class BoardTest {
         board.returnTotemToTurnOrder(testPlayer);
         assertEquals(1, board.getPlacementOrder().size());
 
-        // Chiamiamo setupNewRound() PRIMA delle rimozioni.
-        // Questo sposta "H_OLD" nella riga inferiore e riempie la riga superiore con nuove carte.
         board.setupNewRound();
 
-        // Ora la riga inferiore contiene "H_OLD". Testiamo removeCardFromLower.
         Card lowerCard = board.getLowerRowCards().getFirst();
         board.removeCardFromLower(lowerCard);
         assertEquals(0, board.getLowerRowCards().stream().filter(c -> c.equals(lowerCard)).count());
 
-        // Ora la riga superiore contiene le carte appena pescate. Testiamo removeCardFromUpper.
         Card upperCard = board.getUpperRowCards().getFirst();
         board.removeCardFromUpper(upperCard);
         assertEquals(0, board.getUpperRowCards().stream().filter(c -> c.equals(upperCard)).count());
