@@ -45,15 +45,6 @@ public class Board {
     }
 
     /**
-     * Returns the offer track of this board.
-     *
-     * @return the offer track
-     */
-    public OfferTrack getOfferTrack(){
-        return offerTrack;
-    }
-
-    /**
      * Returns the turn order track of this board.
      *
      * @return the turn order track
@@ -133,11 +124,13 @@ public class Board {
         return offerTrack.getActionFor(player);
     }
 
+
     public void removeCardFromUpper(Card card){
         upperRow.removeCard(card);
     }
 
-    public void removeCardFromLower(Card card){
+
+    public void removeCardFromLower(Card card) {
         lowerRow.removeCard(card);
     }
 
@@ -208,19 +201,6 @@ public class Board {
         currentEra = checkEraTransition(currentEra);
         refillUpperRow(turnOrderTrack.getNumPlayers());
         revealBuildingsForEra(currentEra);
-    }
-
-    /**
-     * Checks whether the provided row is one of the two rows
-     * managed by this board.
-     *
-     * @param row the row to validate
-     * @throws IllegalArgumentException if the row does not belong to this board
-     */
-    private void validateRowBelongsToBoard(CardRow row) {
-        if (row != upperRow && row != lowerRow) {
-            throw new IllegalArgumentException("The specified row does not belong to this board");
-        }
     }
 
     /**

@@ -1,0 +1,73 @@
+@startuml
+title 1. Join Game (Socket)
+
+legend top
+This diagram illustrates the join game process in a socket-based client-server architecture.
+The client sends a JoinRequest message containing the selected nickname and color.
+On the server side, a dedicated handler forwards the request to the Controller,
+which delegates validation to the LobbyPhase. If the request is accepted, the player
+enters the lobby; otherwise, an error message is returned.
+endlegend
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam sequence {
+    ArrowColor #2F4F4F
+    LifeLineBorderColor #708090
+    LifeLineBackgroundColor #F8F8F8
+    ParticipantBorderColor #5F6F7F
+    ParticipantBackgroundColor #EAEFF7
+    ActorBorderColor #5F6F7F
+    ActorBackgroundColor #EAEFF7
+    GroupBorderColor #444444
+    GroupBackgroundColor #FDFDFD
+    BoxBorderColor #7F8C8D
+    BoxBackgroundColor #FAFAFA
+}
+
+actor Player
+
+box "Client Node" #DDF3F4
+participant View
+participant VirtualSocketServer
+end box
+
+box "Server Node" #F7F5D6
+participant SocketServer
+participant "SocketClientHandler\n(VirtualView)" as Handler
+participant Controller
+participant LobbyPhase
+end box
+
+Player -> View : enterNicknameAndColor(nickname, color)
+View -> VirtualSocketServer : joinLobby(nickname, color)
+VirtualSocketServer -> SocketServer : JoinRequest(nickname, color)
+
+create Handler
+SocketServer -> Handler : <<create>>
+note right of Handler
+A dedicated handler is created\nfor the newly connected client.
+end note
+
+Handler -> Controller : joinLobby(nickname, color, this)
+Controller -> LobbyPhase : handleJoinLobby(this, nickname, color, this)
+
+alt [Join accepted]
+    LobbyPhase --> Controller : return
+    Controller -> Handler : notifyJoinSuccess(nickname)
+    Handler -> VirtualSocketServer : JoinSuccess(nickname)
+    VirtualSocketServer -> View : showWaitingRoom()
+else [Nickname already taken]
+    LobbyPhase --> Controller : throw NicknameTakenException
+    Controller -> Handler : notifyError(nickname, "Nickname taken")
+    Handler -> VirtualSocketServer : Error("Nickname taken")
+    VirtualSocketServer -> View : showError("Nickname taken")
+else [Color already taken]
+    LobbyPhase --> Controller : throw ColorTakenException
+    Controller -> Handler : notifyError(nickname, "Color taken")
+    Handler -> VirtualSocketServer : Error("Color taken")
+    VirtualSocketServer -> View : showError("Color taken")
+end
+
+@enduml
