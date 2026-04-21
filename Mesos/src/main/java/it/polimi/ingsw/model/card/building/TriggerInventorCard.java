@@ -42,7 +42,6 @@ public class TriggerInventorCard extends BuildingCard {
         this.lastPairs = countPairs(player);
     }
 
-
     /**
      * Triggered when a Character is added to the player's tribe.
      * If the addition results in an increased number of Inventor pairs,

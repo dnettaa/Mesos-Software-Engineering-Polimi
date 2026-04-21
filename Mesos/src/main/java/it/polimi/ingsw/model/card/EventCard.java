@@ -39,16 +39,6 @@ public abstract class EventCard extends TribeCard {
     }
 
     /**
-     * Event cards have no cost.
-     *
-     * @return false
-     */
-    @Override
-    public int getCostFor(Player player) {
-        return 0;
-    }
-
-    /**
      * Event cards cannot be applied to a player.
      *
      */
