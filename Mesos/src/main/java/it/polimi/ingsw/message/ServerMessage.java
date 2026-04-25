@@ -12,7 +12,6 @@ import it.polimi.ingsw.view.View;
 
 public class ServerMessage extends Message{
 
-
     /**
      * Applies this message to the given client-side view.
      *
