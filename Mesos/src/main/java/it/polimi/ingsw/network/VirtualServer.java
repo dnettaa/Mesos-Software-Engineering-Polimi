@@ -5,6 +5,13 @@ package it.polimi.ingsw.network;
 import it.polimi.ingsw.message.ClientMessage;
 import it.polimi.ingsw.model.player.TotemColor;
 
+/**
+ * Client-side abstraction of the remote game server.
+ * <p>
+ * The View uses this interface to communicate with the server without knowing
+ * whether the underlying network technology is Socket or RMI.
+ */
+
 public interface VirtualServer {
 
     /**
