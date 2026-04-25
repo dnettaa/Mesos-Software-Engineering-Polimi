@@ -38,5 +38,4 @@ public class DisconnectionMessage extends ServerMessage{
     public void apply(View view){
         view.notifyDisconnection(reason);
     }
-
 }
