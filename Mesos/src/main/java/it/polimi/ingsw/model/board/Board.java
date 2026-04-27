@@ -275,10 +275,21 @@ public class Board {
         upperRow.moveBuildingCardsTo(lowerRow);
     }
 
+    /**
+     * Returns the number of cards currently remaining in the tribe deck.
+     *
+     * @return the amount of cards left in the tribe deck
+     */
     public int getTribeDeckRemaining() {
         return tribeDeck.remaining();
     }
 
+    /**
+     * Builds and returns a list of data transfer objects representing the current state of the offer track.
+     * Delegates the creation of the data to the underlying {@link OfferTrack}.
+     *
+     * @return a list of {@link OfferSlotData} representing all the offer slots
+     */
     public List<OfferSlotData> buildOfferSlotsData(){
         return offerTrack.buildOfferSlotsData();
     }

@@ -3,6 +3,8 @@ package it.polimi.ingsw.model.game;
 import it.polimi.ingsw.message.GameStateMessage;
 import it.polimi.ingsw.message.OfferSlotData;
 import it.polimi.ingsw.message.PlayerData;
+import it.polimi.ingsw.model.Exception.ErrorCode;
+import it.polimi.ingsw.model.Exception.GameException;
 import it.polimi.ingsw.model.game.phase.*;
 import it.polimi.ingsw.model.board.OfferSlot;
 import it.polimi.ingsw.model.board.Board;
@@ -203,31 +205,37 @@ public class Game implements GameActions{
     }
 
     /**
-     * Check if the state is "In progress"
+     * Check if the state is "In progress".
+     *
+     * @throws GameException with {@link ErrorCode#INVALID_PHASE} if the game is not currently in progress
      */
     public void validateState(){
         if (state != GameState.InProgress) {
-            throw new IllegalStateException("Game is not in progress!");
+            throw new GameException(ErrorCode.INVALID_PHASE, "Game is not in progress!");
         }
     }
 
     /**
-     * Check if the player is the one expected to act
+     * Check if the player is the one expected to act during totem placement.
+     *
      * @param player the player attempting to act
+     * @throws GameException with {@link ErrorCode#NOT_YOUR_TURN} if it is not the provided player's turn to place a totem
      */
     public void validateActivePlayerTotemPlacement(Player player){
         if(!player.equals(placementOrder.get(currentPlayerIndex))){
-            throw new IllegalArgumentException("Wrong player");
+            throw new GameException(ErrorCode.NOT_YOUR_TURN, "Wrong player");
         }
     }
 
     /**
-     * Check if the player is the one expected to act
+     * Check if the player is the one expected to act during offer resolution.
+     *
      * @param player the player attempting to act
+     * @throws GameException with {@link ErrorCode#NOT_YOUR_TURN} if it is not the provided player's turn to resolve their offer
      */
     public void validateActivePlayerOfferResolution(Player player){
         if(!player.equals(resolutionOrder.get(currentPlayerIndex).getOccupant())){
-            throw new IllegalArgumentException("Wrong player");
+            throw new GameException(ErrorCode.NOT_YOUR_TURN, "Wrong player");
         }
     }
 
@@ -238,6 +246,9 @@ public class Game implements GameActions{
      * @param player the player taking cards
      * @param chosenUpper cards chosen from the upper row
      * @param chosenLower cards chosen from the lower row
+     * @throws GameException with {@link ErrorCode#INVALID_SELECTION} if the number of chosen cards does not match the slot action
+     * @throws GameException with {@link ErrorCode#CARD_NOT_IN_ROW} if any chosen card is not pickable or not in the specified row
+     * @throws GameException with {@link ErrorCode#INSUFFICIENT_FOOD} if the player does not have enough food to pay for the chosen buildings
      */
     public void validateChosenCards(Player player, List<Card> chosenUpper, List<Card> chosenLower){
 
@@ -247,64 +258,109 @@ public class Game implements GameActions{
         List<Card> pickableLower = board.getLowerRowCards();
 
         if(action[0] != chosenUpper.size() || action[1] != chosenLower.size()){
-            throw new IllegalArgumentException("Wrong chosen cards");
+            throw new GameException(ErrorCode.INVALID_SELECTION, "Wrong number of chosen cards");
         }
 
         int totalCost = 0;
 
         for(Card card: chosenUpper){
             if(!pickableUpper.contains(card) || !card.isPickable()){
-                throw new IllegalArgumentException("Wrong chosen cards");
+                throw new GameException(ErrorCode.CARD_NOT_IN_ROW, "Card not available in upper row");
             }
             totalCost += card.getCostFor(player);
         }
 
         for(Card card: chosenLower){
             if(!pickableLower.contains(card) || !card.isPickable()){
-                throw new IllegalArgumentException("Wrong chosen cards");
+                throw new GameException(ErrorCode.CARD_NOT_IN_ROW, "Card not available in lower row");
             }
             totalCost += card.getCostFor(player);
         }
 
         if (totalCost > player.getFood()) {
-            throw new IllegalArgumentException("Not enough food for buildings");
+            throw new GameException(ErrorCode.INSUFFICIENT_FOOD, "Not enough food for buildings");
         }
     }
 
+    /**
+     * Returns the nickname of the player who is currently expected to act.
+     * Delegates to the current phase, which knows which player is active.
+     *
+     * @return the nickname of the active player, or null if no player is expected to act
+     */
     public String getCurrentPlayerNickname(){
         return currentPhase.getCurrentPlayerNickname(this);
     }
 
+    /**
+     * Returns the simple class name of the current game phase.
+     * Used by the client to determine which action to prompt the user for.
+     *
+     * @return the name of the current phase (e.g. "TotemPlacementPhase")
+     */
     public String getCurrentPhaseName() {
         return currentPhase.getClass().getSimpleName();
     }
 
+    /**
+     * Returns whether the game has ended.
+     *
+     * @return true if the game state is Finished, false otherwise
+     */
     public boolean isGameEnded(){
         return state == GameState.Finished;
     }
 
+    /**
+     * Finds and returns the player with the given nickname.
+     *
+     * @param nickname the nickname to search for
+     * @return the matching player
+     * @throws GameException with {@link ErrorCode#UNKNOWN_PLAYER} if no player with that nickname exists
+     */
     private Player findPlayerByNickname(String nickname){
         for(Player p: players){
             if(p.getNickname().equals(nickname)){
                 return p;
             }
         }
-        return null;
+        throw new GameException(ErrorCode.UNKNOWN_PLAYER, "Unknown player: " + nickname);
     }
 
+    /**
+     * Resolves a list of card IDs against a row of available cards.
+     * Returns the matched cards in the same order as the input IDs.
+     *
+     * @param ids the list of card IDs to resolve
+     * @param row the list of available cards to search in
+     * @return the list of matched cards
+     * @throws GameException with {@link ErrorCode#UNKNOWN_CARD} if any ID is not found in the row
+     */
     private List<Card> resolveCards(List<String> ids, List<Card> row){
         List<Card> result = new ArrayList<>();
         for (String id : ids) {
+            boolean found = false;
             for (Card c : row) {
                 if (c.getId().equals(id)) {
                     result.add(c);
+                    found = true;
                     break;
                 }
+            }
+            if(!found){
+                throw new GameException(ErrorCode.UNKNOWN_CARD, "Card not found: " + id);
             }
         }
         return result;
     }
 
+    /**
+     * Builds and returns a complete snapshot of the current game state.
+     * Collects all relevant information from the game and board and packages
+     * it into a serializable {@link GameStateMessage} to be broadcast to all clients.
+     *
+     * @return a GameStateMessage representing the current state of the game
+     */
     public GameStateMessage buildGameStateMessage(){
         //placement order
         List<String> placementNicknames = new ArrayList<>();
