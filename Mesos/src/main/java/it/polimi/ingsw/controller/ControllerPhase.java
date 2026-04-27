@@ -23,7 +23,7 @@ public interface ControllerPhase {
      * @param expectedPlayers the number of players expected in the game
      * @param view the virtual view associated with the player
      */
-    void createLobby(String nickname, TotemColor color, int expectedPlayers, VirtualView view);
+    void createLobby(String nickname, TotemColor color, VirtualView view);
 
     /**
      * Allows a player to join an existing lobby.
