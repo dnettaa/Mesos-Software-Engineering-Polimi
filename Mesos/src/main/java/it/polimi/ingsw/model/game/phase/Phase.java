@@ -87,4 +87,8 @@ public interface Phase {
     default void endGame(Game game) {
         throw new IllegalStateException("Invalid action for current phase");
     }
+
+    default String getCurrentPlayerNickname(Game game){
+        return null;
+    }
 }

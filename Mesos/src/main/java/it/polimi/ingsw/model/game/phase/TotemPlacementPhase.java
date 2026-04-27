@@ -37,4 +37,9 @@ public class TotemPlacementPhase implements Phase {
             game.setCurrentPhase(new OfferResolutionPhase());
         }
     }
+
+    @Override
+    public String getCurrentPlayerNickname(Game game){
+        return game.getPlacementOrder().get(game.getCurrentPlayerIndex()).getNickname();
+    }
 }

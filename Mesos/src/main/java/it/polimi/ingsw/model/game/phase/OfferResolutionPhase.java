@@ -72,4 +72,9 @@ public class OfferResolutionPhase implements Phase {
             game.setCurrentPhase(new EventResolutionPhase());
         }
     }
+
+    @Override
+    public String getCurrentPlayerNickname(Game game){
+        return game.getResolutionOrder().get(game.getCurrentPlayerIndex()).getOccupant().getNickname();
+    }
 }

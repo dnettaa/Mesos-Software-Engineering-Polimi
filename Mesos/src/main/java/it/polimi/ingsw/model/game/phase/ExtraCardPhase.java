@@ -44,4 +44,9 @@ public class ExtraCardPhase implements Phase {
 
         game.setCurrentPhase(new EventResolutionPhase());
     }
+
+    @Override
+    public String getCurrentPlayerNickname(Game game){
+        return game.getPlayers().get(game.getCurrentPlayerIndex()).getNickname();
+    }
 }
