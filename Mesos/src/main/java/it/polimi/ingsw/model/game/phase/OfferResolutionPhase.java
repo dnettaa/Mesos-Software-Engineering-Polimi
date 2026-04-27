@@ -70,6 +70,7 @@ public class OfferResolutionPhase implements Phase {
             }
 
             game.setCurrentPhase(new EventResolutionPhase());
+            game.resolveEvents();
         }
     }
 

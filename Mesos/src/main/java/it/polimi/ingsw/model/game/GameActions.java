@@ -21,8 +21,6 @@ public interface GameActions {
 
     void takeExtraCard(String nickname, String cardID);
 
-    void resolveEvents();
-
     String getCurrentPlayerNickname();
 
     String getCurrentPhaseName();
