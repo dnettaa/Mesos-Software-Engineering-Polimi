@@ -4,13 +4,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import it.polimi.ingsw.exception.GameException;
-import it.polimi.ingsw.exception.ErrorCode;
+import it.polimi.ingsw.model.Exception.GameException;
+import it.polimi.ingsw.model.Exception.ErrorCode;
 import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.game.GameSetupService;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
-import it.polimi.ingsw.network.message.server.LobbyUpdateMessage;
+import it.polimi.ingsw.network.message.LobbyUpdateMessage;
 
 public class LobbyPhase implements ControllerPhase {
 
@@ -45,6 +45,7 @@ public class LobbyPhase implements ControllerPhase {
 
         gameController.registerView(nickname, view);
         playerSelections.put(nickname, color);
+        gameController.sendTo(nickname, new JoinSuccessMessage(nickname, color));
 
         gameController.broadcast(
                 new LobbyUpdateMessage(List.copyOf(playerSelections.keySet()), playerSelections, this.expectedPlayers)
