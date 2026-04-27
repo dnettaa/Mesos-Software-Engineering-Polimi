@@ -1,5 +1,13 @@
 package it.polimi.ingsw.model.player;
 
+import it.polimi.ingsw.message.PlayerData;
+import it.polimi.ingsw.model.card.CharacterCard;
+import it.polimi.ingsw.model.card.CharacterType;
+import it.polimi.ingsw.model.card.building.BuildingCard;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a player within a Mesos game.
  * The class manages the player's personal state, including their resources
@@ -120,5 +128,21 @@ public class Player {
         if (amount > 0) {
             this.prestigePoints -= amount;
         }
+    }
+
+    public PlayerData buildPlayerData(){
+        List<String> tribeCardsIDs = new ArrayList<>();
+        for(CharacterType t: CharacterType.values()){
+            for(CharacterCard c : tribe.getByType(t)){
+                tribeCardsIDs.add(c.getId());
+            }
+        }
+
+        List<String> buildingCardsIDs = new ArrayList<>();
+        for(BuildingCard b: tribe.getBuildings()){
+            buildingCardsIDs.add(b.getId());
+        }
+
+        return new PlayerData(nickname, totemColor, food, prestigePoints, tribeCardsIDs, buildingCardsIDs);
     }
 }

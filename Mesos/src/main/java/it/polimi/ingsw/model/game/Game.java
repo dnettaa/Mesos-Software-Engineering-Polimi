@@ -1,5 +1,8 @@
 package it.polimi.ingsw.model.game;
 
+import it.polimi.ingsw.message.GameStateMessage;
+import it.polimi.ingsw.message.OfferSlotData;
+import it.polimi.ingsw.message.PlayerData;
 import it.polimi.ingsw.model.game.phase.*;
 import it.polimi.ingsw.model.board.OfferSlot;
 import it.polimi.ingsw.model.board.Board;
@@ -300,5 +303,61 @@ public class Game implements GameActions{
             }
         }
         return result;
+    }
+
+    public GameStateMessage buildGameStateMessage(){
+        //placement order
+        List<String> placementNicknames = new ArrayList<>();
+        for(Player p: placementOrder){
+            placementNicknames.add(p.getNickname());
+        }
+
+        //resolution order
+        List<Character> resolutionSlotIDs  = new ArrayList<>();
+        for(OfferSlot offerSlot: resolutionOrder){
+            resolutionSlotIDs.add(offerSlot.getSlotID());
+        }
+
+        //turn order
+        List<String> turnOrder = new ArrayList<>();
+        for (Player p : board.getTurnOrderTrack().getPlayersInOrder()) {
+            turnOrder.add(p.getNickname());
+        }
+
+        // upperRowCardIDs and lowerRowCardIDs
+        List<String> upperIDs = new ArrayList<>();
+        for (Card c : board.getUpperRowCards()) {
+            upperIDs.add(c.getId());
+        }
+
+        List<String> lowerIDs = new ArrayList<>();
+        for(Card c: board.getLowerRowCards()){
+            lowerIDs.add(c.getId());
+        }
+
+        //OfferSlotData
+        List<OfferSlotData> offerSlots = board.buildOfferSlotsData();
+
+        //PlayerData
+        List<PlayerData> playersData = new ArrayList<>();
+        for(Player p: players){
+            playersData.add(p.buildPlayerData());
+        }
+
+
+        return new GameStateMessage(
+                this.currentRound,
+                this.board.getCurrentEra(),
+                this.getCurrentPhaseName(),
+                this.getCurrentPlayerNickname(),
+                placementNicknames,
+                resolutionSlotIDs,
+                turnOrder,
+                this.board.getTribeDeckRemaining(),
+                upperIDs,
+                lowerIDs,
+                offerSlots,
+                playersData
+        );
     }
 }

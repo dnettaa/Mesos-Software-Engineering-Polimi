@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.board;
 
+import it.polimi.ingsw.message.OfferSlotData;
 import it.polimi.ingsw.model.player.Player;
 
 /**
@@ -108,13 +109,8 @@ public class OfferSlot {
 
     }
 
-
-
-
-
-
-
-
-
-
+    public OfferSlotData buildOfferSlotData(){
+        String occupantNickname = isOccupied() ? occupant.getNickname() : null;
+        return new OfferSlotData(slotID, upSel, downSel, foodReward, occupantNickname);
+    }
 }

@@ -67,4 +67,8 @@ public class TribeDeck {
     public Era getCurrentEra(){
         return currentEra;
     }
+
+    public int remaining(){
+        return cards.size();
+    }
 }

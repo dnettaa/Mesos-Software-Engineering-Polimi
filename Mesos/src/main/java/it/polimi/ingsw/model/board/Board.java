@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.board;
 
+import it.polimi.ingsw.message.OfferSlotData;
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.EventCard;
 import it.polimi.ingsw.model.card.TribeCard;
@@ -51,6 +52,10 @@ public class Board {
      */
     public TurnOrderTrack getTurnOrderTrack(){
         return turnOrderTrack;
+    }
+
+    public Era getCurrentEra() {
+        return currentEra;
     }
 
     /**
@@ -268,5 +273,13 @@ public class Board {
      */
     private void moveUpperBuildingsToLower() {
         upperRow.moveBuildingCardsTo(lowerRow);
+    }
+
+    public int getTribeDeckRemaining() {
+        return tribeDeck.remaining();
+    }
+
+    public List<OfferSlotData> buildOfferSlotsData(){
+        return offerTrack.buildOfferSlotsData();
     }
 }
