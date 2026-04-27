@@ -7,6 +7,7 @@ import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.player.*;
 import it.polimi.ingsw.model.card.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -107,10 +108,11 @@ public class Game implements GameActions{
      * Places a player's totem on the specified offer slot.
      * When all players have placed, transitions to OfferResolution phase.
      *
-     * @param player the player placing the totem
+     * @param nickname the player placing the totem
      * @param slotID the ID of the chosen offer slot
      */
-    public void placeTotem(Player player, char slotID){
+    public void placeTotem(String nickname, char slotID){
+        Player player = findPlayerByNickname(nickname);
         currentPhase.placeTotem(this, player, slotID);
     }
 
@@ -120,11 +122,14 @@ public class Game implements GameActions{
      * based on their offer slot action. Returns the totem to the turn order track.
      * When all players have resolved, transitions to EventResolution phase.
      *
-     * @param player the player taking cards
-     * @param chosenUpper cards chosen from the upper row
-     * @param chosenLower cards chosen from the lower row
+     * @param nickname the player taking cards
+     * @param chosenUpperIDs cards chosen from the upper row
+     * @param chosenLowerIDs cards chosen from the lower row
      */
-    public void takeCards(Player player, List<Card> chosenUpper, List<Card> chosenLower){
+    public void takeCards(String nickname, List<String> chosenUpperIDs, List<String> chosenLowerIDs){
+        Player player = findPlayerByNickname(nickname);
+        List<Card> chosenUpper = resolveCards(chosenUpperIDs, board.getUpperRowCards());
+        List<Card> chosenLower = resolveCards(chosenLowerIDs, board.getLowerRowCards());
         currentPhase.takeCards(this, player, chosenUpper, chosenLower);
     }
 
@@ -161,11 +166,13 @@ public class Game implements GameActions{
      * Allows the player with the ExtraPick building to take an additional
      * card from the upper row. Transitions to EventResolution phase.
      *
-     * @param player the player taking the extra card
-     * @param card the card chosen from the upper row
+     * @param nickname the player taking the extra card
+     * @param cardID the card chosen from the upper row
      */
-    public void takeExtraCard(Player player, Card card) {
-        currentPhase.takeExtraCard(this, player, card);
+    public void takeExtraCard(String nickname, String cardID) {
+        Player player = findPlayerByNickname(nickname);
+        List<Card> card = resolveCards(List.of(cardID), board.getUpperRowCards());
+        currentPhase.takeExtraCard(this, player, card.getFirst());
     }
 
     /**
@@ -259,5 +266,39 @@ public class Game implements GameActions{
         if (totalCost > player.getFood()) {
             throw new IllegalArgumentException("Not enough food for buildings");
         }
+    }
+
+    public String getCurrentPlayerNickname(){
+        return currentPhase.getCurrentPlayerNickname(this);
+    }
+
+    public String getCurrentPhaseName() {
+        return currentPhase.getClass().getSimpleName();
+    }
+
+    public boolean isGameEnded(){
+        return state == GameState.Finished;
+    }
+
+    private Player findPlayerByNickname(String nickname){
+        for(Player p: players){
+            if(p.getNickname().equals(nickname)){
+                return p;
+            }
+        }
+        return null;
+    }
+
+    private List<Card> resolveCards(List<String> ids, List<Card> row){
+        List<Card> result = new ArrayList<>();
+        for (String id : ids) {
+            for (Card c : row) {
+                if (c.getId().equals(id)) {
+                    result.add(c);
+                    break;
+                }
+            }
+        }
+        return result;
     }
 }

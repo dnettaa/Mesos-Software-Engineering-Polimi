@@ -1,10 +1,5 @@
 package it.polimi.ingsw.model.game;
 
-import it.polimi.ingsw.model.board.Board;
-import it.polimi.ingsw.model.board.OfferSlot;
-import it.polimi.ingsw.model.card.Card;
-import it.polimi.ingsw.model.player.Player;
-
 import java.util.List;
 
 /**
@@ -20,21 +15,17 @@ import java.util.List;
  */
 public interface GameActions {
 
-    void placeTotem(Player player, char slotID);
+    void placeTotem(String nickname, char slotID);
 
-    void takeCards(Player player, List<Card> chosenUpper, List<Card> chosenLower);
+    void takeCards(String nickname, List<String> chosenUpperIDs, List<String> chosenLowerIDs);
 
-    void takeExtraCard(Player player, Card card);
+    void takeExtraCard(String nickname, String cardID);
 
-    List<Player> getPlayers();
+    void resolveEvents();
 
-    Board getBoard();
+    String getCurrentPlayerNickname();
 
-    int getCurrentRound();
+    String getCurrentPhaseName();
 
-    int getCurrentPlayerIndex();
-
-    List<Player> getPlacementOrder();
-
-    List<OfferSlot> getResolutionOrder();
+    boolean isGameEnded();
 }

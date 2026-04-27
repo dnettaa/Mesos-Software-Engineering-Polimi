@@ -34,6 +34,7 @@ public class EndRoundPhase implements Phase {
             game.setCurrentPhase(new TotemPlacementPhase());
         } else {
             game.setCurrentPhase(new EndGamePhase());
+            game.endGame();
         }
     }
 }
