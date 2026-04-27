@@ -1,5 +1,8 @@
 package it.polimi.ingsw.model.board;
 
+import it.polimi.ingsw.message.OfferSlotData;
+import it.polimi.ingsw.model.Exception.ErrorCode;
+import it.polimi.ingsw.model.Exception.GameException;
 import it.polimi.ingsw.model.player.Player;
 
 /**
@@ -87,11 +90,11 @@ public class OfferSlot {
      * Places a player on this slot.
      *
      * @param player the player to place on the slot
-     * @throws IllegalStateException if the slot is already occupied
+     * @throws GameException with {@link ErrorCode#SLOT_OCCUPIED} if the slot is already occupied
      */
     public void place(Player player){
         if(isOccupied()){
-            throw new IllegalStateException("Offer slot is already occupied");
+            throw new GameException(ErrorCode.SLOT_OCCUPIED, "Offer slot is already occupied");
         }
 
         occupant = player;
@@ -100,24 +103,21 @@ public class OfferSlot {
     /**
      * Removes and returns the player currently occupying this slot.
      * After this operation, the slot becomes free.
-     *
-     * @return the removed player, or null if the slot was already free
      */
-    public Player remove(){
+    public void remove(){
         Player removedPlayer = occupant;
 
         occupant = null;
 
-        return removedPlayer;
     }
 
-
-
-
-
-
-
-
-
-
+    /**
+     * Builds and returns a data transfer object representing the current state of this offer slot.
+     *
+     * @return an {@link OfferSlotData} object containing the slot's configuration and its current occupant
+     */
+    public OfferSlotData buildOfferSlotData(){
+        String occupantNickname = isOccupied() ? occupant.getNickname() : null;
+        return new OfferSlotData(slotID, upSel, downSel, foodReward, occupantNickname);
+    }
 }

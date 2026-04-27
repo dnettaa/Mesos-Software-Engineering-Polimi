@@ -31,6 +31,9 @@ public class Tribe {
      */
     public Tribe() {
         this.members = new HashMap<>();
+        for (CharacterType type : CharacterType.values()) {
+            this.members.put(type, new ArrayList<>());
+        }
         this.buildings = new ArrayList<>();
     }
 
@@ -40,24 +43,6 @@ public class Tribe {
 
     public List<BuildingCard> getBuildings(){
         return buildings;
-    }
-
-    /**
-     * Adds a Character card to the tribe, placing it in the list
-     * corresponding to its specific type (e.g., Hunter, Shaman, etc.).
-     * @param card The Character card to add.
-     */
-    public void addCharacter(CharacterCard card) {
-        CharacterType type = card.getType();
-        this.members.computeIfAbsent(type, k -> new ArrayList<>()).add(card);
-    }
-
-    /**
-     * Adds a Building card to the tribe's building list.
-     * @param card The Building card to add.
-     */
-    public void addBuilding(BuildingCard card) {
-        this.buildings.add(card);
     }
 
     /**

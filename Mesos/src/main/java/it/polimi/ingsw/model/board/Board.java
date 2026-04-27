@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.board;
 
+import it.polimi.ingsw.message.OfferSlotData;
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.EventCard;
 import it.polimi.ingsw.model.card.TribeCard;
@@ -45,21 +46,16 @@ public class Board {
     }
 
     /**
-     * Returns the offer track of this board.
-     *
-     * @return the offer track
-     */
-    public OfferTrack getOfferTrack(){
-        return offerTrack;
-    }
-
-    /**
      * Returns the turn order track of this board.
      *
      * @return the turn order track
      */
     public TurnOrderTrack getTurnOrderTrack(){
         return turnOrderTrack;
+    }
+
+    public Era getCurrentEra() {
+        return currentEra;
     }
 
     /**
@@ -133,11 +129,13 @@ public class Board {
         return offerTrack.getActionFor(player);
     }
 
+
     public void removeCardFromUpper(Card card){
         upperRow.removeCard(card);
     }
 
-    public void removeCardFromLower(Card card){
+
+    public void removeCardFromLower(Card card) {
         lowerRow.removeCard(card);
     }
 
@@ -211,19 +209,6 @@ public class Board {
     }
 
     /**
-     * Checks whether the provided row is one of the two rows
-     * managed by this board.
-     *
-     * @param row the row to validate
-     * @throws IllegalArgumentException if the row does not belong to this board
-     */
-    private void validateRowBelongsToBoard(CardRow row) {
-        if (row != upperRow && row != lowerRow) {
-            throw new IllegalArgumentException("The specified row does not belong to this board");
-        }
-    }
-
-    /**
      * Refills the upper row with tribe cards until the target number
      * of visible tribe cards is reached, or until the deck becomes empty.
      *
@@ -288,5 +273,24 @@ public class Board {
      */
     private void moveUpperBuildingsToLower() {
         upperRow.moveBuildingCardsTo(lowerRow);
+    }
+
+    /**
+     * Returns the number of cards currently remaining in the tribe deck.
+     *
+     * @return the amount of cards left in the tribe deck
+     */
+    public int getTribeDeckRemaining() {
+        return tribeDeck.remaining();
+    }
+
+    /**
+     * Builds and returns a list of data transfer objects representing the current state of the offer track.
+     * Delegates the creation of the data to the underlying {@link OfferTrack}.
+     *
+     * @return a list of {@link OfferSlotData} representing all the offer slots
+     */
+    public List<OfferSlotData> buildOfferSlotsData(){
+        return offerTrack.buildOfferSlotsData();
     }
 }

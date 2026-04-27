@@ -1,4 +1,5 @@
 package it.polimi.ingsw.model.card.building;
+import it.polimi.ingsw.model.board.CardRow;
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.CharacterCard;
 import it.polimi.ingsw.model.player.*;
@@ -35,7 +36,7 @@ public abstract class BuildingCard extends Card {
     @Override
     public void applyTo(Player player) {
         player.spendFood(getCostFor(player));
-        player.getTribe().addBuilding(this);
+        player.getTribe().getBuildings().add(this);
     }
 
     /**
@@ -49,6 +50,22 @@ public abstract class BuildingCard extends Card {
     @Override
     public int getCostFor(Player player) {
         return Math.max(0, cost - player.getTribe().getBuildingDiscount());
+    }
+
+
+    /**
+     * Removes this building card from the given card row.
+     * The card is removed directly from the internal building-card list
+     * of the row.
+     *
+     * @param row the card row from which this card must be removed
+     * @throws IllegalArgumentException if the card is not present in the row
+     */
+    @Override
+    public void removeFrom(CardRow row) {
+        if(!row.getBuildingCardsInternal().remove(this)) {
+            throw new IllegalArgumentException("Building card is not present in this row");
+        }
     }
 
     public int getPrestigePoints() {

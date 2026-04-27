@@ -11,21 +11,24 @@ import it.polimi.ingsw.model.game.Era;
 class TribeTest {
 
     private Tribe tribe;
+    private Player dummyPlayer;
 
     @BeforeEach
     void setUp(){
         tribe = new Tribe();
 
-        tribe.addCharacter(new HunterCard(Era.Era1, "H1", false));
-        tribe.addCharacter(new HunterCard(Era.Era1, "H2", true));
-        tribe.addCharacter(new ShamanCard(Era.Era1, "S1", 2));
-        tribe.addCharacter(new ShamanCard(Era.Era2, "S2", 3));
-        tribe.addCharacter(new BuilderCard(Era.Era1, "B1", 1, 3));
-        tribe.addCharacter(new InventorCard(Era.Era1, "I1", InventionType.TYPE_1));
-        tribe.addCharacter(new InventorCard(Era.Era2, "I2", InventionType.TYPE_3));
-        tribe.addCharacter(new ArtistCard(Era.Era1, "A1"));
-        tribe.addCharacter(new ArtistCard(Era.Era2, "A2"));
-        tribe.addCharacter(new GathererCard(Era.Era1, "G1"));
+        dummyPlayer = new Player("Test", null, tribe, 0, 0);
+
+        new HunterCard(Era.Era1, "H1", false).applyTo(dummyPlayer);
+        new HunterCard(Era.Era1, "H2", true).applyTo(dummyPlayer);
+        new ShamanCard(Era.Era1, "S1", 2).applyTo(dummyPlayer);
+        new ShamanCard(Era.Era2, "S2", 3).applyTo(dummyPlayer);
+        new BuilderCard(Era.Era1, "B1", 1, 3).applyTo(dummyPlayer);
+        new InventorCard(Era.Era1, "I1", InventionType.TYPE_1).applyTo(dummyPlayer);
+        new InventorCard(Era.Era2, "I2", InventionType.TYPE_3).applyTo(dummyPlayer);
+        new ArtistCard(Era.Era1, "A1").applyTo(dummyPlayer);
+        new ArtistCard(Era.Era2, "A2").applyTo(dummyPlayer);
+        new GathererCard(Era.Era1, "G1").applyTo(dummyPlayer);
     }
 
     @Test

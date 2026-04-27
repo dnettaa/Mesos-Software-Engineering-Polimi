@@ -39,22 +39,26 @@ public abstract class EventCard extends TribeCard {
     }
 
     /**
-     * Event cards have no cost.
-     *
-     * @return false
-     */
-    @Override
-    public int getCostFor(Player player) {
-        return 0;
-    }
-
-    /**
      * Event cards cannot be applied to a player.
      *
      */
     @Override
     public void applyTo(Player player) {
         throw new UnsupportedOperationException("Event cards cannot be applied to a player");
+    }
+
+    /**
+     * Adds this event to the appropriate list during event resolution.
+     * By default, events are considered normal events and are added
+     * to the {@code normal} list.
+     * Subclasses may override this method to change their classification
+     * (see Sustenance event resolution order).
+     *
+     * @param normal the list of standard events
+     * @param sustenance the list of sustenance events
+     */
+    public void addToList(List<EventCard> normal, List<EventCard> sustenance) {
+        normal.add(this);
     }
 
     /**
