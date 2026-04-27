@@ -43,6 +43,7 @@ public class ExtraCardPhase implements Phase {
         game.getBoard().removeCardFromUpper(card);
 
         game.setCurrentPhase(new EventResolutionPhase());
+        game.resolveEvents();
     }
 
     @Override
