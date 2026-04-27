@@ -130,6 +130,13 @@ public class Player {
         }
     }
 
+    /**
+     * Builds and returns a data transfer object representing the current state of this player.
+     * Extracts the player's basic information (nickname, color, resources) and converts
+     * their owned tribe cards and building cards into lists of String identifiers.
+     *
+     * @return a {@link PlayerData} object containing a snapshot of the player's status
+     */
     public PlayerData buildPlayerData(){
         List<String> tribeCardsIDs = new ArrayList<>();
         for(CharacterType t: CharacterType.values()){

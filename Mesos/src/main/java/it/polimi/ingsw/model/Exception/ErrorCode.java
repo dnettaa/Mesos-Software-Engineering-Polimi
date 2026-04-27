@@ -1,5 +1,12 @@
 package it.polimi.ingsw.model.Exception;
 
+/**
+ * Enumeration of all possible error codes that can be raised during a game session.
+ * Used by {@link GameException} to identify the type of violation and by the
+ * controller to send a structured {@code ErrorMessage} to the client.
+ *
+ * @author Luca Grecchi
+ */
 public enum ErrorCode {
     UNKNOWN_PLAYER,
     UNKNOWN_CARD,
