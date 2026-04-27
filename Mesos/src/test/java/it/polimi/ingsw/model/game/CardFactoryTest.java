@@ -10,8 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for {@link CardFactory}.
- *
- * <p>This class verifies the correct creation of {@link TribeDeck}
+ * This class verifies the correct creation of {@link TribeDeck}
  * and {@link BuildingDeck} instances starting from JSON data.
  * The tests validate:
  * Correct initialization (non-null, non-empty decks)
