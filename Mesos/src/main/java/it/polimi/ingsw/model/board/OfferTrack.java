@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.board;
 
+import it.polimi.ingsw.message.OfferSlotData;
 import it.polimi.ingsw.model.player.Player;
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +102,14 @@ public class OfferTrack {
         for(OfferSlot slot : slots){
             slot.remove();
         }
+    }
+
+    public List<OfferSlotData> buildOfferSlotsData(){
+        List<OfferSlotData> result = new ArrayList<>();
+        for(OfferSlot o: slots){
+            result.add(o.buildOfferSlotData());
+        }
+        return result;
     }
 
 }

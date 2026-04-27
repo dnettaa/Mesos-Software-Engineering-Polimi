@@ -1,5 +1,7 @@
 package it.polimi.ingsw.model.game;
 
+import it.polimi.ingsw.message.GameStateMessage;
+
 import java.util.List;
 
 /**
@@ -26,4 +28,6 @@ public interface GameActions {
     String getCurrentPhaseName();
 
     boolean isGameEnded();
+
+    GameStateMessage buildGameStateMessage();
 }
