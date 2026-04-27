@@ -8,7 +8,6 @@ import it.polimi.ingsw.network.message.ServerMessage;
 import it.polimi.ingsw.network.message.ErrorMessage;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GameController {
