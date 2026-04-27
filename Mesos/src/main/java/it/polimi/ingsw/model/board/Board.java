@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.board;
 
+import it.polimi.ingsw.message.OfferSlotData;
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.EventCard;
 import it.polimi.ingsw.model.card.TribeCard;
@@ -51,6 +52,10 @@ public class Board {
      */
     public TurnOrderTrack getTurnOrderTrack(){
         return turnOrderTrack;
+    }
+
+    public Era getCurrentEra() {
+        return currentEra;
     }
 
     /**
@@ -268,5 +273,24 @@ public class Board {
      */
     private void moveUpperBuildingsToLower() {
         upperRow.moveBuildingCardsTo(lowerRow);
+    }
+
+    /**
+     * Returns the number of cards currently remaining in the tribe deck.
+     *
+     * @return the amount of cards left in the tribe deck
+     */
+    public int getTribeDeckRemaining() {
+        return tribeDeck.remaining();
+    }
+
+    /**
+     * Builds and returns a list of data transfer objects representing the current state of the offer track.
+     * Delegates the creation of the data to the underlying {@link OfferTrack}.
+     *
+     * @return a list of {@link OfferSlotData} representing all the offer slots
+     */
+    public List<OfferSlotData> buildOfferSlotsData(){
+        return offerTrack.buildOfferSlotsData();
     }
 }

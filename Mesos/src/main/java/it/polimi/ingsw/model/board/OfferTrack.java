@@ -1,5 +1,8 @@
 package it.polimi.ingsw.model.board;
 
+import it.polimi.ingsw.message.OfferSlotData;
+import it.polimi.ingsw.model.Exception.ErrorCode;
+import it.polimi.ingsw.model.Exception.GameException;
 import it.polimi.ingsw.model.player.Player;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +33,7 @@ public class OfferTrack {
      *
      * @param slotID the identifier of the desired slot
      * @return the matching offer slot
-     * @throws IllegalArgumentException if no slot with the given id exists
+     * @throws GameException with {@link ErrorCode#INVALID_SELECTION} if no slot with the given ID exists
      */
     public OfferSlot getSlot(char slotID) {
         for(OfferSlot slot : slots){
@@ -39,7 +42,7 @@ public class OfferTrack {
             }
         }
 
-        throw new IllegalArgumentException("No offer slot found with ID: " + slotID);
+        throw new GameException(ErrorCode.INVALID_SELECTION, "No offer slot found with ID: " + slotID);
     }
 
 
@@ -48,7 +51,7 @@ public class OfferTrack {
      *
      * @param player the player to place
      * @param slotID the identifier of the target slot
-     * @throws IllegalArgumentException if no slot with the given id exists
+     * @throws GameException with {@link ErrorCode#INVALID_SELECTION} if no slot with the given ID exists
      * @throws IllegalStateException if the target slot is already occupied
      */
     public void placePlayer(Player player, char slotID){
@@ -101,6 +104,19 @@ public class OfferTrack {
         for(OfferSlot slot : slots){
             slot.remove();
         }
+    }
+
+    /**
+     * Builds and returns a list of data transfer objects representing the current state of all offer slots.
+     *
+     * @return a list of {@link OfferSlotData} representing the entire offer track
+     */
+    public List<OfferSlotData> buildOfferSlotsData(){
+        List<OfferSlotData> result = new ArrayList<>();
+        for(OfferSlot o: slots){
+            result.add(o.buildOfferSlotData());
+        }
+        return result;
     }
 
 }

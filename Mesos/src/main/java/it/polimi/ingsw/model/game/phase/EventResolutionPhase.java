@@ -63,5 +63,6 @@ public class EventResolutionPhase implements Phase {
         }
 
         game.setCurrentPhase(new EndRoundPhase());
+        game.endRound();
     }
 }
