@@ -1,0 +1,17 @@
+package it.polimi.ingsw.model.Exception;
+
+public enum ErrorCode {
+    UNKNOWN_PLAYER,
+    UNKNOWN_CARD,
+    NOT_YOUR_TURN,
+    INVALID_PHASE,
+    SLOT_OCCUPIED,
+    INSUFFICIENT_FOOD,
+    CARD_NOT_IN_ROW,
+    INVALID_SELECTION,
+    NICKNAME_TAKEN,
+    COLOR_TAKEN,
+    LOBBY_FULL,
+    GAME_ALREADY_STARTED,
+    LOBBY_NOT_CREATED
+}
