@@ -1,13 +1,13 @@
-package it.polimi.ingsw.message;
+package it.polimi.ingsw.network.message;
 
 import it.polimi.ingsw.model.player.TotemColor;
-import it.polimi.ingsw.viw.View;
+import it.polimi.ingsw.view.View;
 
 /**
  * Message sent by the server to confirm that a player successfully joined the lobby.
  */
 
-public class JoinSeccessMessage extends ServerMessage{
+public class JoinSuccessMessage extends ServerMessage{
     private final String nickname;
     private final TotemColor color;
 
@@ -17,7 +17,7 @@ public class JoinSeccessMessage extends ServerMessage{
      * @param nickname the nickname accepted by the server
      * @param color the totem color assigned to the player
      */
-    public JoinSeccessMessage(String nickname, TotemColor color) {
+    public JoinSuccessMessage(String nickname, TotemColor color) {
         this.nickname = nickname;
         this.color = color;
     }

@@ -1,4 +1,4 @@
-package it.polimi.ingsw.message;
+package it.polimi.ingsw.network.message;
 
 import it.polimi.ingsw.view.View;
 
@@ -10,7 +10,7 @@ import it.polimi.ingsw.view.View;
  * statements or instanceof checks.
  */
 
-public class ServerMessage extends Message{
+public abstract class ServerMessage {
 
     /**
      * Applies this message to the given client-side view.
