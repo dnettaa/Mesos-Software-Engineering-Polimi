@@ -1,4 +1,4 @@
-package it.polimi.ingsw.model.Exception;
+package it.polimi.ingsw.model.exception;
 
 /**
  * Enumeration of all possible error codes that can be raised during a game session.

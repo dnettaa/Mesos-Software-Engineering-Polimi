@@ -1,6 +1,6 @@
 package it.polimi.ingsw.model.player;
 
-import it.polimi.ingsw.message.PlayerData;
+import it.polimi.ingsw.network.message.PlayerData;
 import it.polimi.ingsw.model.card.CharacterCard;
 import it.polimi.ingsw.model.card.CharacterType;
 import it.polimi.ingsw.model.card.building.BuildingCard;

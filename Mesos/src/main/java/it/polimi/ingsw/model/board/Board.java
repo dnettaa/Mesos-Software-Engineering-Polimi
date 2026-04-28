@@ -1,6 +1,6 @@
 package it.polimi.ingsw.model.board;
 
-import it.polimi.ingsw.message.OfferSlotData;
+import it.polimi.ingsw.network.message.OfferSlotData;
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.EventCard;
 import it.polimi.ingsw.model.card.TribeCard;

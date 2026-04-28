@@ -1,4 +1,4 @@
-package it.polimi.ingsw.model.Exception;
+package it.polimi.ingsw.model.exception;
 
 /**
  * Exception thrown when a game action violates the rules or the current state.

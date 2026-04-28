@@ -1,10 +1,10 @@
 package it.polimi.ingsw.model.game;
 
-import it.polimi.ingsw.message.GameStateMessage;
-import it.polimi.ingsw.message.OfferSlotData;
-import it.polimi.ingsw.message.PlayerData;
-import it.polimi.ingsw.model.Exception.ErrorCode;
-import it.polimi.ingsw.model.Exception.GameException;
+import it.polimi.ingsw.network.message.GameStateMessage;
+import it.polimi.ingsw.network.message.OfferSlotData;
+import it.polimi.ingsw.network.message.PlayerData;
+import it.polimi.ingsw.model.exception.ErrorCode;
+import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.game.phase.*;
 import it.polimi.ingsw.model.board.OfferSlot;
 import it.polimi.ingsw.model.board.Board;
