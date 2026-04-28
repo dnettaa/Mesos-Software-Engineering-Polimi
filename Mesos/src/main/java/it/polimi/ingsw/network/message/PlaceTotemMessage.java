@@ -15,7 +15,8 @@ public class PlaceTotemMessage extends ClientMessage{
      *
      * @param slotID the identifier of the offer slot where the player wants to place the totem
      */
-    public PlaceTotemMessage(char slotID) {
+    public PlaceTotemMessage(String nickname, char slotID) {
+        super(nickname);
         this.slotID = slotID;
     }
 
@@ -36,6 +37,6 @@ public class PlaceTotemMessage extends ClientMessage{
      */
     @Override
     public void execute(GameController controller, VirtualView sender){
-        controller.placeTotem(sender, slotID);
+        controller.placeTotem(getNickname(), slotID);
     }
 }

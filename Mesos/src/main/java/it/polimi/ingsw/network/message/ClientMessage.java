@@ -12,6 +12,25 @@ import it.polimi.ingsw.controller.GameController;
  */
 
 public abstract class ClientMessage extends Message{
+    private final String nickname;
+
+    /**
+     * Creates a new client message.
+     *
+     * @param nickname the nickname of the player who sent the message
+     */
+    protected ClientMessage(String nickname) {
+        this.nickname = nickname;
+    }
+
+    /**
+     * Returns the nickname of the player who sent this message.
+     *
+     * @return the sender nickname
+     */
+    public String getNickname() {
+        return nickname;
+    }
 
     /**
      * Executes this message on the server-side controller.
