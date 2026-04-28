@@ -1,8 +1,8 @@
 package it.polimi.ingsw.view;
 
-import it.polimi.ingsw.message.GameStateMessage;
-import it.polimi.ingsw.message.OfferSlotData;
-import it.polimi.ingsw.message.PlayerData;
+import it.polimi.ingsw.network.message.GameStateMessage;
+import it.polimi.ingsw.network.message.OfferSlotData;
+import it.polimi.ingsw.network.message.PlayerData;
 import it.polimi.ingsw.model.player.TotemColor;
 
 import java.util.List;
@@ -82,7 +82,7 @@ public class Tui implements View {
         for (OfferSlotData slot : lastState.getOfferSlots()) {
             String occupant = slot.getOccupantNickname() == null ? "FREE" : slot.getOccupantNickname();
             System.out.printf(" [%c] (Up:%d Down:%d Food:%d) : %s %n",
-                    slot.getSlotID(), slot.getUpSet(), slot.getDownSet(), slot.getFoodReward(), occupant);
+                    slot.getSlotID(), slot.getUpSel(), slot.getDownSel(), slot.getFoodReward(), occupant);
         }
 
         // 4. Render Card Rows
@@ -96,7 +96,7 @@ public class Tui implements View {
         System.out.println(">>> PLAYERS STATS <<<");
         for (PlayerData p : lastState.getPlayers()) {
             System.out.printf(" * %-10s | Food: %-2d | PP: %-3d | Tribe: %d cards %n",
-                    p.getNickname(), p.getFood(), p.getPrestigePoints(), p.getTribeCardIDs().size());
+                    p.getNickname(), p.getFood(), p.getPrestigePoints(), p.getTribeCardID().size());
         }
         System.out.println("=".repeat(70));
 
