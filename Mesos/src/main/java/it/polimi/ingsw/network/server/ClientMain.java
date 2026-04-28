@@ -1,6 +1,9 @@
 package it.polimi.ingsw.network.server;
 
 import java.util.Scanner;
+import it.polimi.ingsw.network.rmi.RMIClientAdapter;
+import it.polimi.ingsw.network.socket.VirtualSocketServer;
+import it.polimi.ingsw.view.Tui;
 
 /**
  * Entry point for the Mesos game client.
@@ -31,11 +34,11 @@ public class ClientMain {
         int choiceInterface = Integer.parseInt(scanner.nextLine().trim());
 
         if(choiceInterface == 2){
-            GUI gui = new GUI();
-            gui.run();
+            //GUI gui = new GUI();
+            //gui.run();
         }else if(choiceInterface == 1){
 
-            TUI tui = new TUI();
+            Tui tui = new Tui();
 
             System.out.println("Choose connection type: 1) Socket  2) RMI");
             int choiceConnection = Integer.parseInt(scanner.nextLine().trim());
