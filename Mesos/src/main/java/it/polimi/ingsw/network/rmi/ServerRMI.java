@@ -28,15 +28,16 @@ public interface ServerRMI extends Remote{
      * Sends a generic client message to the server.
      *
      * @param message the message representing a client action
+     * @param sender to understand which client sent a message
      * @throws RemoteException if a communication error occurs
      */
-    void sendMessage(ClientMessage message) throws RemoteException;
+    void sendMessage(ClientMessage message, ClientRMI sender) throws RemoteException;
 
     /**
-     * Disconnects a client from the server.
+     * Disconnects an RMI client from the server.
      *
-     * @param nickname the nickname of the disconnecting player
-     * @throws RemoteException if a communication error occurs
+     * @param client the remote client reference
+     * @throws RemoteException if a remote communication error occurs
      */
-    void disconnect(String nickname) throws RemoteException;
+    void disconnect(ClientRMI client) throws RemoteException;
 }
