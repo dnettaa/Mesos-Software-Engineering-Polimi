@@ -14,10 +14,10 @@ import it.polimi.ingsw.controller.GameController;
 public abstract class ClientMessage extends Message{
 
     /**
-     * Applies this message to the server-side controller.
+     * Executes this message on the server-side controller.
      *
      * @param controller the game controller handling the request
-     * @param view the virtual view associated with the client who sent the message
+     * @param sender the virtual view associated with the client who sent the message
      */
-    public abstract void apply(GameController controller, VirtualView view);
+    public abstract void execute(GameController controller, VirtualView sender);
 }
