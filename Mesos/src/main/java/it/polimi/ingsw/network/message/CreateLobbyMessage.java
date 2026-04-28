@@ -12,7 +12,6 @@ import it.polimi.ingsw.controller.GameController;
  */
 
 public class CreateLobbyMessage extends ClientMessage{
-    private final String nickname;
     private final TotemColor color;
     private final int expectedPlayers;
 
@@ -24,18 +23,9 @@ public class CreateLobbyMessage extends ClientMessage{
      * @param expectedPlayers the number of players required to start the game
      */
     public CreateLobbyMessage(String nickname, TotemColor color, int expectedPlayers) {
-        this.nickname = nickname;
+        super(nickname);
         this.color = color;
         this.expectedPlayers = expectedPlayers;
-    }
-
-    /**
-     * Returns the nickname chosen by the player.
-     *
-     * @return the player nickname
-     */
-    public String getNickname(){
-        return nickname;
     }
 
     /**
@@ -64,6 +54,6 @@ public class CreateLobbyMessage extends ClientMessage{
      */
     @Override
     public void execute(GameController controller, VirtualView sender){
-        controller.createLobby(nickname, color, expectedPlayers, sender);
+        controller.createLobby(getNickname(), color, expectedPlayers, sender);
     }
 }

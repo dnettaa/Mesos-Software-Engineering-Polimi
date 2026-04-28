@@ -9,7 +9,6 @@ import it.polimi.ingsw.controller.GameController;
  */
 
 public class JoinLobbyMessage extends ClientMessage{
-    private final String nickname;
     private final TotemColor color;
 
 
@@ -20,17 +19,8 @@ public class JoinLobbyMessage extends ClientMessage{
      * @param color the totem color chosen by the player
      */
     public JoinLobbyMessage(String nickname, TotemColor color) {
-        this.nickname = nickname;
+        super(nickname);
         this.color = color;
-    }
-
-    /**
-     * Returns the nickname chosen by the player.
-     *
-     * @return the player nickname
-     */
-    public String getNickname(){
-        return nickname;
     }
 
     /**
@@ -50,6 +40,6 @@ public class JoinLobbyMessage extends ClientMessage{
      */
     @Override
     public void execute(GameController controller, VirtualView sender){
-        controller.joinLobby(nickname, color, sender);
+        controller.joinLobby(getNickname(), color, sender);
     }
 }
