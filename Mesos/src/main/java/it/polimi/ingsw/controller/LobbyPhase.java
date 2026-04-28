@@ -119,6 +119,8 @@ public class LobbyPhase implements ControllerPhase {
 
             gameController.setGame(game);
             gameController.transitionTo(new InGamePhase(gameController, game));
+
+            gameController.broadcastGameState();
         }
     }
 
