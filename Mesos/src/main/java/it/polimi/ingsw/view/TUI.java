@@ -13,6 +13,7 @@ import java.util.Scanner;
 /**
  * Text User Interface (TUI) implementation of the View.
  * Final version integrated with the actual Network and Message classes.
+ * Implements a "Dumb Client" architecture: relies entirely on the Server for validation.
  */
 public class TUI implements View {
 
@@ -58,13 +59,12 @@ public class TUI implements View {
         if (lobbyChoice == 1) {
             System.out.print("Enter number of expected players: ");
             int players = Integer.parseInt(scanner.nextLine().trim());
-            virtualServer.createLobby(nickname, chosenColor, players); //
+            virtualServer.createLobby(nickname, chosenColor, players);
         } else {
-            virtualServer.joinLobby(nickname, chosenColor); //
+            virtualServer.joinLobby(nickname, chosenColor);
         }
 
         System.out.println("\n[INFO] Request sent. Waiting for game to start...");
-        // From now on, showGameState will be called by the network thread when updates arrive.
     }
 
     // --- VIEW INTERFACE METHODS ---
@@ -138,39 +138,53 @@ public class TUI implements View {
 
     private void handleTurnInput(String phase) {
         switch (phase) {
-            case "TotemPlacementPhase":
-                System.out.print("Select Offer Slot (A-G): ");
-                String slot = scanner.nextLine().trim().toUpperCase();
-                virtualServer.sendMessage(new PlaceTotemMessage(nickname, slot.charAt(0)));
+            case "TotemPlacementPhase": {
+                System.out.print("Select Offer Slot (Enter a letter): ");
+                String input = scanner.nextLine().trim().toUpperCase();
+                if (!input.isEmpty()) {
+                    virtualServer.sendMessage(new PlaceTotemMessage(nickname, input.charAt(0)));
+                }
                 break;
+            }
 
-            case "OfferResolutionPhase":
-                System.out.print("Enter IDs to take from Upper Row (space separated, or enter to skip): ");
-                List<String> up = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().split("\\s+")));
+            case "OfferResolutionPhase": {
+                System.out.print("Enter IDs to take from UPPER Row (space separated, or enter to skip): ");
+                List<String> up = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().toUpperCase().split("\\s+")));
                 up.removeIf(String::isEmpty);
 
-                System.out.print("Enter IDs to take from Lower Row (space separated, or enter to skip): ");
-                List<String> down = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().split("\\s+")));
+                System.out.print("Enter IDs to take from LOWER Row (space separated, or enter to skip): ");
+                List<String> down = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().toUpperCase().split("\\s+")));
                 down.removeIf(String::isEmpty);
 
                 virtualServer.sendMessage(new TakeCardsMessage(nickname, up, down));
                 break;
+            }
 
-            case "ExtraCardPhase":
+            case "ExtraCardPhase": {
                 System.out.print("Select Extra Card ID: ");
-                String extra = scanner.nextLine().trim();
+                String extra = scanner.nextLine().trim().toUpperCase();
                 virtualServer.sendMessage(new TakeExtraCardMessage(nickname, extra));
                 break;
+            }
 
-            default:
+            default: {
                 System.out.println("This phase is automatic. Waiting for server...");
                 break;
+            }
         }
     }
 
     @Override
     public void showError(String code, String description) {
+        // Stampa l'errore arrivato dal server
         System.err.println("\n[ERROR " + code + "] " + description);
+
+        // Se c'è un errore, lo stato non è cambiato.
+        // Se era il mio turno quando ho fatto l'errore, riapro l'input in automatico per farmi riprovare!
+        if (lastState != null && nickname.equals(lastState.getCurrentPlayerNickname())) {
+            System.out.println("⚠️ Mossa rifiutata dal server. Riprova:");
+            handleTurnInput(lastState.getCurrentPhaseName());
+        }
     }
 
     @Override

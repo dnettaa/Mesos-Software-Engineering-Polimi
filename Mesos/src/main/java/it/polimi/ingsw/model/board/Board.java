@@ -101,6 +101,11 @@ public class Board {
      * @param player the player to place
      */
     public void returnTotemToTurnOrder(Player player){
+        // FIX: Se il tracciato è ancora pieno dall'inizio del round, lo svuotiamo
+        // prima di far rientrare il primo giocatore che ha risolto la sua offerta.
+        if (turnOrderTrack.getPlayersInOrder().size() == turnOrderTrack.getNumPlayers()) {
+            turnOrderTrack.clear();
+        }
         turnOrderTrack.placeFirstSlot(player);
     }
 
@@ -195,7 +200,7 @@ public class Board {
      */
     public void setupNewRound() {
         offerTrack.reset();
-        turnOrderTrack.clear();
+        //turnOrderTrack.clear();
 
         clearLowerRowTribeCards();
         moveUpperTribeCardsToLower();
