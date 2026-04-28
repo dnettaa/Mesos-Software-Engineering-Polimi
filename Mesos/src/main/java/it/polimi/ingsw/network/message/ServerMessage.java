@@ -10,7 +10,7 @@ import it.polimi.ingsw.view.View;
  * statements or instanceof checks.
  */
 
-public abstract class ServerMessage extends Message{
+public abstract class ServerMessage {
 
     /**
      * Applies this message to the given client-side view.
