@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import it.polimi.ingsw.model.Exception.ErrorCode;
+import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.game.GameSetupService;
 import it.polimi.ingsw.model.player.TotemColor;

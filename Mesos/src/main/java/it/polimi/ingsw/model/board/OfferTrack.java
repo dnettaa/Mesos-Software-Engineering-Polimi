@@ -1,8 +1,8 @@
 package it.polimi.ingsw.model.board;
 
-import it.polimi.ingsw.message.OfferSlotData;
-import it.polimi.ingsw.model.Exception.ErrorCode;
-import it.polimi.ingsw.model.Exception.GameException;
+import it.polimi.ingsw.network.message.OfferSlotData;
+import it.polimi.ingsw.model.exception.ErrorCode;
+import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.player.Player;
 import java.util.ArrayList;
 import java.util.List;

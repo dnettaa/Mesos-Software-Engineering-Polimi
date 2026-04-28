@@ -1,7 +1,7 @@
 package it.polimi.ingsw.controller;
 
-import it.polimi.ingsw.model.Exception.GameException;
-import it.polimi.ingsw.model.Exception.ErrorCode;
+import it.polimi.ingsw.model.exception.GameException;
+import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;

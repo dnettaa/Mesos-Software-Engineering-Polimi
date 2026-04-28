@@ -20,7 +20,6 @@ public interface ControllerPhase {
      *
      * @param nickname the nickname of the player creating the lobby
      * @param color the chosen totem color
-     * @param expectedPlayers the number of players expected in the game
      * @param view the virtual view associated with the player
      */
     void createLobby(String nickname, TotemColor color, VirtualView view);
