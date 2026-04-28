@@ -12,6 +12,19 @@ import it.polimi.ingsw.network.VirtualView;
 import it.polimi.ingsw.network.message.LobbyUpdateMessage;
 import it.polimi.ingsw.network.message.JoinSuccessMessage;
 
+/**
+ * Controller phase representing the lobby state of the game.
+ * In this phase, players can create or join a lobby before the game starts.
+ * The class is responsible for:
+ *     Managing player registrations and color assignments
+ *     Validating lobby constraints (e.g., unique nickname and color)
+ *     Broadcasting lobby updates to all connected clients
+ *     Creating the game when the expected number of players is reached
+ * All game-related actions (e.g., placing a totem, taking cards) are rejected
+ * during this phase.
+ *
+ * @author Andrea Markvukaj
+ */
 public class LobbyPhase implements ControllerPhase {
 
     private final GameController gameController;
@@ -25,6 +38,15 @@ public class LobbyPhase implements ControllerPhase {
         this.playerSelections = new LinkedHashMap<>();
     }
 
+    /**
+     * Handles the creation of a new lobby.
+     * Only allowed if the lobby is empty. Registers the player,
+     * sends a confirmation message, and broadcasts the updated lobby state.
+     *
+     * @param nickname the nickname of the player creating the lobby
+     * @param color the chosen totem color
+     * @param view the virtual view associated with the player
+     */
     @Override
     public void createLobby(String nickname, TotemColor color, VirtualView view) {
 
@@ -43,6 +65,17 @@ public class LobbyPhase implements ControllerPhase {
         );
     }
 
+    /**
+     * Handles a player's request to join an existing lobby.
+     * Validates lobby constraints (existence, capacity, uniqueness of nickname and color).
+     * If successful, registers the player, sends confirmation, and broadcasts the updated lobby.
+     * When the expected number of players is reached, initializes the game and transitions
+     * to {@link InGamePhase}.
+     *
+     * @param nickname the nickname of the player
+     * @param color the chosen totem color
+     * @param view the virtual view associated with the player
+     */
     @Override
     public void joinLobby(String nickname, TotemColor color, VirtualView view) {
 
@@ -89,24 +122,50 @@ public class LobbyPhase implements ControllerPhase {
         }
     }
 
+    /**
+     * Rejects totem placement requests during the lobby phase.
+     *
+     * @param nickname the nickname of the player
+     * @param slotID the slot identifier
+     */
     @Override
     public void placeTotem(String nickname, char slotID) {
         gameController.sendError(nickname, ErrorCode.INVALID_PHASE.name(),
                 "Cannot place totem during lobby phase");
     }
 
+    /**
+     * Rejects card selection requests during the lobby phase.
+     *
+     * @param nickname the nickname of the player
+     * @param upperIDs selected upper row cards
+     * @param lowerIDs selected lower row cards
+     */
     @Override
     public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs) {
         gameController.sendError(nickname, ErrorCode.INVALID_PHASE.name(),
                 "Cannot take cards during lobby phase");
     }
 
+    /**
+     * Rejects extra card selection requests during the lobby phase.
+     *
+     * @param nickname the nickname of the player
+     * @param cardID the identifier of the selected card
+     */
     @Override
     public void takeExtraCard(String nickname, String cardID) {
         gameController.sendError(nickname, ErrorCode.INVALID_PHASE.name(),
                 "Cannot take extra card during lobby phase");
     }
 
+    /**
+     * Handles player disconnection during the lobby phase.
+     * Removes the player from the lobby, unregisters the associated view,
+     * and broadcasts the updated lobby state to the remaining players.
+     *
+     * @param nickname the nickname of the disconnected player
+     */
     @Override
     public void onDisconnect(String nickname) {
 

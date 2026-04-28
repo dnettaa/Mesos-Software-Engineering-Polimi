@@ -119,6 +119,7 @@ public class GameController {
      * @param view the virtual view representing the client
      */
     public void registerView(String nickname, VirtualView view) {
+        view.setNickname(nickname);
         views.put(nickname, view);
     }
 
