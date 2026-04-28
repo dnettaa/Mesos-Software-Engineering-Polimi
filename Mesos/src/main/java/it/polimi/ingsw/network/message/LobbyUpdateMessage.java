@@ -14,7 +14,7 @@ import java.util.Map;
 public class LobbyUpdateMessage extends ServerMessage{
     private final List<String> players;
     private final Map<String, TotemColor> colorsByPlayer;
-    private final int exceptedPlayers;
+    private final int expectedPlayers;
 
     /**
      * Creates a new lobby update message.
@@ -23,10 +23,10 @@ public class LobbyUpdateMessage extends ServerMessage{
      * @param colorsByPlayer the selected totem color for each player
      * @param expectedPlayers the number of players required to start the game
      */
-    public LobbyUpdateMessage(List<String> players, Map<String, TotemColor> colorsByPlayer, int exceptedPlayers) {
+    public LobbyUpdateMessage(List<String> players, Map<String, TotemColor> colorsByPlayer, int expectedPlayers) {
         this.players = new ArrayList<>(players);
         this.colorsByPlayer = new HashMap<>(colorsByPlayer);
-        this.exceptedPlayers = exceptedPlayers;
+        this.expectedPlayers = expectedPlayers;
     }
 
     /**
@@ -53,7 +53,7 @@ public class LobbyUpdateMessage extends ServerMessage{
      * @return the expected number of players
      */
     public int getExpectedPlayers(){
-        return exceptedPlayers;
+        return expectedPlayers;
     }
 
     /**
@@ -63,6 +63,6 @@ public class LobbyUpdateMessage extends ServerMessage{
      */
     @Override
     public void apply(View view){
-        view.showLobbyUpdate(getPlayers(), getColorsByPlayer(), exceptedPlayers);
+        view.showLobbyUpdate(getPlayers(), getColorsByPlayer(), expectedPlayers);
     }
 }
