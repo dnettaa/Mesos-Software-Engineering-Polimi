@@ -3,6 +3,8 @@ package it.polimi.ingsw.view;
 import java.util.List;
 import java.util.Map;
 import it.polimi.ingsw.model.player.TotemColor;
+import it.polimi.ingsw.network.VirtualServer;
+import it.polimi.ingsw.network.message.GameStateMessage;
 
 /**
  * The View interface representing the client-side UI.
@@ -23,7 +25,7 @@ public interface View {
     /**
      * Renders the current state of the game board.
      */
-    void showGameState(/* GameStateMessage */ Object state);
+    void showGameState(GameStateMessage state);
 
     /**
      * Displays an error message to the user.
@@ -38,5 +40,5 @@ public interface View {
     /**
      * Binds the view to the network layer (VirtualServer).
      */
-    void setVirtualServer(/* VirtualServer */ Object vs);
+    void setVirtualServer(VirtualServer vs);
 }

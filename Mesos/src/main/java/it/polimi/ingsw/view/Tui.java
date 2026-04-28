@@ -1,8 +1,7 @@
 package it.polimi.ingsw.view;
 
-import it.polimi.ingsw.network.message.GameStateMessage;
-import it.polimi.ingsw.network.message.OfferSlotData;
-import it.polimi.ingsw.network.message.PlayerData;
+import it.polimi.ingsw.network.VirtualServer;
+import it.polimi.ingsw.network.message.*;
 import it.polimi.ingsw.model.player.TotemColor;
 
 import java.util.List;
@@ -15,7 +14,7 @@ import java.util.Scanner;
  */
 public class Tui implements View {
 
-    private /* VirtualServer */ Object virtualServer;
+    private VirtualServer virtualServer;
     private GameStateMessage lastState;
     private String nickname;
     private final Scanner scanner;
@@ -25,7 +24,7 @@ public class Tui implements View {
     }
 
     @Override
-    public void setVirtualServer(Object vs) {
+    public void setVirtualServer(VirtualServer vs) {
         this.virtualServer = vs;
     }
 
@@ -62,50 +61,90 @@ public class Tui implements View {
      * Extracts data from GameStateMessage to render the board.
      */
     @Override
-    public void showGameState(Object state) {
-        if (!(state instanceof GameStateMessage)) return;
+    public void showGameState(GameStateMessage state) {
+        this.lastState = state;
 
-        this.lastState = (GameStateMessage) state;
+        System.out.println("\n=================================");
+        System.out.println("ROUND: " + state.getCurrentRound()
+                + " | ERA: " + state.getCurrentEra()
+                + " | PHASE: " + state.getCurrentPhaseName());
+        System.out.println("=================================");
 
-        // 1. Render Header
-        System.out.println("\n" + "=".repeat(70));
-        System.out.printf(" ROUND: %d | ERA: %s | PHASE: %s %n",
-                lastState.getCurrentRound(), lastState.getCurrentEra(), lastState.getCurrentPhaseName());
-        System.out.println("=".repeat(70));
+        System.out.println("TURN ORDER: " + String.join(" -> ", state.getTurnOrder()));
 
-        // 2. Render Turn Order
-        System.out.print("TURN ORDER: ");
-        System.out.println(String.join(" -> ", lastState.getTurnOrder()));
-
-        // 3. Render Offer Track
-        System.out.println("\n>>> OFFER TRACK <<<");
-        for (OfferSlotData slot : lastState.getOfferSlots()) {
-            String occupant = slot.getOccupantNickname() == null ? "FREE" : slot.getOccupantNickname();
-            System.out.printf(" [%c] (Up:%d Down:%d Food:%d) : %s %n",
-                    slot.getSlotID(), slot.getUpSel(), slot.getDownSel(), slot.getFoodReward(), occupant);
+        System.out.println("\nOFFER TRACK:");
+        for (OfferSlotData slot : state.getOfferSlots()) {
+            String occ = slot.getOccupantNickname() == null ? "FREE" : slot.getOccupantNickname();
+            System.out.printf("[%c] Up:%d Down:%d Food:%d -> %s%n",
+                    slot.getSlotID(), slot.getUpSel(), slot.getDownSel(), slot.getFoodReward(), occ);
         }
 
-        // 4. Render Card Rows
-        System.out.println("\n>>> TOP ROW <<<");
-        drawCardRow(lastState.getUpperRowCardIDs());
+        System.out.println("\nTOP ROW:");
+        printRow(state.getUpperRowCardIDs());
 
-        System.out.println(">>> BOTTOM ROW <<<");
-        drawCardRow(lastState.getLowerRowCardIDs());
+        System.out.println("BOTTOM ROW:");
+        printRow(state.getLowerRowCardIDs());
 
-        // 5. Render Players Status
-        System.out.println(">>> PLAYERS STATS <<<");
-        for (PlayerData p : lastState.getPlayers()) {
-            System.out.printf(" * %-10s | Food: %-2d | PP: %-3d | Tribe: %d cards %n",
+        System.out.println("\nPLAYERS:");
+        for (PlayerData p : state.getPlayers()) {
+            System.out.printf("%s | Food:%d | PP:%d | Cards:%d%n",
                     p.getNickname(), p.getFood(), p.getPrestigePoints(), p.getTribeCardID().size());
         }
-        System.out.println("=".repeat(70));
 
-        // 6. Handle turn-based logic as requested by client flow
-        if (lastState.getCurrentPlayerNickname().equals(this.nickname)) {
-            System.out.println("\n*** IT IS YOUR TURN! ***");
-            handlePhaseInput(lastState.getCurrentPhaseName());
+        if (nickname.equals(state.getCurrentPlayerNickname())) {
+            System.out.println("\n*** YOUR TURN ***");
+            handleInput(state.getCurrentPhaseName());
         } else {
-            System.out.println("\nWaiting for " + lastState.getCurrentPlayerNickname() + " to play...");
+            System.out.println("\nWaiting for " + state.getCurrentPlayerNickname());
+        }
+    }
+
+    private void printRow(List<String> ids) {
+        if (ids.isEmpty()) {
+            System.out.println("[Empty]");
+            return;
+        }
+        for (String id : ids) {
+            System.out.print("[" + id + "] ");
+        }
+        System.out.println();
+    }
+
+    private void handleInput(String phase) {
+        switch (phase) {
+
+            case "TotemPlacementPhase":
+                System.out.print("Choose slot: ");
+                String slot = scanner.nextLine();
+                if (!slot.isEmpty()) {
+                    virtualServer.sendMessage(
+                            new PlaceTotemMessage(nickname, slot.toUpperCase().charAt(0))
+                    );
+                }
+                break;
+
+            case "OfferResolutionPhase":
+                System.out.print("Upper IDs: ");
+                List<String> up = List.of(scanner.nextLine().split(" "));
+                System.out.print("Lower IDs: ");
+                List<String> down = List.of(scanner.nextLine().split(" "));
+
+                virtualServer.sendMessage(
+                        new TakeCardsMessage(nickname, up, down)
+                );
+                break;
+
+            case "ExtraCardPhase":
+                System.out.print("Extra card ID: ");
+                String extra = scanner.nextLine();
+
+                virtualServer.sendMessage(
+                        new TakeExtraCardMessage(nickname, extra)
+                );
+                break;
+
+            default:
+                System.out.println("Waiting...");
         }
     }
 
