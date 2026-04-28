@@ -70,6 +70,18 @@ public class OfferResolutionPhase implements Phase {
             }
 
             game.setCurrentPhase(new EventResolutionPhase());
+            game.resolveEvents();
         }
+    }
+
+    /**
+     * Returns the nickname of the player who is currently taking cards.
+     *
+     * @param game the game instance
+     * @return the nickname of the active player
+     */
+    @Override
+    public String getCurrentPlayerNickname(Game game){
+        return game.getResolutionOrder().get(game.getCurrentPlayerIndex()).getOccupant().getNickname();
     }
 }

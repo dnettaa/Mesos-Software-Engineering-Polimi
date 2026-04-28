@@ -67,4 +67,13 @@ public class TribeDeck {
     public Era getCurrentEra(){
         return currentEra;
     }
+
+    /**
+     * Returns the number of cards currently remaining in the deck.
+     *
+     * @return the amount of cards left to be drawn
+     */
+    public int remaining(){
+        return cards.size();
+    }
 }

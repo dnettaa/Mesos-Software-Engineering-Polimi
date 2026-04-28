@@ -37,4 +37,15 @@ public class TotemPlacementPhase implements Phase {
             game.setCurrentPhase(new OfferResolutionPhase());
         }
     }
+
+    /**
+     * Returns the nickname of the player who is currently placing totem.
+     *
+     * @param game the game instance
+     * @return the nickname of the active player
+     */
+    @Override
+    public String getCurrentPlayerNickname(Game game){
+        return game.getPlacementOrder().get(game.getCurrentPlayerIndex()).getNickname();
+    }
 }
