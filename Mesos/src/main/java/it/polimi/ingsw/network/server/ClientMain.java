@@ -1,6 +1,8 @@
 package it.polimi.ingsw.network.server;
 
 import java.util.Scanner;
+import it.polimi.ingsw.network.rmi.RMIClientAdapter;
+import it.polimi.ingsw.network.socket.VirtualSocketServer;
 
 /**
  * Entry point for the Mesos game client.

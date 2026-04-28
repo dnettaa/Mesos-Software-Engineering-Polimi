@@ -1,7 +1,7 @@
 package it.polimi.ingsw.model.game.phase;
 
-import it.polimi.ingsw.model.Exception.ErrorCode;
-import it.polimi.ingsw.model.Exception.GameException;
+import it.polimi.ingsw.model.exception.ErrorCode;
+import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.game.Game;
 import it.polimi.ingsw.model.player.Player;
 import it.polimi.ingsw.model.card.Card;
