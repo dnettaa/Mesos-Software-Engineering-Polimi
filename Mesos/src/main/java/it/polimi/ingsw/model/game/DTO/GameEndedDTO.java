@@ -7,5 +7,4 @@ public record GameEndedDTO(
         Map<String, Integer> finalPPByPlayer,
         Map<String, Integer> endGameBonusByPlayer,
         List<String> ranking
-) {
-}
+) {}

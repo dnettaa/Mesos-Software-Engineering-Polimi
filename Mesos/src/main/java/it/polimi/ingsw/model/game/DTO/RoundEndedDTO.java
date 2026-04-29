@@ -17,5 +17,4 @@ public record RoundEndedDTO(
         List<String> newTurnOrder,
         String firstPlayerNickname,
         int tribeDeckRemaining
-) {
-}
+) {}
