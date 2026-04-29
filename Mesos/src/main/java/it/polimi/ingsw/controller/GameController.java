@@ -5,6 +5,8 @@ import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
 import it.polimi.ingsw.network.message.ServerMessage;
 import it.polimi.ingsw.network.message.ErrorMessage;
+import it.polimi.ingsw.model.game.GameListener;
+import it.polimi.ingsw.model.game.DTO.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +23,7 @@ import java.util.Map;
  *
  * @author Andrea Markvukaj
  */
-public class GameController {
+public class GameController implements GameListener {
 
     private GameActions game;
     private ControllerPhase currentPhase;
@@ -148,16 +150,6 @@ public class GameController {
     }
 
     /**
-     * Builds the current game state and broadcasts it to all players.
-     * Does nothing if the game has not been initialized yet.
-     */
-    public void broadcastGameState() {
-        if (game != null) {
-            broadcast(game.buildGameStateMessage());
-        }
-    }
-
-    /**
      * Sends an error message to a specific player.
      *
      * @param nickname the recipient player
@@ -193,6 +185,7 @@ public class GameController {
      */
     public void setGame(GameActions game) {
         this.game = game;
+        game.addListener(this);
     }
 
     /**
@@ -232,5 +225,85 @@ public class GameController {
             view.disconnect();
         }
         views.clear();
+    }
+
+    // METODI DI GAME LISTENER
+
+    /**
+     * Invoked when the game starts.
+     * Broadcasts the initial game snapshot to all connected clients.
+     *
+     * @param snapshot the initial state of the game
+     */
+    @Override
+    public void onGameStarted(GameStateSnapshot snapshot) {
+        broadcast(new GameStateMessage(snapshot));
+    }
+
+    /**
+     * Invoked when a player places a totem on the board.
+     * Broadcasts the corresponding update to all clients.
+     *
+     * @param dto contains information about the placement and next player
+     */
+    @Override
+    public void onTotemPlaced(TotemPlacedDTO dto) {
+        broadcast(new TotemPlacedMessage(dto));
+    }
+
+    /**
+     * Invoked when a player takes cards from the board.
+     * Broadcasts the changes (cards taken, resources updated, etc.) to all clients.
+     *
+     * @param dto contains details about the card selection and resulting state changes
+     */
+    @Override
+    public void onCardsTaken(CardsTakenDTO dto) {
+        broadcast(new CardsTakenMessage(dto));
+    }
+
+    /**
+     * Invoked when a player takes an extra card.
+     * Broadcasts the corresponding update to all clients.
+     *
+     * @param dto contains information about the extra card taken
+     */
+    @Override
+    public void onExtraCardTaken(ExtraCardTakenDTO dto) {
+        broadcast(new ExtraCardTakenMessage(dto));
+    }
+
+    /**
+     * Invoked when an event card is resolved.
+     * Broadcasts the effects of the event (food/PP changes) to all clients.
+     *
+     * @param dto contains the results of the resolved event
+     */
+    @Override
+    public void onEventResolved(EventResolvedDTO dto) {
+        broadcast(new EventResolvedMessage(dto));
+    }
+
+    /**
+     * Invoked at the end of a round.
+     * Broadcasts all updates related to board reset and new round setup.
+     *
+     * @param dto contains all state changes for the new round
+     */
+    @Override
+    public void onRoundEnded(RoundEndedDTO dto) {
+        broadcast(new RoundEndedMessage(dto));
+    }
+
+    /**
+     * Invoked when the game ends.
+     * Broadcasts final results and disconnects all clients.
+     *
+     * @param dto contains final scores and ranking
+     */
+    @Override
+    public void onGameEnded(GameEndedDTO dto) {
+        broadcast(new GameEndedMessage(dto));
+        closeAll();
     }
 }
