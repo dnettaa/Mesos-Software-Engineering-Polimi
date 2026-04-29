@@ -29,5 +29,9 @@ public interface GameActions {
 
     boolean isGameEnded();
 
-    GameStateMessage buildGameStateMessage();
+    void startGame();
+
+    void addListener(GameListener listener);
+
+    void removeListener(GameListener listener);
 }
