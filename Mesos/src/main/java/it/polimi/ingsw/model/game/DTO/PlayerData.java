@@ -1,4 +1,4 @@
-package it.polimi.ingsw.network.message;
+package it.polimi.ingsw.model.game.DTO;
 
 import it.polimi.ingsw.model.player.TotemColor;
 import java.io.Serializable;

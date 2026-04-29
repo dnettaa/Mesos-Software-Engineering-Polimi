@@ -1,4 +1,4 @@
-package it.polimi.ingsw.network.message;
+package it.polimi.ingsw.model.game.DTO;
 
 import java.io.Serializable;
 

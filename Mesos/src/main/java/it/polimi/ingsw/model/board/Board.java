@@ -1,10 +1,8 @@
 package it.polimi.ingsw.model.board;
 
-import it.polimi.ingsw.network.message.OfferSlotData;
+import it.polimi.ingsw.model.game.DTO.OfferSlotData;
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.EventCard;
-import it.polimi.ingsw.model.card.TribeCard;
-import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.model.player.Player;
 import java.util.List;

@@ -1,8 +1,8 @@
 package it.polimi.ingsw.model.game;
 
 import it.polimi.ingsw.network.message.GameStateMessage;
-import it.polimi.ingsw.network.message.OfferSlotData;
-import it.polimi.ingsw.network.message.PlayerData;
+import it.polimi.ingsw.model.game.DTO.OfferSlotData;
+import it.polimi.ingsw.model.game.DTO.PlayerData;
 import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.game.phase.*;
