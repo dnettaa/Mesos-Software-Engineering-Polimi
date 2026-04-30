@@ -48,9 +48,8 @@ public class EndRoundPhase implements Phase {
 
             game.fireRoundEnded(dto);
         } else {
-            Phase next = new EndGamePhase();
-            game.setCurrentPhase(next);
-            next.endGame(game);
+            game.setCurrentPhase(new EndGamePhase());
+            game.endGame();
         }
     }
 }

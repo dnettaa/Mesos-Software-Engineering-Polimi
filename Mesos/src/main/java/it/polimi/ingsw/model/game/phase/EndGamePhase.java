@@ -49,7 +49,7 @@ public class EndGamePhase implements Phase {
 
 
         GameEndedDTO dto = new GameEndedDTO(finalPPByPlayer, endGameBonusByPlayer, ranking);
-        game.fireGameEnded(dto);
         game.setState(GameState.Finished);
+        game.fireGameEnded(dto);
     }
 }

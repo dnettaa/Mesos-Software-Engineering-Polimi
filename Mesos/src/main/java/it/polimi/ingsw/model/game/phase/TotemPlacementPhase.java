@@ -44,7 +44,7 @@ public class TotemPlacementPhase implements Phase {
                 slotID,
                 game.getCurrentPlayerNickname()
         );
-        game.fireTotemPlaced(dto)   ;
+        game.fireTotemPlaced(dto);
     }
 
     /**
