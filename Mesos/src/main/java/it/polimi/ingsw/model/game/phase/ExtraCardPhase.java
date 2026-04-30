@@ -1,7 +1,9 @@
 package it.polimi.ingsw.model.game.phase;
 
+import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.exception.GameException;
+import it.polimi.ingsw.model.game.DTO.ExtraCardTakenDTO;
 import it.polimi.ingsw.model.game.Game;
 import it.polimi.ingsw.model.player.Player;
 import it.polimi.ingsw.model.card.Card;
@@ -42,8 +44,21 @@ import it.polimi.ingsw.model.card.Card;
             throw new GameException(ErrorCode.INSUFFICIENT_FOOD, "Not enough food");
         }
 
+        int initialFood = player.getFood();
         card.applyTo(player);
+        int foodDelta = player.getFood() - initialFood;
+
         game.getBoard().removeCardFromUpper(card);
+
+        ExtraCardTakenDTO dto = new ExtraCardTakenDTO(
+                                    player.getNickname(),
+                                    card.getId(),
+                                    true,
+                                    card instanceof BuildingCard,
+                                    foodDelta
+        );
+
+        game.fireExtraCardTaken(dto);
 
         game.setCurrentPhase(new EventResolutionPhase());
         game.resolveEvents();
