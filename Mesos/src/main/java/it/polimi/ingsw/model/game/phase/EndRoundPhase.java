@@ -1,8 +1,11 @@
 package it.polimi.ingsw.model.game.phase;
 
+import it.polimi.ingsw.model.game.DTO.RoundEndedDTO;
 import it.polimi.ingsw.model.game.Game;
+import it.polimi.ingsw.model.player.Player;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Phase that ends the current round. Sets up the board for the
@@ -27,14 +30,27 @@ public class EndRoundPhase implements Phase {
         game.validateState();
 
         if (game.getCurrentRound() < 10) {
-            game.getBoard().setupNewRound();
+
+            int newRound = game.getCurrentRound() + 1;
+            List<String> newTurnOrder = game.getBoard().getTurnOrderTrack()
+                    .getPlayersInOrder()
+                    .stream()
+                    .map(Player::getNickname)
+                    .toList();
+            String firstPlayer = newTurnOrder.isEmpty() ? null : newTurnOrder.getFirst();
+
+            RoundEndedDTO dto = game.getBoard().setupNewRound(newRound, newTurnOrder, firstPlayer);
+
             game.setPlacementOrder(new ArrayList<>(game.getBoard().getPlacementOrder()));
             game.setCurrentPlayerIndex(0);
-            game.setCurrentRound(game.getCurrentRound() + 1);
+            game.setCurrentRound(newRound);
             game.setCurrentPhase(new TotemPlacementPhase());
+
+            game.fireRoundEnded(dto);
         } else {
-            game.setCurrentPhase(new EndGamePhase());
-            game.endGame();
+            Phase next = new EndGamePhase();
+            game.setCurrentPhase(next);
+            next.endGame(game);
         }
     }
 }
