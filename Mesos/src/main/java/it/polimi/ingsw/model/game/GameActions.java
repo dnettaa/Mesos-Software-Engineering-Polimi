@@ -1,7 +1,5 @@
 package it.polimi.ingsw.model.game;
 
-import it.polimi.ingsw.network.message.GameStateMessage;
-
 import java.util.List;
 
 /**
