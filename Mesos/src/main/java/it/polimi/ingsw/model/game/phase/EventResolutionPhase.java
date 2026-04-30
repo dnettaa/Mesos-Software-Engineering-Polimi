@@ -1,11 +1,16 @@
 package it.polimi.ingsw.model.game.phase;
 
+import it.polimi.ingsw.model.game.DTO.EventResolvedDTO;
 import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.model.game.Game;
 import it.polimi.ingsw.model.card.*;
+import it.polimi.ingsw.model.player.Player;
+
 import java.util.ArrayList;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Phase in which event cards are resolved. Events are resolved
@@ -53,16 +58,40 @@ public class EventResolutionPhase implements Phase {
             return Boolean.compare(a.isFinal(), b.isFinal());
         });
 
+        Map<String, Integer> initialPPByPlayer = new HashMap<>(Map.of());
+        Map<String, Integer> initialFoodByPlayer = new HashMap<>(Map.of());
+        for(Player p: game.getPlayers()){
+            initialPPByPlayer.put(p.getNickname(), p.getPrestigePoints());
+            initialFoodByPlayer.put(p.getNickname(), p.getFood());
+        }
+
         for (Era era : Era.values()) {
             for (EventCard e : normal) {
-                if (e.getEra() == era) e.resolveEvent(game.getPlayers());
+                if (e.getEra() == era) resolveAndFire(game, e, initialPPByPlayer, initialFoodByPlayer);
             }
             for (EventCard e : sustenance) {
-                if (e.getEra() == era) e.resolveEvent(game.getPlayers());
+                if (e.getEra() == era) resolveAndFire(game, e, initialPPByPlayer, initialFoodByPlayer);
             }
         }
 
+
+
         game.setCurrentPhase(new EndRoundPhase());
         game.endRound();
+    }
+
+    private void resolveAndFire(Game game, EventCard e, Map<String, Integer> initialPP, Map<String, Integer> initialFood) {
+        e.resolveEvent(game.getPlayers());
+
+        Map<String, Integer> ppDelta = new HashMap<>();
+        Map<String, Integer> foodDelta = new HashMap<>();
+        for (Player p : game.getPlayers()) {
+            ppDelta.put(p.getNickname(), p.getPrestigePoints() - initialPP.get(p.getNickname()));
+            foodDelta.put(p.getNickname(), p.getFood() - initialFood.get(p.getNickname()));
+            initialPP.put(p.getNickname(), p.getPrestigePoints());
+            initialFood.put(p.getNickname(), p.getFood());
+        }
+
+        game.fireEventResolved(new EventResolvedDTO(e.getId(), e.getClass().getSimpleName(), ppDelta, foodDelta));
     }
 }

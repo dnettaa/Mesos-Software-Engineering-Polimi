@@ -1,6 +1,6 @@
 package it.polimi.ingsw.model.board;
 
-import it.polimi.ingsw.network.message.OfferSlotData;
+import it.polimi.ingsw.model.game.DTO.OfferSlotData;
 import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.player.Player;

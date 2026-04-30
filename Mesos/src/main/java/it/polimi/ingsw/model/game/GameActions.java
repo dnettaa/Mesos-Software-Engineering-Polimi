@@ -1,7 +1,5 @@
 package it.polimi.ingsw.model.game;
 
-import it.polimi.ingsw.network.message.GameStateMessage;
-
 import java.util.List;
 
 /**
@@ -29,5 +27,9 @@ public interface GameActions {
 
     boolean isGameEnded();
 
-    GameStateMessage buildGameStateMessage();
+    void startGame();
+
+    void addListener(GameListener listener);
+
+    void removeListener(GameListener listener);
 }

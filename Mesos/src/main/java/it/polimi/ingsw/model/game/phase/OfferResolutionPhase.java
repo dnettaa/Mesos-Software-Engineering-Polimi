@@ -1,11 +1,14 @@
 package it.polimi.ingsw.model.game.phase;
 
+import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
 import it.polimi.ingsw.model.game.Game;
 import it.polimi.ingsw.model.player.Player;
 import it.polimi.ingsw.model.card.*;
 import it.polimi.ingsw.model.card.building.BuildingCard;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Phase in which players resolve their offer actions by taking
@@ -24,6 +27,7 @@ public class OfferResolutionPhase implements Phase {
      * Returns the totem to the turn order track and applies the turn order bonus.
      * When all players have resolved, checks if any player has an ExtraPick
      * building to determine the next phase.
+     * After the logic is executed, calculates deltas and fires a notification.
      *
      * @param game the game instance
      * @param player the player taking cards
@@ -36,6 +40,10 @@ public class OfferResolutionPhase implements Phase {
         game.validateState();
         game.validateActivePlayerOfferResolution(player);
         game.validateChosenCards(player, chosenUpper, chosenLower);
+
+        int initialFood = player.getFood();
+        int initialPP = player.getPrestigePoints();
+        char freedSlotID = game.getResolutionOrder().get(game.getCurrentPlayerIndex()).getSlotID();
 
         int foodReward = game.getResolutionOrder().get(game.getCurrentPlayerIndex()).getFoodReward();
         if (foodReward > 0) {
@@ -56,22 +64,69 @@ public class OfferResolutionPhase implements Phase {
 
         game.setCurrentPlayerIndex(game.getCurrentPlayerIndex() + 1);
 
+        boolean triggerEventCascade = false;
+
         if (game.getCurrentPlayerIndex() == game.getPlayers().size()) {
             game.setCurrentPlayerIndex(0);
+            boolean nextPhaseSet = false;
 
             for (Player p : game.getPlayers()) {
                 for (BuildingCard b : p.getTribe().getBuildings()) {
                     if (b.requiresExtraCardPhase()) {
                         game.setCurrentPlayerIndex(game.getPlayers().indexOf(p));
                         game.setCurrentPhase(new ExtraCardPhase());
-                        return;
+                        nextPhaseSet = true;
+                        break;
                     }
                 }
+                if (nextPhaseSet) break;
             }
 
-            game.setCurrentPhase(new EventResolutionPhase());
-            game.resolveEvents();
+            if (!nextPhaseSet) {
+                game.setCurrentPhase(new EventResolutionPhase());
+                triggerEventCascade = true;
+            }
         }
+
+            int foodDelta = player.getFood() - initialFood;
+            int ppDelta = player.getPrestigePoints() - initialPP;
+            int turnOrderPosition = game.getBoard().getTurnOrderTrack().getPlayersInOrder().indexOf(player);
+
+            List<String> upperIDs = chosenUpper.stream().map(Card::getId).toList();
+            List<String> lowerIDs = chosenLower.stream().map(Card::getId).toList();
+
+            List<Card> allChosen = new ArrayList<>(chosenUpper);
+            allChosen.addAll(chosenLower);
+
+            List<String> addedBuildings = allChosen.stream()
+                            .filter(c -> c instanceof BuildingCard)
+                            .map(Card::getId)
+                            .toList();
+
+            List<String> addedTribeCards = allChosen.stream()
+                            .filter(c -> !(c instanceof BuildingCard))
+                            .map(Card::getId)
+                            .toList();
+
+            String nextPlayer = triggerEventCascade ? null : game.getCurrentPlayerNickname();
+
+            CardsTakenDTO dto = new CardsTakenDTO(
+                    player.getNickname(),
+                    upperIDs,
+                    lowerIDs,
+                    addedTribeCards,
+                    addedBuildings,
+                    foodDelta,
+                    ppDelta,
+                    freedSlotID,
+                    turnOrderPosition,
+                    nextPlayer
+            );
+            game.fireCardsTaken(dto);
+
+            if(triggerEventCascade){
+                game.resolveEvents();
+            }
     }
 
     /**

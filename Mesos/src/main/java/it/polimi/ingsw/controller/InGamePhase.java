@@ -46,7 +46,6 @@ public class InGamePhase implements ControllerPhase {
     public void placeTotem(String nickname, char slotID) {
         try {
             game.placeTotem(nickname, slotID);
-            controller.broadcastGameState();
         } catch (GameException e) {
             controller.sendError(nickname, e.getCode().name(), e.getMessage());
         }
@@ -66,7 +65,6 @@ public class InGamePhase implements ControllerPhase {
     public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs) {
         try {
             game.takeCards(nickname, upperIDs, lowerIDs);
-            controller.broadcastGameState();
         } catch (GameException e) {
             controller.sendError(nickname, e.getCode().name(), e.getMessage());
         }
@@ -84,7 +82,6 @@ public class InGamePhase implements ControllerPhase {
     public void takeExtraCard(String nickname, String cardID) {
         try {
             game.takeExtraCard(nickname, cardID);
-            controller.broadcastGameState();
         } catch (GameException e) {
             controller.sendError(nickname, e.getCode().name(), e.getMessage());
         }
