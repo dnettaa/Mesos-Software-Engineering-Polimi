@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.game.phase;
 
+import it.polimi.ingsw.model.game.DTO.TotemPlacedDTO;
 import it.polimi.ingsw.model.game.Game;
 import it.polimi.ingsw.model.player.Player;
 
@@ -17,6 +18,7 @@ public class TotemPlacementPhase implements Phase {
      * Validates the game state and the active player.
      * When all players have placed, prepares the resolution order
      * and transitions to OfferResolutionPhase.
+     * After the logic is executed, fires a notification to the listeners.
      *
      * @param game the game instance
      * @param player the player placing the totem
@@ -36,6 +38,13 @@ public class TotemPlacementPhase implements Phase {
             game.setCurrentPlayerIndex(0);
             game.setCurrentPhase(new OfferResolutionPhase());
         }
+
+        TotemPlacedDTO dto = new TotemPlacedDTO(
+                player.getNickname(),
+                slotID,
+                game.getCurrentPlayerNickname()
+        );
+        game.fireTotemPlaced(dto);
     }
 
     /**
