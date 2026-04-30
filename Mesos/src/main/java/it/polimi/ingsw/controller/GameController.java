@@ -3,6 +3,7 @@ package it.polimi.ingsw.controller;
 import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
+import it.polimi.ingsw.network.message.GameStateMessage;
 import it.polimi.ingsw.network.message.ServerMessage;
 import it.polimi.ingsw.network.message.ErrorMessage;
 import it.polimi.ingsw.model.game.GameListener;
@@ -231,79 +232,140 @@ public class GameController implements GameListener {
 
     /**
      * Invoked when the game starts.
-     * Broadcasts the initial game snapshot to all connected clients.
+     * Builds the initial game state message from the snapshot
+     * and broadcasts it to all connected clients.
      *
-     * @param snapshot the initial state of the game
+     * @param snap the initial state of the game
      */
     @Override
-    public void onGameStarted(GameStateSnapshot snapshot) {
-        broadcast(new GameStateMessage(snapshot));
+    public void onGameStarted(GameStateSnapshot snap) {
+        broadcast(new GameStateMessage(
+                snap.currentRound(),
+                snap.currentEra(),
+                snap.currentPhaseName(),
+                snap.currentPlayerNickname(),
+                snap.placementOrder(),
+                snap.resolutionOrder(),
+                snap.turnOrder(),
+                snap.tribeDeckRemaining(),
+                snap.upperRowCardIDs(),
+                snap.lowerRowCardIDs(),
+                snap.offerSlots(),
+                snap.players()
+        ));
     }
 
     /**
      * Invoked when a player places a totem on the board.
-     * Broadcasts the corresponding update to all clients.
+     * Extracts the relevant data from the DTO and broadcasts
+     * a corresponding message to all connected clients.
      *
      * @param dto contains information about the placement and next player
      */
     @Override
     public void onTotemPlaced(TotemPlacedDTO dto) {
-        broadcast(new TotemPlacedMessage(dto));
+        broadcast(new TotemPlacedMessage(
+                dto.placerNickname(),
+                dto.slotID(),
+                dto.nextPlayerNickname()
+        ));
     }
 
     /**
      * Invoked when a player takes cards from the board.
-     * Broadcasts the changes (cards taken, resources updated, etc.) to all clients.
+     * Extracts all state changes from the DTO and sends
+     * a structured update message to all clients.
      *
-     * @param dto contains details about the card selection and resulting state changes
+     * @param dto contains details about the card selection and resulting changes
      */
     @Override
     public void onCardsTaken(CardsTakenDTO dto) {
-        broadcast(new CardsTakenMessage(dto));
+        broadcast(new CardsTakenMessage(
+                dto.nickname(),
+                dto.takenUpperIDs(),
+                dto.takenLowerIDs(),
+                dto.addedTribeCardIDs(),
+                dto.addedBuildingIDs(),
+                dto.foodDelta(),
+                dto.ppDelta(),
+                dto.freedSlotID(),
+                dto.turnOrderPosition(),
+                dto.nextPlayerNickname()
+        ));
     }
 
     /**
      * Invoked when a player takes an extra card.
-     * Broadcasts the corresponding update to all clients.
+     * Builds and broadcasts a message derived from the DTO.
      *
      * @param dto contains information about the extra card taken
      */
     @Override
     public void onExtraCardTaken(ExtraCardTakenDTO dto) {
-        broadcast(new ExtraCardTakenMessage(dto));
+        broadcast(new ExtraCardTakenMessage(
+                dto.nickname(),
+                dto.cardID(),
+                dto.fromUpperRow(),
+                dto.isBuilding(),
+                dto.foodDelta()
+        ));
     }
 
     /**
      * Invoked when an event card is resolved.
-     * Broadcasts the effects of the event (food/PP changes) to all clients.
+     * Extracts the effects from the DTO and broadcasts them to clients.
      *
      * @param dto contains the results of the resolved event
      */
     @Override
     public void onEventResolved(EventResolvedDTO dto) {
-        broadcast(new EventResolvedMessage(dto));
+        broadcast(new EventResolvedMessage(
+                dto.eventCardID(),
+                dto.eventType(),
+                dto.ppDeltaByPlayer(),
+                dto.foodDeltaByPlayer()
+        ));
     }
 
     /**
      * Invoked at the end of a round.
-     * Broadcasts all updates related to board reset and new round setup.
+     * Extracts all updates from the DTO and broadcasts the new round setup.
      *
      * @param dto contains all state changes for the new round
      */
     @Override
     public void onRoundEnded(RoundEndedDTO dto) {
-        broadcast(new RoundEndedMessage(dto));
+        broadcast(new RoundEndedMessage(
+                dto.discardedLowerTribeIDs(),
+                dto.discardedLowerEventIDs(),
+                dto.movedUpperToLowerTribeIDs(),
+                dto.discardedLowerBuildingIDs(),
+                dto.movedUpperToLowerBuildingIDs(),
+                dto.newUpperRowIDs(),
+                dto.revealedBuildingIDs(),
+                dto.newEra(),
+                dto.newRound(),
+                dto.newTurnOrder(),
+                dto.firstPlayerNickname(),
+                dto.tribeDeckRemaining()
+        ));
     }
 
     /**
      * Invoked when the game ends.
-     * Broadcasts final results and disconnects all clients.
+     * Builds a final result message from the DTO, broadcasts it,
+     * and closes all client connections.
      *
      * @param dto contains final scores and ranking
      */
     @Override
     public void onGameEnded(GameEndedDTO dto) {
-        broadcast(new GameEndedMessage(dto));
+        broadcast(new GameEndedMessage(
+                dto.finalPPByPlayer(),
+                dto.endGameBonusByPlayer(),
+                dto.ranking()
+        ));
+
         closeAll();
     }
 }
