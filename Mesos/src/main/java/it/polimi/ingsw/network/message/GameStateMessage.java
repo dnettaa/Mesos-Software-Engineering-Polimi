@@ -1,5 +1,7 @@
 package it.polimi.ingsw.network.message;
 
+import it.polimi.ingsw.model.game.DTO.OfferSlotData;
+import it.polimi.ingsw.model.game.DTO.PlayerData;
 import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.view.View;
 import java.util.ArrayList;
