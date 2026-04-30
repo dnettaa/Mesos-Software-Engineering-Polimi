@@ -1,8 +1,6 @@
 package it.polimi.ingsw.model.game;
 
-import it.polimi.ingsw.network.message.GameStateMessage;
-import it.polimi.ingsw.network.message.OfferSlotData;
-import it.polimi.ingsw.network.message.PlayerData;
+import it.polimi.ingsw.model.game.DTO.*;
 import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.game.phase.*;
@@ -14,6 +12,7 @@ import it.polimi.ingsw.model.card.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Main class representing a Mesos game session.
@@ -33,6 +32,7 @@ public class Game implements GameActions{
     private List<Player> placementOrder;
     private int currentPlayerIndex;
     private List<OfferSlot> resolutionOrder;
+    private final List<GameListener> listeners = new ArrayList<>();
 
     public Game(int gameID, List<Player> players, Board board, int currentRound, Phase phase,
                 GameState state, List<Player> placementOrder, int currentPlayerIndex, List<OfferSlot> resolutionOrder)
@@ -357,51 +357,44 @@ public class Game implements GameActions{
     /**
      * Builds and returns a complete snapshot of the current game state.
      * Collects all relevant information from the game and board and packages
-     * it into a serializable {@link GameStateMessage} to be broadcast to all clients.
+     * it into a neutral GameStateSnapshot to be broadcast to all clients.
      *
-     * @return a GameStateMessage representing the current state of the game
+     * @return a GameStateSnapshot representing the current state of the game
      */
-    public GameStateMessage buildGameStateMessage(){
-        //placement order
-        List<String> placementNicknames = new ArrayList<>();
-        for(Player p: placementOrder){
-            placementNicknames.add(p.getNickname());
-        }
+    private GameStateSnapshot buildSnapshot() {
+        // placement order
+        List<String> placementNicknames = placementOrder.stream()
+                .map(Player::getNickname)
+                .collect(Collectors.toList());
 
-        //resolution order
-        List<Character> resolutionSlotIDs  = new ArrayList<>();
-        for(OfferSlot offerSlot: resolutionOrder){
-            resolutionSlotIDs.add(offerSlot.getSlotID());
-        }
+        // resolution order
+        List<Character> resolutionSlotIDs = resolutionOrder.stream()
+                .map(OfferSlot::getSlotID)
+                .collect(Collectors.toList());
 
-        //turn order
-        List<String> turnOrder = new ArrayList<>();
-        for (Player p : board.getTurnOrderTrack().getPlayersInOrder()) {
-            turnOrder.add(p.getNickname());
-        }
+        // turn order
+        List<String> turnOrder = board.getTurnOrderTrack().getPlayersInOrder().stream()
+                .map(Player::getNickname)
+                .collect(Collectors.toList());
 
         // upperRowCardIDs and lowerRowCardIDs
-        List<String> upperIDs = new ArrayList<>();
-        for (Card c : board.getUpperRowCards()) {
-            upperIDs.add(c.getId());
-        }
+        List<String> upperIDs = board.getUpperRowCards().stream()
+                .map(Card::getId)
+                .collect(Collectors.toList());
 
-        List<String> lowerIDs = new ArrayList<>();
-        for(Card c: board.getLowerRowCards()){
-            lowerIDs.add(c.getId());
-        }
+        List<String> lowerIDs = board.getLowerRowCards().stream()
+                .map(Card::getId)
+                .collect(Collectors.toList());
 
-        //OfferSlotData
+        // OfferSlotData
         List<OfferSlotData> offerSlots = board.buildOfferSlotsData();
 
-        //PlayerData
-        List<PlayerData> playersData = new ArrayList<>();
-        for(Player p: players){
-            playersData.add(p.buildPlayerData());
-        }
+        // PlayerData
+        List<PlayerData> playersData = players.stream()
+                .map(Player::buildPlayerData)
+                .collect(Collectors.toList());
 
-
-        return new GameStateMessage(
+        return new GameStateSnapshot(
                 this.currentRound,
                 this.board.getCurrentEra(),
                 this.getCurrentPhaseName(),
@@ -415,5 +408,113 @@ public class Game implements GameActions{
                 offerSlots,
                 playersData
         );
+    }
+
+    /**
+     * Registers a new listener to receive notifications about game events.
+     *
+     * @param listener the {@link GameListener} to be added
+     */
+    @Override
+    public void addListener(GameListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * Unregisters a previously added listener so it no longer receives game events.
+     *
+     * @param listener the {@link GameListener} to be removed
+     */
+    @Override
+    public void removeListener(GameListener listener) {
+        listeners.remove(listener);
+    }
+
+    /**
+     * Starts the game by building the initial state snapshot and notifying all listeners.
+     * This triggers the first broadcast of the complete game state to the clients.
+     */
+    @Override
+    public void startGame() {
+        GameStateSnapshot snapshot = buildSnapshot();
+        fireGameStarted(snapshot);
+    }
+
+
+    /**
+     * Notifies all registered listeners that the game has officially started.
+     *
+     * @param snapshot the {@link GameStateSnapshot} containing the complete initial state of the game
+     */
+    public void fireGameStarted(GameStateSnapshot snapshot) {
+        for (GameListener listener : listeners) {
+            listener.onGameStarted(snapshot);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that a player has placed their totem on an offer slot.
+     *
+     * @param dto the {@link TotemPlacedDTO} containing the details of the totem placement
+     */
+    public void fireTotemPlaced(TotemPlacedDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onTotemPlaced(dto);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that a player has taken their chosen cards.
+     *
+     * @param dto the {@link CardsTakenDTO} containing the details of the taken cards and related state changes
+     */
+    public void fireCardsTaken(CardsTakenDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onCardsTaken(dto);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that a player has taken an extra card.
+     *
+     * @param dto the {@link ExtraCardTakenDTO} containing the details of the extra card taken
+     */
+    public void fireExtraCardTaken(ExtraCardTakenDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onExtraCardTaken(dto);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that a game event (e.g., Sustenance, Hunting) has been resolved.
+     *
+     * @param dto the {@link EventResolvedDTO} containing the outcome of the event for all affected players
+     */
+    public void fireEventResolved(EventResolvedDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onEventResolved(dto);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that the current round has ended.
+     *
+     * @param dto the {@link RoundEndedDTO} containing the details of the round transition
+     */
+    public void fireRoundEnded(RoundEndedDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onRoundEnded(dto);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that the game has ended and final scoring has been calculated.
+     *
+     * @param dto the {@link GameEndedDTO} containing the final scores and rankings
+     */
+    public void fireGameEnded(GameEndedDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onGameEnded(dto);
+        }
     }
 }

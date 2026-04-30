@@ -1,5 +1,7 @@
 package it.polimi.ingsw.view;
 
+import it.polimi.ingsw.model.game.DTO.OfferSlotData;
+import it.polimi.ingsw.model.game.DTO.PlayerData;
 import it.polimi.ingsw.network.VirtualServer;
 import it.polimi.ingsw.network.message.*;
 import it.polimi.ingsw.model.player.TotemColor;

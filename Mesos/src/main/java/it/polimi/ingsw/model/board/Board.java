@@ -1,10 +1,9 @@
 package it.polimi.ingsw.model.board;
 
-import it.polimi.ingsw.network.message.OfferSlotData;
+import it.polimi.ingsw.model.game.DTO.OfferSlotData;
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.EventCard;
-import it.polimi.ingsw.model.card.TribeCard;
-import it.polimi.ingsw.model.card.building.BuildingCard;
+import it.polimi.ingsw.model.game.DTO.RoundEndedDTO;
 import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.model.player.Player;
 import java.util.List;
@@ -101,6 +100,9 @@ public class Board {
      * @param player the player to place
      */
     public void returnTotemToTurnOrder(Player player){
+        if(turnOrderTrack.getPlayersInOrder().size() == turnOrderTrack.getNumPlayers()){
+            turnOrderTrack.clear();
+        }
         turnOrderTrack.placeFirstSlot(player);
     }
 
@@ -193,19 +195,52 @@ public class Board {
      *     <li>reveals the building cards for the current era.</li>
      * </ol>
      */
-    public void setupNewRound() {
+    public RoundEndedDTO setupNewRound(int newRound, List<String> newTurnOrder, String firstPlayerNickname) {
         offerTrack.reset();
-        turnOrderTrack.clear();
+
+        List<String> discardedLowerTribeIDs = lowerRow.getTribeCards().stream()
+                .filter(Card::isPickable).map(Card::getId).toList();
+        List<String> discardedLowerEventIDs = lowerRow.getEventCards().stream()
+                .map(Card::getId).toList();
+        List<String> discardedLowerBuildingIDs = lowerRow.getBuildingCardsInternal().stream()
+                .map(Card::getId).toList();
+        List<String> movedUpperToLowerTribeIDs = upperRow.getTribeCards().stream()
+                .map(Card::getId).toList();
+        List<String> movedUpperToLowerBuildingIDs = upperRow.getBuildingCardsInternal().stream()
+                .map(Card::getId).toList();
 
         clearLowerRowTribeCards();
         moveUpperTribeCardsToLower();
-
         clearLowerRowBuildings();
         moveUpperBuildingsToLower();
 
+        Era previousEra = currentEra;
         currentEra = checkEraTransition(currentEra);
+
         refillUpperRow(turnOrderTrack.getNumPlayers());
         revealBuildingsForEra(currentEra);
+
+        List<String> newUpperRowIDs = upperRow.getAllCards().stream()
+                .map(Card::getId).toList();
+
+        List<String> revealedBuildingIDs = previousEra != currentEra ?
+                upperRow.getBuildingCardsInternal().stream().map(Card::getId).toList() :
+                List.of();
+
+        return new RoundEndedDTO(
+                discardedLowerTribeIDs,
+                discardedLowerEventIDs,
+                movedUpperToLowerTribeIDs,
+                discardedLowerBuildingIDs,
+                movedUpperToLowerBuildingIDs,
+                newUpperRowIDs,
+                revealedBuildingIDs,
+                currentEra,
+                newRound,
+                newTurnOrder,
+                firstPlayerNickname,
+                tribeDeck.remaining()
+        );
     }
 
     /**
