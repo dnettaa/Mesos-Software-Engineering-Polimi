@@ -12,5 +12,6 @@ public record CardsTakenDTO(
         int ppDelta,
         char freedSlotID,
         int turnOrderPosition,
-        String nextPlayerNickname
+        String nextPlayerNickname,
+        String nextPhaseName
 ) {}

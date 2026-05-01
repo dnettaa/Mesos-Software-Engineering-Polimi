@@ -19,6 +19,7 @@ public class ExtraCardTakenMessage extends ServerMessage{
     private final boolean fromUpperRow;
     private final boolean isBuilding;
     private final int foodDelta;
+    private final String nextPhaseName;
 
     /**
      * Creates a new extra-card-taken message.
@@ -31,12 +32,13 @@ public class ExtraCardTakenMessage extends ServerMessage{
      *                   {@code false} if it is a tribe card
      * @param foodDelta the food variation caused by taking the card
      */
-    public ExtraCardTakenMessage(String nickname, String cardID, boolean fromUpperRow, boolean isBuilding, int foodDelta) {
+    public ExtraCardTakenMessage(String nickname, String cardID, boolean fromUpperRow, boolean isBuilding, int foodDelta, String nextPhaseName) {
         this.nickname = nickname;
         this.cardID = cardID;
         this.fromUpperRow = fromUpperRow;
         this.isBuilding = isBuilding;
         this.foodDelta = foodDelta;
+        this.nextPhaseName = nextPhaseName;
     }
     /**
      * Returns the nickname of the player who took the extra card.
@@ -105,6 +107,7 @@ public class ExtraCardTakenMessage extends ServerMessage{
         }
 
         view.getClientModel().adjustFood(nickname, foodDelta);
+        view.getClientModel().setCurrentPhase(nextPhaseName);
         view.render();
     }
 }

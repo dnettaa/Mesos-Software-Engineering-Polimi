@@ -4,5 +4,5 @@ public record TotemPlacedDTO(
         String placerNickname,
         char slotID,
         String nextPlayerNickname,
-        String currentPhaseName
+        String nextPhaseName
 ) {}

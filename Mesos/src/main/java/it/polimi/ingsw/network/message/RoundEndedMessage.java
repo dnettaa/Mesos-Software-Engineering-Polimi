@@ -155,6 +155,7 @@ public class RoundEndedMessage extends ServerMessage {
         model.setTurnOrder(newTurnOrder);
         model.setCurrentPlayer(firstPlayerNickname);
         model.setTribeDeckRemaining(tribeDeckRemaining);
+        model.setCurrentPhase("TotemPlacementPhase");
 
         view.render();
     }

@@ -120,7 +120,8 @@ public class OfferResolutionPhase implements Phase {
                     ppDelta,
                     freedSlotID,
                     turnOrderPosition,
-                    nextPlayer
+                    nextPlayer,
+                    game.getCurrentPhaseName()
             );
             game.fireCardsTaken(dto);
 

@@ -30,7 +30,7 @@ public class TotemPlacedMessage extends ServerMessage{
         this.placerNickname = placerNickname;
         this.slotID = slotID;
         this.nextPlayerNickname = nextPlayerNickname;
-        this.currentPhaseName;
+        this.currentPhaseName = currentPhaseName;
     }
 
     /**
