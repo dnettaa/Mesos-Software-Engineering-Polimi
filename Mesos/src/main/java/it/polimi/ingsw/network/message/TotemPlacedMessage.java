@@ -13,7 +13,7 @@ import it.polimi.ingsw.view.View;
  */
 
 public class TotemPlacedMessage extends ServerMessage{
-    private final String playerNickname;
+    private final String placerNickname;
     private final char slotID;
     private final String nextPlayerNickname;
 
@@ -21,12 +21,12 @@ public class TotemPlacedMessage extends ServerMessage{
     /**
      * Creates a new totem-placed message.
      *
-     * @param playerNickname the nickname of the player who placed the totem
+     * @param placerNickname the nickname of the player who placed the totem
      * @param slotID the identifier of the offer slot where the totem was placed
      * @param nextPlayerNickname the nickname of the next player who must act
      */
-    public TotemPlacedMessage(String playerNickname, char slotID, String nextPlayerNickname) {
-        this.playerNickname = playerNickname;
+    public TotemPlacedMessage(String placerNickname, char slotID, String nextPlayerNickname) {
+        this.placerNickname = placerNickname;
         this.slotID = slotID;
         this.nextPlayerNickname = nextPlayerNickname;
     }
@@ -36,8 +36,8 @@ public class TotemPlacedMessage extends ServerMessage{
      *
      * @return the player nickname
      */
-    public String getPlayerNickname(){
-        return playerNickname;
+    public String getPlacerNickname(){
+        return placerNickname;
     }
 
     /**
@@ -65,7 +65,7 @@ public class TotemPlacedMessage extends ServerMessage{
      */
     @Override
     public void apply(View view){
-        view.getClientModel().placeTotemOnSlot(playerNickname, slotID);
+        view.getClientModel().placeTotemOnSlot(placerNickname, slotID);
         view.getClientModel().setCurrentPlayer(nextPlayerNickname);
         view.render();
     }

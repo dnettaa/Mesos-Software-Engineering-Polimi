@@ -14,13 +14,15 @@ import java.util.List;
  */
 
 public class CardsTakenMessage extends ServerMessage{
-    private final String playerNickname;
-    private final List<String> upperCardIDs;
-    private final List<String> lowerCardIDs;
-    private final List<String> characterCardIDs;
-    private final List<String> buildingCardIDs;
+    private final String nickname;
+    private final List<String> takenUpperIDs;
+    private final List<String> takenLowerIDs;
+    private final List<String> addedTribeCardIDs;
+    private final List<String> addedBuildingIDs;
     private final int foodDelta;
-    private final int prestigePointsDelta;
+    private final int ppDelta;
+    private final char freedSlotID;
+    private final int turnOrderPosition;
     private final String nextPlayerNickname;
 
     /**
