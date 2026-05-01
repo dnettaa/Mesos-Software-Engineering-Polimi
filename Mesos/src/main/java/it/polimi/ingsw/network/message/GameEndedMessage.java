@@ -64,6 +64,9 @@ public class GameEndedMessage extends ServerMessage{
     @Override
     public void apply(View view) {
         view.getClientModel().setCurrentPhase("EndGame");
+        view.getClientModel().setRanking(ranking);
+        view.getClientModel().setFinalPP(finalPPByPlayer);
+        view.getClientModel().setEndGameBonus(endGameBonusByPlayer);
         view.render();
     }
 }

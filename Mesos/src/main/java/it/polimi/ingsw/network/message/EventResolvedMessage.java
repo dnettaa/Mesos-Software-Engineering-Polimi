@@ -79,6 +79,7 @@ public class EventResolvedMessage extends ServerMessage{
      */
     @Override
     public void apply(View view){
+
         for (Map.Entry<String, Integer> entry : ppDeltaByPlayer.entrySet()){
             view.getClientModel().adjustPP(entry.getKey(), entry.getValue());
         }
@@ -88,7 +89,6 @@ public class EventResolvedMessage extends ServerMessage{
         }
 
         view.getClientModel().setCurrentPhase(nextPhaseName);
-
-        view.render();
+        view.showEventResolved(eventCardID, eventType, ppDeltaByPlayer, foodDeltaByPlayer);
     }
 }

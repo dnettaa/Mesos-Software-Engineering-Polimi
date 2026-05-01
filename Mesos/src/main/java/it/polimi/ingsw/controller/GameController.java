@@ -368,6 +368,6 @@ public class GameController implements GameListener {
                 dto.ranking()
         ));
 
-        closeAll();
+        //closeAll();
     }
 }

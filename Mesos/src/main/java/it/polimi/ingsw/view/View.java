@@ -55,4 +55,7 @@ public interface View {
      * Gestisce gli errori durante il gioco (mosse non valide, turno sbagliato).
      */
     void showGameError(String description);
+
+    void showEventResolved(String eventCardID, String eventType,
+                           Map<String, Integer> ppDelta, Map<String, Integer> foodDelta);
 }

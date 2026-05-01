@@ -26,6 +26,9 @@ public class ClientModel {
     private List<OfferSlotData> offerSlots;
     private Map<String, PlayerData> players;
     private List<String> placementOrder;
+    private List<String> ranking;
+    private Map<String, Integer> finalPPByPlayer;
+    private Map<String, Integer> endGameBonusByPlayer;
 
     public ClientModel() {
         this.resolutionOrder = new ArrayList<>();
@@ -55,9 +58,8 @@ public class ClientModel {
     public void addTribeCardTo(String nickname, String cardID) {
         PlayerData old = players.get(nickname);
         if (old != null) {
-            List<String> tribes = old.tribeCardID();
+            List<String> tribes = new ArrayList<>(old.tribeCardID());
             tribes.add(cardID);
-            // PlayerData è immutabile, creiamo un rimpiazzo aggiornato
             PlayerData updated = new PlayerData(
                     old.nickname(), old.totemColor(), old.food(),
                     old.prestigePoints(), tribes, old.buildingID()
@@ -69,7 +71,7 @@ public class ClientModel {
     public void addBuildingTo(String nickname, String cardID) {
         PlayerData old = players.get(nickname);
         if (old != null) {
-            List<String> builds = old.buildingID();
+            List<String> builds = new ArrayList<>(old.buildingID());
             builds.add(cardID);
             PlayerData updated = new PlayerData(
                     old.nickname(), old.totemColor(), old.food(),
@@ -82,7 +84,7 @@ public class ClientModel {
     public void adjustFood(String nickname, int delta) {
         PlayerData old = players.get(nickname);
         if (old != null) {
-            int newFood = Math.max(0, old.food() + delta); // Evita cibo negativo
+            int newFood = Math.max(0, old.food() + delta);
             PlayerData updated = new PlayerData(
                     old.nickname(), old.totemColor(), newFood,
                     old.prestigePoints(), old.tribeCardID(), old.buildingID()
@@ -94,7 +96,7 @@ public class ClientModel {
     public void adjustPP(String nickname, int delta) {
         PlayerData old = players.get(nickname);
         if (old != null) {
-            int newPP = Math.max(0, old.prestigePoints() + delta);
+            int newPP = old.prestigePoints() + delta;
             PlayerData updated = new PlayerData(
                     old.nickname(), old.totemColor(), old.food(),
                     newPP, old.tribeCardID(), old.buildingID()
@@ -150,7 +152,9 @@ public class ClientModel {
         this.players = playersList;
     }
     public void setPlacementOrder(List<String> placementOrder){this.placementOrder = new ArrayList<>(placementOrder);}
-
+    public void setRanking(List<String> ranking) { this.ranking = new ArrayList<>(ranking); }
+    public void setFinalPP(Map<String, Integer> finalPP) { this.finalPPByPlayer = new HashMap<>(finalPP); }
+    public void setEndGameBonus(Map<String, Integer> bonus) { this.endGameBonusByPlayer = new HashMap<>(bonus); }
 
     // =========================================================
     // GETTER (Usati dalla TUI e GUI per disegnare la plancia)
@@ -167,4 +171,7 @@ public class ClientModel {
     public List<String> getLowerRowCardIDs() { return lowerRowCardIDs; }
     public List<OfferSlotData> getOfferSlots() { return offerSlots; }
     public Map<String, PlayerData> getPlayers() { return players; }
+    public List<String> getRanking() { return ranking; }
+    public Map<String, Integer> getFinalPP() { return finalPPByPlayer; }
+    public Map<String, Integer> getEndGameBonus() { return endGameBonusByPlayer; }
 }

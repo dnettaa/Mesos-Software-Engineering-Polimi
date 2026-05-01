@@ -131,24 +131,18 @@ public class RoundEndedMessage extends ServerMessage {
         ClientModel model = view.getClientModel();
         if (model == null) return;
 
-        List<String> upperRow = new ArrayList<>(model.getUpperRowCardIDs());
         List<String> lowerRow = new ArrayList<>(model.getLowerRowCardIDs());
 
         lowerRow.removeAll(discardedLowerTribeIDs);
         lowerRow.removeAll(discardedLowerEventIDs);
         lowerRow.removeAll(discardedLowerBuildingIDs);
-
-        upperRow.removeAll(movedUpperToLowerTribeIDs);
+        lowerRow.removeAll(movedUpperToLowerBuildingIDs);
         lowerRow.addAll(movedUpperToLowerTribeIDs);
-
-        upperRow.removeAll(movedUpperToLowerBuildingIDs);
         lowerRow.addAll(movedUpperToLowerBuildingIDs);
 
-        upperRow.addAll(newUpperRowIDs);
-        upperRow.addAll(revealedBuildingIDs);
-
-        model.setUpperRow(upperRow);
         model.setLowerRow(lowerRow);
+
+        model.setUpperRow(newUpperRowIDs);
 
         model.setCurrentRound(newRound);
         model.setCurrentEra(newEra);

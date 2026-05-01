@@ -204,21 +204,27 @@ public class Board {
                 .map(Card::getId).toList();
         List<String> discardedLowerBuildingIDs = lowerRow.getBuildingCardsInternal().stream()
                 .map(Card::getId).toList();
+
         List<String> movedUpperToLowerTribeIDs = upperRow.getTribeCards().stream()
-                .map(Card::getId).toList();
-        List<String> movedUpperToLowerBuildingIDs = upperRow.getBuildingCardsInternal().stream()
                 .map(Card::getId).toList();
 
         clearLowerRowTribeCards();
         moveUpperTribeCardsToLower();
-        clearLowerRowBuildings();
-        moveUpperBuildingsToLower();
+        refillUpperRow(turnOrderTrack.getNumPlayers());
 
         Era previousEra = currentEra;
         currentEra = checkEraTransition(currentEra);
 
-        refillUpperRow(turnOrderTrack.getNumPlayers());
-        revealBuildingsForEra(currentEra);
+        List<String> movedUpperToLowerBuildingIDs;
+        if (previousEra != currentEra) {
+            movedUpperToLowerBuildingIDs = upperRow.getBuildingCardsInternal()
+                    .stream().map(Card::getId).toList();
+            clearLowerRowBuildings();
+            moveUpperBuildingsToLower();
+            revealBuildingsForEra(currentEra);
+        } else {
+            movedUpperToLowerBuildingIDs = List.of();
+        }
 
         List<String> newUpperRowIDs = upperRow.getAllCards().stream()
                 .map(Card::getId).toList();
