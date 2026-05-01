@@ -9,6 +9,7 @@ import java.rmi.RemoteException;
  * <p>
  * This interface defines the callback method that the server can invoke
  * to deliver messages to the client.
+ * @author Diana
  */
 
 public interface ClientRMI extends Remote{

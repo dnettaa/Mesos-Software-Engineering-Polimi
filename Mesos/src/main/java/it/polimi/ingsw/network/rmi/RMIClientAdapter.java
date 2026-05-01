@@ -17,6 +17,7 @@ import java.rmi.server.UnicastRemoteObject;
  * <p>
  * It implements {@link VirtualServer}, so the View can use it as a normal server,
  * and {@link ClientRMI}, so the real server can call it back remotely.
+ * @author Diana
  */
 
 public class RMIClientAdapter implements VirtualServer, ClientRMI{

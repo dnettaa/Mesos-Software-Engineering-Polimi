@@ -6,6 +6,7 @@ import it.polimi.ingsw.controller.GameController;
 
 /**
  * Message sent by a client to join an existing lobby.
+ * @author Diana
  */
 
 public class JoinLobbyMessage extends ClientMessage{

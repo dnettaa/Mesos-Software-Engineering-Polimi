@@ -4,6 +4,7 @@ import it.polimi.ingsw.view.View;
 
 /**
  * Message sent by the server to notify a client about an invalid action or error.
+ * @author Diana
  */
 
 public class ErrorMessage extends ServerMessage{

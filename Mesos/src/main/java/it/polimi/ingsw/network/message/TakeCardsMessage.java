@@ -10,6 +10,7 @@ import java.util.List;
  * <p>
  * The message contains only card identifiers, not model card objects.
  * The model is responsible for resolving these ids into actual cards.
+ * @author Diana
  */
 
 public class TakeCardsMessage extends ClientMessage{

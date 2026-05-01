@@ -8,6 +8,7 @@ import it.polimi.ingsw.controller.GameController;
  * <p>
  * This message is used when a game effect allows the player to take
  * one additional card outside the standard offer resolution.
+ * @author Diana
  */
 
 public class TakeExtraCardMessage extends ClientMessage{

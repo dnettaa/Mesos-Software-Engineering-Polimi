@@ -5,6 +5,7 @@ import it.polimi.ingsw.controller.GameController;
 
 /**
  * Message sent by a client to place their totem on an offer slot.
+ * @author Diana
  */
 
 public class PlaceTotemMessage extends ClientMessage{
