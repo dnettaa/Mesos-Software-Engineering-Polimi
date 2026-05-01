@@ -3,6 +3,7 @@ package it.polimi.ingsw.controller;
 import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
+import it.polimi.ingsw.network.message.CardsTakenMessage;
 import it.polimi.ingsw.network.message.GameStateMessage;
 import it.polimi.ingsw.network.message.ServerMessage;
 import it.polimi.ingsw.network.message.ErrorMessage;
