@@ -1,6 +1,8 @@
 package it.polimi.ingsw.network.message;
 
 import it.polimi.ingsw.view.View;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,37 +15,46 @@ import java.util.Map;
  */
 
 public class GameEndedMessage extends ServerMessage{
-    private final Map<String, Integer> finalScores;
-    private final Map<Integer, String> ranking;
+    private final Map<String, Integer> finalPPByPlayer;
+    private final Map<String, Integer> endGameBonusByPlayer;
+    private final List<String> ranking;
 
     /**
      * Creates a new game-ended message.
      *
-     * @param finalScores the final score associated with each player nickname
-     * @param ranking the final ranking, where the key is the position and the value is the player nickname
+     * @param finalPPByPlayer the final prestige points for each player nickname
+     * @param endGameBonusByPlayer the end-game bonus points for each player nickname
+     * @param ranking the final ranking as an ordered list of player nicknames
      */
-    public GameEndedMessage(Map<String, Integer> finalScores, Map<Integer, String> ranking){
-        this.finalScores = new HashMap<>(finalScores);
-        this.ranking = new HashMap<>(ranking);
+    public GameEndedMessage(Map<String, Integer> finalPPByPlayer, Map<String, Integer> endGameBonusByPlayer, List<String> ranking){
+        this.finalPPByPlayer = new HashMap<>(finalPPByPlayer);
+        this.endGameBonusByPlayer = new HashMap<>(endGameBonusByPlayer);
+        this.ranking = new ArrayList<>(ranking);
     }
+
 
     /**
      * Returns the final score associated with each player.
      *
      * @return a copy of the final scores map
      */
-    public Map<String, Integer> getFinalScores(){
-        return new HashMap<>(finalScores);
+    public Map<String, Integer> getFinalPPByPlayer(){
+        return new HashMap<>(finalPPByPlayer);
+    }
+
+    public Map<String, Integer> getEndGameBonusByPlayer() {
+        return new HashMap<>(endGameBonusByPlayer);
     }
 
     /**
      * Returns the final ranking.
      *
-     * @return a copy of the ranking map
+     * @return a copy of the ranking list
      */
-    public Map<Integer, String> getRanking(){
-        return new HashMap<>(ranking);
+    public List<String> getRanking() {
+        return new ArrayList<>(ranking);
     }
+
 
     /**
      * Applies this final update to the client-side model and renders the view.
@@ -51,11 +62,8 @@ public class GameEndedMessage extends ServerMessage{
      * @param view the view that must apply and display the final result
      */
     @Override
-    public void apply(View view){
-        view.getClientModel().setFinalScores(finalScores);
-        view.getClientModel().setRanking(ranking);
+    public void apply(View view) {
         view.getClientModel().setCurrentPhase("EndGame");
-
         view.render();
     }
 }
