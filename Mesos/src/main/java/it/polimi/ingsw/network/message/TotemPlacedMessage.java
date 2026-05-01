@@ -34,7 +34,7 @@ public class TotemPlacedMessage extends ServerMessage{
     /**
      * Returns the nickname of the player who placed the totem.
      *
-     * @return the player nickname
+     * @return the placer nickname
      */
     public String getPlacerNickname(){
         return placerNickname;
