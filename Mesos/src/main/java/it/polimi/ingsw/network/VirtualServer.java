@@ -10,6 +10,7 @@ import it.polimi.ingsw.model.player.TotemColor;
  * <p>
  * The View uses this interface to communicate with the server without knowing
  * whether the underlying network technology is Socket or RMI.
+ * @author Diana
  */
 
 public interface VirtualServer {

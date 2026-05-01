@@ -19,6 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * from RMI clients. For each connected client it creates an internal
  * {@link VirtualView}, so the controller can interact with RMI clients
  * exactly as it does with Socket clients.
+ * @author Diana
  */
 public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
     private static final int OUTBOX_CAPACITY = 100;
