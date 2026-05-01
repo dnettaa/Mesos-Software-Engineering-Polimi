@@ -48,7 +48,7 @@ public class ExtraCardTackenMessage extends ServerMessage{
      *
      * @return the player nickname
      */
-    public String getPlayerNickname() {
+    public String getPlayerNickname(){
         return playerNickname;
     }
 
@@ -57,7 +57,7 @@ public class ExtraCardTackenMessage extends ServerMessage{
      *
      * @return the card id
      */
-    public String getCardID() {
+    public String getCardID(){
         return cardID;
     }
 
@@ -67,7 +67,7 @@ public class ExtraCardTackenMessage extends ServerMessage{
      * @return {@code true} if the card was removed from the upper row,
      *         {@code false} if it was removed from the lower row
      */
-    public boolean isFromUpperRow() {
+    public boolean isFromUpperRow(){
         return fromUpperRow;
     }
 
@@ -77,7 +77,7 @@ public class ExtraCardTackenMessage extends ServerMessage{
      * @return {@code true} if the card is a building card,
      *         {@code false} if it is a tribe card
      */
-    public boolean isBuildingCard() {
+    public boolean isBuildingCard(){
         return buildingCard;
     }
 
@@ -86,7 +86,7 @@ public class ExtraCardTackenMessage extends ServerMessage{
      *
      * @return the food delta
      */
-    public int getFoodDelta() {
+    public int getFoodDelta(){
         return foodDelta;
     }
 
@@ -95,7 +95,7 @@ public class ExtraCardTackenMessage extends ServerMessage{
      *
      * @return the prestige points delta
      */
-    public int getPrestigePointsDelta() {
+    public int getPrestigePointsDelta(){
         return prestigePointsDelta;
     }
 
@@ -104,7 +104,7 @@ public class ExtraCardTackenMessage extends ServerMessage{
      *
      * @return the next active player nickname
      */
-    public String getNextPlayerNickname() {
+    public String getNextPlayerNickname(){
         return nextPlayerNickname;
     }
 
@@ -114,16 +114,16 @@ public class ExtraCardTackenMessage extends ServerMessage{
      * @param view the view that must apply and display this update
      */
     @Override
-    public void apply(View view) {
-        if (fromUpperRow) {
+    public void apply(View view){
+        if(fromUpperRow){
             view.getClientModel().removeUpperCard(cardID);
-        } else {
+        } else{
             view.getClientModel().removeLowerCard(cardID);
         }
 
-        if (buildingCard) {
+        if (buildingCard){
             view.getClientModel().addBuildingTo(playerNickname, cardID);
-        } else {
+        } else{
             view.getClientModel().addTribeCardTo(playerNickname, cardID);
         }
 
