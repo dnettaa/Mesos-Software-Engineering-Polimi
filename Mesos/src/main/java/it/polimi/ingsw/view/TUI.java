@@ -168,16 +168,22 @@ public class TUI implements View {
         StringBuilder top = new StringBuilder("  ");
         StringBuilder mid = new StringBuilder("  ");
         StringBuilder bot = new StringBuilder("  ");
+        StringBuilder inf = new StringBuilder("  ");
         for (String id : cardIDs) {
-            top.append(color).append("┌───────────┐ ").append(RESET);
+            String desc = CardCatalog.getDescription(id);
+            top.append(color).append("┌─────────────────┐ ").append(RESET);
             mid.append(color).append("│ ").append(RESET)
-                    .append(String.format("%-9s", id))
+                    .append(String.format("%-4s", id))
                     .append(color).append(" │ ").append(RESET);
-            bot.append(color).append("└───────────┘ ").append(RESET);
+            bot.append(color).append("│ ").append(RESET)
+                    .append(String.format("%-15s", desc))
+                    .append(color).append(" │ ").append(RESET);
+            inf.append(color).append("└─────────────────┘ ").append(RESET);
         }
         System.out.println(top);
         System.out.println(mid);
         System.out.println(bot);
+        System.out.println(inf);
     }
 
     /**
