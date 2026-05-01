@@ -2,6 +2,7 @@ package it.polimi.ingsw.network.message;
 
 import it.polimi.ingsw.model.game.DTO.OfferSlotData;
 import it.polimi.ingsw.model.game.DTO.PlayerData;
+import it.polimi.ingsw.view.ClientModel;
 import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.view.View;
 import java.util.ArrayList;
@@ -106,12 +107,32 @@ public class GameStateMessage extends ServerMessage{
     }
 
     /**
-     * Applies this message to the given view.
+     * Applies this full game snapshot to the given view.
+     * <p>
+     * This message is intended to initialize or completely reset the client-side
+     * model. After the snapshot has been copied into a new {@code ClientModel},
+     * the view is rendered using the updated local state.
      *
-     * @param view the view that must display the updated game state
+     * @param view the view that must receive and render the full game snapshot
      */
     @Override
-    public void apply(View view) {
-        view.showGameState(this);
+    public void apply(View view){
+        ClientModel model = new ClientModel();
+
+        model.setCurrentRound(currentRound);
+        model.setCurrentEra(currentEra);
+        model.setCurrentPhase(currentPhaseName);
+        model.setCurrentPlayer(currentPlayerNickname);
+        model.setPlacementOrder(placementOrder);
+        model.setResolutionOrder(resolutionOrder);
+        model.setTurnOrder(turnOrder);
+        model.setTribeDeckRemaining(tribeDeckRemaining);
+        model.setUpperRow(upperRowCardIDs);
+        model.setLowerRow(lowerRowCardIDs);
+        model.setOfferSlots(offerSlots);
+        model.setPlayers(players);
+
+        view.setClientModel(model);
+        view.render()
     }
 }
