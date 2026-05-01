@@ -28,25 +28,30 @@ public class CardsTakenMessage extends ServerMessage{
     /**
      * Creates a new cards-taken message.
      *
-     * @param playerNickname the nickname of the player who took the cards
-     * @param upperCardIDs the ids of the cards removed from the upper row
-     * @param lowerCardIDs the ids of the cards removed from the lower row
-     * @param characterCardIDs the ids of the character cards added to the player's tribe
-     * @param buildingCardIDs the ids of the building cards added to the player
+     * @param nickname the nickname of the player who took the cards
+     * @param takenUpperIDs the ids of the cards removed from the upper row
+     * @param takenLowerIDs the ids of the cards removed from the lower row
+     * @param addedTribeCardIDs the ids of the tribe cards added to the player
+     * @param addedBuildingIDs the ids of the building cards added to the player
      * @param foodDelta the food variation caused by the action
-     * @param prestigePointsDelta the prestige points variation caused by the action
+     * @param ppDelta the prestige points variation caused by the action
+     * @param freedSlotID the id of the offer slot freed after resolving the action
+     * @param turnOrderPosition the position where the player returned on the turn-order track
      * @param nextPlayerNickname the nickname of the next player who must act
      */
-    public CardsTakenMessage(String playerNickname, List<String> upperCardIDs, List<String> lowerCardIDs, List<String> characterCardIDs, List<String> buildingCardIDs, int foodDelta, int prestigePointsDelta, String nextPlayerNickname) {
-        this.playerNickname = playerNickname;
-        this.upperCardIDs = new ArrayList<>(upperCardIDs);
-        this.lowerCardIDs = new ArrayList<>(lowerCardIDs);
-        this.characterCardIDs = new ArrayList<>(characterCardIDs);
-        this.buildingCardIDs = new ArrayList<>(buildingCardIDs);
+    public CardsTakenMessage(String nickname, List<String> takenUpperIDs, List<String> takenLowerIDs, List<String> addedTribeCardIDs, List<String> addedBuildingIDs, int foodDelta, int ppDelta, char freedSlotID, int turnOrderPosition, String nextPlayerNickname) {
+        this.nickname = nickname;
+        this.takenUpperIDs = new ArrayList<>(takenUpperIDs);
+        this.takenLowerIDs = new ArrayList<>(takenLowerIDs);
+        this.addedTribeCardIDs = new ArrayList<>(addedTribeCardIDs);
+        this.addedBuildingIDs = new ArrayList<>(addedBuildingIDs);
         this.foodDelta = foodDelta;
-        this.prestigePointsDelta = prestigePointsDelta;
+        this.ppDelta = ppDelta;
+        this.freedSlotID = freedSlotID;
+        this.turnOrderPosition = turnOrderPosition;
         this.nextPlayerNickname = nextPlayerNickname;
     }
+
 
     public String getPlayerNickname(){
         return playerNickname;
