@@ -14,64 +14,79 @@ import java.util.List;
  */
 
 public class CardsTakenMessage extends ServerMessage{
-    private final String playerNickname;
-    private final List<String> upperCardIDs;
-    private final List<String> lowerCardIDs;
-    private final List<String> characterCardIDs;
-    private final List<String> buildingCardIDs;
+    private final String nickname;
+    private final List<String> takenUpperIDs;
+    private final List<String> takenLowerIDs;
+    private final List<String> addedTribeCardIDs;
+    private final List<String> addedBuildingIDs;
     private final int foodDelta;
-    private final int prestigePointsDelta;
+    private final int ppDelta;
+    private final char freedSlotID;
+    private final int turnOrderPosition;
     private final String nextPlayerNickname;
 
     /**
      * Creates a new cards-taken message.
      *
-     * @param playerNickname the nickname of the player who took the cards
-     * @param upperCardIDs the ids of the cards removed from the upper row
-     * @param lowerCardIDs the ids of the cards removed from the lower row
-     * @param characterCardIDs the ids of the character cards added to the player's tribe
-     * @param buildingCardIDs the ids of the building cards added to the player
+     * @param nickname the nickname of the player who took the cards
+     * @param takenUpperIDs the ids of the cards removed from the upper row
+     * @param takenLowerIDs the ids of the cards removed from the lower row
+     * @param addedTribeCardIDs the ids of the tribe cards added to the player
+     * @param addedBuildingIDs the ids of the building cards added to the player
      * @param foodDelta the food variation caused by the action
-     * @param prestigePointsDelta the prestige points variation caused by the action
+     * @param ppDelta the prestige points variation caused by the action
+     * @param freedSlotID the id of the offer slot freed after resolving the action
+     * @param turnOrderPosition the position where the player returned on the turn-order track
      * @param nextPlayerNickname the nickname of the next player who must act
      */
-    public CardsTakenMessage(String playerNickname, List<String> upperCardIDs, List<String> lowerCardIDs, List<String> characterCardIDs, List<String> buildingCardIDs, int foodDelta, int prestigePointsDelta, String nextPlayerNickname) {
-        this.playerNickname = playerNickname;
-        this.upperCardIDs = new ArrayList<>(upperCardIDs);
-        this.lowerCardIDs = new ArrayList<>(lowerCardIDs);
-        this.characterCardIDs = new ArrayList<>(characterCardIDs);
-        this.buildingCardIDs = new ArrayList<>(buildingCardIDs);
+    public CardsTakenMessage(String nickname, List<String> takenUpperIDs, List<String> takenLowerIDs, List<String> addedTribeCardIDs, List<String> addedBuildingIDs, int foodDelta, int ppDelta, char freedSlotID, int turnOrderPosition, String nextPlayerNickname) {
+        this.nickname = nickname;
+        this.takenUpperIDs = new ArrayList<>(takenUpperIDs);
+        this.takenLowerIDs = new ArrayList<>(takenLowerIDs);
+        this.addedTribeCardIDs = new ArrayList<>(addedTribeCardIDs);
+        this.addedBuildingIDs = new ArrayList<>(addedBuildingIDs);
         this.foodDelta = foodDelta;
-        this.prestigePointsDelta = prestigePointsDelta;
+        this.ppDelta = ppDelta;
+        this.freedSlotID = freedSlotID;
+        this.turnOrderPosition = turnOrderPosition;
         this.nextPlayerNickname = nextPlayerNickname;
     }
 
-    public String getPlayerNickname(){
-        return playerNickname;
+
+    public String getNickname(){
+        return nickname;
     }
 
-    public List<String> getUpperCardIDs(){
-        return new ArrayList<>(upperCardIDs);
+    public List<String> getTakenUpperIDs(){
+        return new ArrayList<>(takenUpperIDs);
     }
 
-    public List<String> getLowerCardIDs(){
-        return new ArrayList<>(lowerCardIDs);
+    public List<String> getTakenLowerIDs(){
+        return new ArrayList<>(takenLowerIDs);
     }
 
-    public List<String> getCharacterCardIDs(){
-        return new ArrayList<>(characterCardIDs);
+    public List<String> getAddedTribeCardIDs(){
+        return new ArrayList<>(addedTribeCardIDs);
     }
 
-    public List<String> getBuildingCardIDs(){
-        return new ArrayList<>(buildingCardIDs);
+    public List<String> getAddedBuildingIDs(){
+        return new ArrayList<>(addedBuildingIDs);
     }
 
     public int getFoodDelta(){
         return foodDelta;
     }
 
-    public int getPrestigePointsDelta(){
-        return prestigePointsDelta;
+    public int getPpDelta(){
+        return ppDelta;
+    }
+
+    public char getFreedSlotID(){
+        return freedSlotID;
+    }
+
+    public int getTurnOrderPosition(){
+        return turnOrderPosition;
     }
 
     public String getNextPlayerNickname(){
@@ -85,24 +100,25 @@ public class CardsTakenMessage extends ServerMessage{
      */
     @Override
     public void apply(View view){
-        for(String cardID : upperCardIDs){
+        for(String cardID : takenUpperIDs){
             view.getClientModel().removeUpperCard(cardID);
         }
 
-        for(String cardID : lowerCardIDs){
+        for(String cardID : takenLowerIDs){
             view.getClientModel().removeLowerCard(cardID);
         }
 
-        for(String cardID : characterCardIDs){
-            view.getClientModel().addTribeCardTo(playerNickname, cardID);
+        for(String cardID : addedTribeCardIDs){
+            view.getClientModel().addTribeCardTo(nickname, cardID);
         }
 
-        for(String cardID : buildingCardIDs){
-            view.getClientModel().addBuildingTo(playerNickname, cardID);
+        for(String cardID : addedBuildingIDs){
+            view.getClientModel().addBuildingTo(nickname, cardID);
         }
 
-        view.getClientModel().adjustFood(playerNickname, foodDelta);
-        view.getClientModel().adjustPP(playerNickname, prestigePointsDelta);
+        view.getClientModel().adjustFood(nickname, foodDelta);
+        view.getClientModel().adjustPP(nickname, ppDelta);
+        view.getClientModel().freeSlot(freedSlotID);
         view.getClientModel().setCurrentPlayer(nextPlayerNickname);
 
         view.render();
