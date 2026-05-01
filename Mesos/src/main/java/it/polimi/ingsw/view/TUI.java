@@ -20,7 +20,7 @@ import java.util.Scanner;
 public class TUI implements View {
 
     private VirtualServer virtualServer;
-    private GameStateMessage lastState;
+    private ClientModel clientModel;
     private String nickname;
     private final Scanner scanner;
 
@@ -35,7 +35,7 @@ public class TUI implements View {
 
     @Override
     public ClientModel getClientModel() {
-        return null;
+        return clientModel;
     }
 
     @Override
@@ -57,22 +57,30 @@ public class TUI implements View {
         System.out.println("          WELCOME TO MESOS               ");
         System.out.println("=========================================");
 
-        System.out.print("Please enter your Nickname: ");
-
-        this.nickname = scanner.nextLine().trim();
-
-        // 1. Pick a Color
-        System.out.println("\nAvailable colors: " + Arrays.toString(TotemColor.values()));
-        System.out.print("Choose your Totem Color: ");
-        String colorInput = scanner.nextLine().trim().toUpperCase();
-        TotemColor chosenColor = TotemColor.valueOf(colorInput);
-
-        // 2. Lobby Menu
+        // 1. Chiedi prima l'azione (Creare o Unirsi)
         System.out.println("\nLOBBY MENU:");
         System.out.println("1) Create a new Lobby");
         System.out.println("2) Join an existing Lobby");
         System.out.print("> ");
         int lobbyChoice = Integer.parseInt(scanner.nextLine().trim());
+
+        // 2. Raccogli i dati del giocatore
+        System.out.print("\nPlease enter your Nickname: ");
+        this.nickname = scanner.nextLine().trim();
+
+        System.out.println("Available colors: " + java.util.Arrays.toString(TotemColor.values()));
+        TotemColor chosenColor = null;
+        // Ciclo finché non otteniamo un colore valido
+        while (chosenColor == null) {
+            System.out.print("Choose your Totem Color: ");
+            String colorInput = scanner.nextLine().trim().toUpperCase();
+
+            try {
+                chosenColor = TotemColor.valueOf(colorInput);
+            } catch (IllegalArgumentException e) {
+                System.out.println("[ERRORE] Colore non valido. Per favore, scegli uno dei colori nella lista.");
+            }
+        }
 
         if (lobbyChoice == 1) {
             System.out.print("Enter number of expected players: ");
@@ -85,7 +93,6 @@ public class TUI implements View {
         System.out.println("\n[INFO] Request sent. Waiting for game to start...");
     }
 
-    // --- VIEW INTERFACE METHODS ---
 
     @Override
     public void showJoinSuccess(String nickname, TotemColor color) {

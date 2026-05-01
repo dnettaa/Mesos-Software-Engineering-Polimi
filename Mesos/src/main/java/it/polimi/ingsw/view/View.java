@@ -36,8 +36,6 @@ public interface View {
      */
     void setVirtualServer(VirtualServer vs);
 
-    // --- NUOVI METODI PER L'ARCHITETTURA A DELTA (CLIENT MODEL) ---
-
     /**
      * Restituisce la replica locale dello stato del gioco.
      */
