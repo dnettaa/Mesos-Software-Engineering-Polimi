@@ -69,11 +69,11 @@ public class ErrorMessage extends ServerMessage{
             case INSUFFICIENT_FOOD:
             case CARD_NOT_IN_ROW:
             case INVALID_SELECTION:
-                //view.showGameError(this.description);
+                view.showGameError(this.description);
                 break;
 
             default:
-                //view.showGameError("Errore sconosciuto: " + this.description);
+                view.showGameError("Errore sconosciuto: " + this.description);
                 break;
         }
     }

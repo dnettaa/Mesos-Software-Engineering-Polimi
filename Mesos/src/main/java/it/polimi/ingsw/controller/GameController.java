@@ -265,7 +265,8 @@ public class GameController implements GameListener {
         broadcast(new TotemPlacedMessage(
                 dto.placerNickname(),
                 dto.slotID(),
-                dto.nextPlayerNickname()
+                dto.nextPlayerNickname(),
+                dto.currentPhaseName()
         ));
     }
 

@@ -40,12 +40,64 @@ public class TUI implements View {
 
     @Override
     public void setClientModel(ClientModel model) {
-
+        this.clientModel = model;
     }
 
     @Override
     public void render() {
+        if (clientModel == null) return;
 
+        // Caso fine partita
+        if ("EndGame".equals(clientModel.getCurrentPhaseName())) {
+            System.out.println("\n" + "=".repeat(40));
+            System.out.println("          GAME OVER!");
+            System.out.println("=".repeat(40));
+            System.out.println("Classifica finale:");
+            // I punteggi li vedi dai players nel clientModel
+            clientModel.getPlayers().values().stream()
+                    .sorted((a, b) -> b.prestigePoints() - a.prestigePoints())
+                    .forEach(p -> System.out.printf("  %-12s → %d PP%n", p.nickname(), p.prestigePoints()));
+            return;
+        }
+
+        // Render Board Header
+        System.out.println("\n" + "=".repeat(40));
+        System.out.printf(" ROUND: %d | ERA: %s | PHASE: %s %n",
+                clientModel.getCurrentRound(), clientModel.getCurrentEra(), clientModel.getCurrentPhaseName());
+        System.out.println("=".repeat(40));
+
+        // Turn Order
+        System.out.println("TURN ORDER: " + String.join(" -> ", clientModel.getTurnOrder()));
+
+        // Offer Track
+        System.out.println("\n>>> OFFER TRACK <<<");
+        for (OfferSlotData slot : clientModel.getOfferSlots()) {
+            String occ = slot.occupantNickname() == null ? "FREE" : slot.occupantNickname();
+            System.out.printf("[%c] Up:%d Down:%d Food:%d -> %s%n",
+                    slot.slotID(), slot.upSel(), slot.downSel(), slot.foodReward(), occ);
+        }
+
+        // ASCII Card Rows
+        System.out.println("\nTOP ROW:");
+        drawCardRow(clientModel.getUpperRowCardIDs());
+        System.out.println("BOTTOM ROW:");
+        drawCardRow(clientModel.getLowerRowCardIDs());
+
+        // Player Stats
+        System.out.println(">>> PLAYERS <<<");
+        for (PlayerData p : clientModel.getPlayers().values()) {
+            System.out.printf("%-10s | Food:%d | PP:%d | Tribe:%d cards | Buildings:%d%n",
+                    p.nickname(), p.food(), p.prestigePoints(),
+                    p.tribeCardID().size(), p.buildingID().size());
+        }
+
+        // Action Logic
+        if (nickname.equals(clientModel.getCurrentPlayerNickname())) {
+            System.out.println("\n*** IT IS YOUR TURN! ***");
+            handleTurnInput(clientModel.getCurrentPhaseName());
+        } else {
+            System.out.println("\nWaiting for " + clientModel.getCurrentPlayerNickname() + "...");
+        }
     }
 
     /**
@@ -107,48 +159,6 @@ public class TUI implements View {
         }
     }
 
-    public void showGameState(GameStateMessage state) {
-        this.lastState = state;
-
-        // Render Board Header
-        System.out.println("\n" + "=".repeat(40));
-        System.out.printf(" ROUND: %d | ERA: %s | PHASE: %s %n",
-                state.getCurrentRound(), state.getCurrentEra(), state.getCurrentPhaseName());
-        System.out.println("=".repeat(40));
-
-        // Turn Order
-        System.out.println("TURN ORDER: " + String.join(" -> ", state.getTurnOrder()));
-
-        // Offer Track
-        System.out.println("\n>>> OFFER TRACK <<<");
-        for (OfferSlotData slot : state.getOfferSlots()) {
-            String occ = slot.occupantNickname() == null ? "FREE" : slot.occupantNickname();
-            System.out.printf("[%c] Up:%d Down:%d Food:%d -> %s%n",
-                    slot.slotID(), slot.upSel(), slot.downSel(), slot.foodReward(), occ);
-        }
-
-        // ASCII Card Rows
-        System.out.println("\nTOP ROW:");
-        drawCardRow(state.getUpperRowCardIDs());
-        System.out.println("BOTTOM ROW:");
-        drawCardRow(state.getLowerRowCardIDs());
-
-        // Player Stats
-        System.out.println(">>> PLAYERS <<<");
-        for (PlayerData p : state.getPlayers()) {
-            System.out.printf("%-10s | Food:%d | PP:%d | Tribe:%d cards%n",
-                    p.nickname(), p.food(), p.prestigePoints(), p.tribeCardID().size());
-        }
-
-        // Action Logic
-        if (nickname.equals(state.getCurrentPlayerNickname())) {
-            System.out.println("\n*** IT IS YOUR TURN! ***");
-            handleTurnInput(state.getCurrentPhaseName());
-        } else {
-            System.out.println("\nWaiting for " + state.getCurrentPlayerNickname() + "...");
-        }
-    }
-
     private void drawCardRow(List<String> cardIDs) {
         if (cardIDs.isEmpty()) { System.out.println("  [Empty]\n"); return; }
         StringBuilder top = new StringBuilder(), mid = new StringBuilder(), bot = new StringBuilder();
@@ -198,22 +208,29 @@ public class TUI implements View {
         }
     }
 
-    @Override
-    public void showError(String code, String description) {
-        // Stampa l'errore arrivato dal server
-        System.err.println("\n[ERROR " + code + "] " + description);
-
-        // Se c'è un errore, lo stato non è cambiato.
-        // Se era il mio turno quando ho fatto l'errore, riapro l'input in automatico per farmi riprovare!
-        if (lastState != null && nickname.equals(lastState.getCurrentPlayerNickname())) {
-            System.out.println("⚠️ Mossa rifiutata dal server. Riprova:");
-            handleTurnInput(lastState.getCurrentPhaseName());
-        }
-    }
 
     @Override
     public void notifyDisconnection(String reason) {
         System.out.println("\n[DISCONNECTED] " + reason);
         System.exit(0);
     }
+
+    @Override
+    public void showLoginError(String description) {
+        System.out.println("\n\u001B[31m[SETUP ERROR] " + description + "\u001B[0m");
+        System.out.println("⚠️ Riprova l'inserimento dei dati.\n");
+
+        run();
+    }
+
+    @Override
+    public void showGameError(String description) {
+        System.out.println("\u001B[31m[GAME ERROR] " + description + "\u001B[0m");
+        // Ri-mostra il prompt se è ancora il tuo turno
+        if (nickname.equals(clientModel.getCurrentPlayerNickname())) {
+            handleTurnInput(clientModel.getCurrentPhaseName());
+        }
+    }
+
+
 }

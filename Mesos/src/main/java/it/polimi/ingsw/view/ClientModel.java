@@ -104,16 +104,27 @@ public class ClientModel {
     }
 
     public void placeTotemOnSlot(String nickname, char slotID) {
-        /*
-         * Nota: OfferSlotData è probabilmente immutabile. Se i tuoi colleghi
-         * hanno aggiunto dei setter usa quelli, altrimenti devi sostituire l'oggetto
-         * nella lista con un nuovo `new OfferSlotData(slotID, up, down, food, nickname)`
-         */
-        // Da implementare a seconda del costruttore esatto di OfferSlotData
+        for (int i = 0; i < offerSlots.size(); i++) {
+            OfferSlotData slot = offerSlots.get(i);
+            if (slot.slotID() == slotID) {
+                offerSlots.set(i, new OfferSlotData(
+                        slot.slotID(), slot.upSel(), slot.downSel(), slot.foodReward(), nickname
+                ));
+                return;
+            }
+        }
     }
 
     public void freeSlot(char slotID) {
-        // Come sopra, da implementare rimpiazzando l'oggetto per svuotare l'occupante
+        for (int i = 0; i < offerSlots.size(); i++) {
+            OfferSlotData slot = offerSlots.get(i);
+            if (slot.slotID() == slotID) {
+                offerSlots.set(i, new OfferSlotData(
+                        slot.slotID(), slot.upSel(), slot.downSel(), slot.foodReward(), null
+                ));
+                return;
+            }
+        }
     }
 
 

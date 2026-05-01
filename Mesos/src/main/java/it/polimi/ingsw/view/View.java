@@ -22,11 +22,6 @@ public interface View {
     void showLobbyUpdate(List<String> players, Map<String, TotemColor> colorsByPlayer, int expected);
 
     /**
-     * Displays an error message to the user.
-     */
-    void showError(String code, String description);
-
-    /**
      * Notifies the user of a disconnection from the server.
      */
     void notifyDisconnection(String reason);
@@ -50,4 +45,14 @@ public interface View {
      * Legge lo stato dal ClientModel e ridisegna l'interfaccia.
      */
     void render();
+
+    /**
+     * Gestisce gli errori durante la fase pre-partita (Lobby e Login).
+     */
+    void showLoginError(String description);
+
+    /**
+     * Gestisce gli errori durante il gioco (mosse non valide, turno sbagliato).
+     */
+    void showGameError(String description);
 }
