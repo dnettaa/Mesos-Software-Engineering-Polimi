@@ -9,6 +9,7 @@ import java.rmi.RemoteException;
  * <p>
  * This interface defines the methods that a client can invoke remotely
  * to interact with the server using RMI.
+ * @author Diana
  */
 
 public interface ServerRMI extends Remote{

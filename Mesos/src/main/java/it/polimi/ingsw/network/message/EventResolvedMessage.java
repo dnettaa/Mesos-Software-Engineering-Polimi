@@ -10,6 +10,7 @@ import java.util.Map;
  * <p>
  * This is a delta message: it contains only the resource variations produced by
  * the resolved event, without sending the whole game state again.
+ * @author Diana
  */
 
 public class EventResolvedMessage extends ServerMessage{

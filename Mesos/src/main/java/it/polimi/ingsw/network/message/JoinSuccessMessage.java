@@ -5,6 +5,7 @@ import it.polimi.ingsw.view.View;
 
 /**
  * Message sent by the server to confirm that a player successfully joined the lobby.
+ * @author Diana
  */
 
 public class JoinSuccessMessage extends ServerMessage{

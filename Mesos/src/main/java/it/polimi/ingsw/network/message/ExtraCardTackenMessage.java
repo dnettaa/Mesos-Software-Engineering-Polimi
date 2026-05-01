@@ -10,6 +10,7 @@ import it.polimi.ingsw.view.View;
  * one additional card outside the standard offer resolution. It contains
  * only the card involved, the row it was removed from, the player who
  * received it, and the possible resource variations caused by the card.
+ * @author Diana
  */
 
 public class ExtraCardTackenMessage extends ServerMessage{

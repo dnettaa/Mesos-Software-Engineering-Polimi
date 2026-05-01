@@ -9,6 +9,7 @@ import it.polimi.ingsw.controller.GameController;
  * <p>
  * The player who sends this message becomes the first player in the lobby
  * and defines the number of players required to start the game.
+ * @author Diana
  */
 
 public class CreateLobbyMessage extends ClientMessage{

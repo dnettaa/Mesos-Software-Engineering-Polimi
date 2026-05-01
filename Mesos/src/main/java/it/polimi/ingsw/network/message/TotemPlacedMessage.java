@@ -9,6 +9,7 @@ import it.polimi.ingsw.view.View;
  * This is a delta message: it does not contain the full game state, but only
  * the information needed by the client-side model to update the affected
  * offer slot and the current active player.
+ * @author Diana
  */
 
 public class TotemPlacedMessage extends ServerMessage{

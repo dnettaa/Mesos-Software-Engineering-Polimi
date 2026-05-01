@@ -10,6 +10,7 @@ import java.util.List;
  * <p>
  * This is a delta message: it contains only the card identifiers removed from
  * the upper and lower rows and the player who received those cards.
+ * @author Diana
  */
 
 public class CardsTakenMessage extends ServerMessage{

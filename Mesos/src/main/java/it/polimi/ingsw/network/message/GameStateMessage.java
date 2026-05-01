@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * Message sent by the server to update clients with a complete snapshot
  * of the current game state.
+ * @author Diana
  */
 
 public class GameStateMessage extends ServerMessage{

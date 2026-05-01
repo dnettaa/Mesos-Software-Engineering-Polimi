@@ -7,6 +7,7 @@ import it.polimi.ingsw.network.message.ServerMessage;
  * <p>
  * The controller uses this interface to notify a client without knowing
  * whether the client is connected through Socket or RMI.
+ * @author Diana
  */
 
 public interface VirtualView {
