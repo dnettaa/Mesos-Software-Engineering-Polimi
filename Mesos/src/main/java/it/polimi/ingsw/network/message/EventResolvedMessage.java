@@ -15,26 +15,23 @@ import java.util.Map;
 
 public class EventResolvedMessage extends ServerMessage{
     private final String eventCardID;
-    private final Map<String, Integer> foodDeltas;
-    private final Map<String, Integer> prestigePointsDeltas;
-    private final String nextPhaseName;
-    private final String nextPlayerNickname;
+    private final String eventType;
+    private final Map<String, Integer> ppDeltaByPlayer;
+    private final Map<String, Integer> foodDeltaByPlayer;
 
     /**
      * Creates a new event-resolved message.
      *
      * @param eventCardID the id of the resolved event card
-     * @param foodDeltas the food variation for each player nickname
-     * @param prestigePointsDeltas the prestige points variation for each player nickname
-     * @param nextPhaseName the name of the next game phase
-     * @param nextPlayerNickname the nickname of the next active player
+     * @param eventType the type of the resolved event
+     * @param ppDeltaByPlayer the prestige point variation for each player nickname
+     * @param foodDeltaByPlayer the food variation for each player nickname
      */
-    public EventResolvedMessage(String eventCardID, Map<String, Integer> foodDeltas, Map<String, Integer> prestigePointsDeltas, String nextPhaseName, String nextPlayerNickname) {
+    public EventResolvedMessage(String eventCardID, String eventType, Map<String, Integer> ppDeltaByPlayer, Map<String, Integer> foodDeltaByPlayer) {
         this.eventCardID = eventCardID;
-        this.foodDeltas = new HashMap<>(foodDeltas);
-        this.prestigePointsDeltas = new HashMap<>(prestigePointsDeltas);
-        this.nextPhaseName = nextPhaseName;
-        this.nextPlayerNickname = nextPlayerNickname;
+        this.eventType = eventType;
+        this.ppDeltaByPlayer = new HashMap<>(ppDeltaByPlayer);
+        this.foodDeltaByPlayer = new HashMap<>(foodDeltaByPlayer);
     }
 
     /**
@@ -47,12 +44,21 @@ public class EventResolvedMessage extends ServerMessage{
     }
 
     /**
+     * Returns the type of the resolved event card.
+     *
+     * @return the event card type
+     */
+    public String getEventType(){
+        return eventType;
+    }
+
+    /**
      * Returns the food variation for each player.
      *
      * @return a copy of the food deltas map
      */
-    public Map<String, Integer> getFoodDeltas(){
-        return new HashMap<>(foodDeltas);
+    public Map<String, Integer> getFoodDeltaByPlayer() {
+        return new HashMap<>(foodDeltaByPlayer);
     }
 
     /**
@@ -60,26 +66,8 @@ public class EventResolvedMessage extends ServerMessage{
      *
      * @return a copy of the prestige points deltas map
      */
-    public Map<String, Integer> getPrestigePointsDeltas(){
-        return new HashMap<>(prestigePointsDeltas);
-    }
-
-    /**
-     * Returns the name of the next game phase.
-     *
-     * @return the next phase name
-     */
-    public String getNextPhaseName(){
-        return nextPhaseName;
-    }
-
-    /**
-     * Returns the nickname of the next active player.
-     *
-     * @return the next active player nickname
-     */
-    public String getNextPlayerNickname(){
-        return nextPlayerNickname;
+    public Map<String, Integer> getPpDeltaByPlayer() {
+        return new HashMap<>(ppDeltaByPlayer);
     }
 
     /**
@@ -89,16 +77,13 @@ public class EventResolvedMessage extends ServerMessage{
      */
     @Override
     public void apply(View view){
-        for(Map.Entry<String, Integer> entry : foodDeltas.entrySet()){
-            view.getClientModel().adjustFood(entry.getKey(), entry.getValue());
-        }
-
-        for(Map.Entry<String, Integer> entry : prestigePointsDeltas.entrySet()){
+        for (Map.Entry<String, Integer> entry : ppDeltaByPlayer.entrySet()){
             view.getClientModel().adjustPP(entry.getKey(), entry.getValue());
         }
 
-        view.getClientModel().setCurrentPhase(nextPhaseName);
-        view.getClientModel().setCurrentPlayer(nextPlayerNickname);
+        for (Map.Entry<String, Integer> entry : foodDeltaByPlayer.entrySet()){
+            view.getClientModel().adjustFood(entry.getKey(), entry.getValue());
+        }
 
         view.render();
     }
