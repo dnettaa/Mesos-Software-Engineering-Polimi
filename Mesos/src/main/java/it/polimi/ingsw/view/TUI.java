@@ -64,43 +64,41 @@ public class TUI implements View {
     public void render() {
         if (clientModel == null) return;
 
-        // ── GAME OVER ──────────────────────────────────────────
+        // ── GAME OVER ──────────────────────────────────────────────────────────
         if ("EndGame".equals(clientModel.getCurrentPhaseName())) {
-            System.out.println("\n" + YELLOW + BOLD + "╔" + "═".repeat(50) + "╗" + RESET);
-            System.out.println(YELLOW + BOLD + "║" + " ".repeat(15) + "🏆  GAME OVER!  🏆" + " ".repeat(15) + "║" + RESET);
-            System.out.println(YELLOW + BOLD + "╚" + "═".repeat(50) + "╝" + RESET);
+            System.out.println("\n" + YELLOW + BOLD + "  " + "═".repeat(50) + RESET);
+            System.out.println(YELLOW + BOLD + "          🏆  GAME OVER!  🏆" + RESET);
+            System.out.println(YELLOW + BOLD + "  " + "═".repeat(50) + RESET);
 
             List<String> ranking = clientModel.getRanking();
             Map<String, Integer> finalPP = clientModel.getFinalPP();
             Map<String, Integer> bonus = clientModel.getEndGameBonus();
 
-            System.out.println(BOLD + "\n  Pos  Giocatore       PP base   Bonus   TOTALE" + RESET);
-            System.out.println("  " + "─".repeat(47));
+            System.out.println(BOLD + "\n  Pos  Player          Base PP   Bonus   TOTAL" + RESET);
+            System.out.println(WHITE + "  " + "─".repeat(47) + RESET);
             for (int i = 0; i < ranking.size(); i++) {
                 String player = ranking.get(i);
                 int total = finalPP.get(player);
                 int endBonus = bonus.getOrDefault(player, 0);
                 int base = total - endBonus;
                 String medal = i == 0 ? BRIGHT_YELLOW + "🥇" : i == 1 ? WHITE + "🥈" : YELLOW + "🥉";
-                String color = i == 0 ? BRIGHT_YELLOW : i == 1 ? WHITE : YELLOW;
-                System.out.printf("  %s %d.  " + color + "%-14s" + RESET + "  %5d    %5d    " + BOLD + "%5d" + RESET + "%n",
+                String col   = i == 0 ? BRIGHT_YELLOW : i == 1 ? WHITE : YELLOW;
+                System.out.printf("  %s %d.  " + col + "%-14s" + RESET + "  %5d    %5d    " + BOLD + "%5d" + RESET + "%n",
                         medal, i + 1, player, base, endBonus, total);
             }
+            System.out.println(WHITE + "  " + "─".repeat(47) + RESET);
             return;
         }
 
-        // ── HEADER ────────────────────────────────────────────
-        System.out.println("\n" + CYAN + BOLD + "╔" + "═".repeat(58) + "╗" + RESET);
-        System.out.printf(CYAN + BOLD + "║" + RESET + "  ROUND: " + BRIGHT_YELLOW + BOLD + "%-3d" + RESET +
-                        "  ERA: " + BRIGHT_GREEN + BOLD + "%-5s" + RESET +
-                        "  FASE: " + BRIGHT_CYAN + BOLD + "%-25s" + RESET + CYAN + BOLD + "║" + RESET + "%n",
-                clientModel.getCurrentRound(),
-                clientModel.getCurrentEra(),
-                clientModel.getCurrentPhaseName());
-        System.out.println(CYAN + BOLD + "╚" + "═".repeat(58) + "╝" + RESET);
+        // ── HEADER ─────────────────────────────────────────────────────────────
+        System.out.println("\n" + CYAN + BOLD + "  " + "═".repeat(58) + RESET);
+        System.out.println("  ROUND: " + BRIGHT_YELLOW + BOLD + clientModel.getCurrentRound() + RESET
+                + "   ERA: " + BRIGHT_GREEN + BOLD + clientModel.getCurrentEra() + RESET
+                + "   PHASE: " + BRIGHT_CYAN + BOLD + clientModel.getCurrentPhaseName() + RESET);
+        System.out.println(CYAN + BOLD + "  " + "═".repeat(58) + RESET);
 
-        // ── TURN ORDER ────────────────────────────────────────
-        System.out.print(BOLD + "  TURNO: " + RESET);
+        // ── TURN ORDER ─────────────────────────────────────────────────────────
+        System.out.print(BOLD + "\n  TURN ORDER: " + RESET);
         List<String> turnOrder = clientModel.getTurnOrder();
         for (int i = 0; i < turnOrder.size(); i++) {
             String p = turnOrder.get(i);
@@ -108,54 +106,64 @@ public class TUI implements View {
             else System.out.print(WHITE + p + RESET);
             if (i < turnOrder.size() - 1) System.out.print(CYAN + " → " + RESET);
         }
-        System.out.println("   Carte tribù: " + YELLOW + clientModel.getTribeDeckRemaining() + RESET);
+        System.out.println("   " + WHITE + "Tribe deck: " + RESET + YELLOW + clientModel.getTribeDeckRemaining() + RESET);
 
-        // ── OFFER TRACK ───────────────────────────────────────
-        System.out.println("\n" + MAGENTA + BOLD + "  ╔══ OFFER TRACK " + "═".repeat(42) + "╗" + RESET);
-        System.out.println(MAGENTA + "  ║  Slot │  ↑ Upper │  ↓ Lower │  +Food  │ Occupante          ║" + RESET);
-        System.out.println(MAGENTA + "  ╠───────┼──────────┼──────────┼─────────┼────────────────────╣" + RESET);
+        // ── TOP ROW ────────────────────────────────────────────────────────────
+        System.out.println("\n" + BRIGHT_YELLOW + BOLD + "  ▶ TOP ROW" + RESET);
+        System.out.println(BRIGHT_YELLOW + "  " + "─".repeat(58) + RESET);
+        drawCardRow(clientModel.getUpperRowCardIDs(), BRIGHT_YELLOW);
+        System.out.println(BRIGHT_YELLOW + "  " + "─".repeat(58) + RESET);
+
+        // ── OFFER TRACK ────────────────────────────────────────────────────────
+        System.out.println(MAGENTA + BOLD + "\n  OFFER TRACK" + RESET);
+        System.out.println(MAGENTA + "  " + "─".repeat(48) + RESET);
+        System.out.println(MAGENTA + "  Slot    ↑ Upper    ↓ Lower    +Food    Occupant" + RESET);
+        System.out.println(MAGENTA + "  " + "─".repeat(48) + RESET);
         for (OfferSlotData slot : clientModel.getOfferSlots()) {
             boolean occupied = slot.occupantNickname() != null && !slot.occupantNickname().isEmpty();
-            String occ = occupied ? BRIGHT_GREEN + slot.occupantNickname() + RESET : RED + "FREE" + RESET;
-            System.out.printf(MAGENTA + "  ║" + RESET + "   " + BOLD + "%c" + RESET + "   │    %d     │    %d     │    %d    │ %-30s" + MAGENTA + "║" + RESET + "%n",
-                    slot.slotID(), slot.upSel(), slot.downSel(), slot.foodReward(), occ);
+            String occColor = occupied ? BRIGHT_GREEN : RED;
+            String occText = occupied ? slot.occupantNickname() : "FREE";
+            System.out.println("  " + BOLD + CYAN + slot.slotID() + RESET
+                    + "        " + slot.upSel()
+                    + "          " + slot.downSel()
+                    + "          " + slot.foodReward()
+                    + "        " + occColor + occText + RESET);
         }
-        System.out.println(MAGENTA + "  ╚═══════╧══════════╧══════════╧═════════╧════════════════════╝" + RESET);
+        System.out.println(MAGENTA + "  " + "─".repeat(48) + RESET);
 
-        // ── CARD ROWS ─────────────────────────────────────────
-        System.out.println("\n" + BRIGHT_YELLOW + BOLD + "  ▶ TOP ROW:" + RESET);
-        drawCardRow(clientModel.getUpperRowCardIDs(), BRIGHT_YELLOW);
-        System.out.println(BLUE + BOLD + "  ▶ BOTTOM ROW:" + RESET);
+        // ── BOTTOM ROW ─────────────────────────────────────────────────────────
+        System.out.println("\n" + BLUE + BOLD + "  ▶ BOTTOM ROW" + RESET);
+        System.out.println(BLUE + "  " + "─".repeat(58) + RESET);
         drawCardRow(clientModel.getLowerRowCardIDs(), BLUE);
+        System.out.println(BLUE + "  " + "─".repeat(58) + RESET);
 
-        // ── PLAYERS ───────────────────────────────────────────
-        System.out.println(WHITE + BOLD + "\n  ╔══ PLAYERS " + "═".repeat(47) + "╗" + RESET);
+        // ── PLAYERS ────────────────────────────────────────────────────────────
+        System.out.println(WHITE + BOLD + "\n  PLAYERS" + RESET);
+        System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
         for (PlayerData p : clientModel.getPlayers().values()) {
-            boolean isYou = p.nickname().equals(nickname);
+            boolean isYou     = p.nickname().equals(nickname);
             boolean isCurrent = p.nickname().equals(clientModel.getCurrentPlayerNickname());
-            String nameColor = isYou ? BRIGHT_GREEN : WHITE;
-            String marker = isCurrent ? BRIGHT_YELLOW + " ◄ TURNO" + RESET : "";
-            System.out.printf(WHITE + "  ║ " + RESET + nameColor + BOLD + "%-12s" + RESET +
-                            " │ 🍖 " + YELLOW + "%-3d" + RESET +
-                            " │ ⭐ " + BRIGHT_CYAN + "%-4d" + RESET +
-                            " │ 👥 " + "%-2d" + " carte" +
-                            " │ 🏛  " + "%-2d" + " edifici%s%n",
-                    p.nickname(), p.food(), p.prestigePoints(),
-                    p.tribeCardID().size(), p.buildingID().size(), marker);
+            String nameColor  = isYou ? BRIGHT_GREEN : WHITE;
+            String marker     = isCurrent ? BRIGHT_YELLOW + " ◄ TURN" + RESET : "";
+            System.out.println("  " + nameColor + BOLD + String.format("%-12s", p.nickname()) + RESET
+                    + " │ 🍖 " + YELLOW + p.food() + RESET
+                    + "  │ ⭐ " + BRIGHT_CYAN + p.prestigePoints() + RESET
+                    + "  │ 👥 " + p.tribeCardID().size() + " cards"
+                    + "  │ 🏛  " + p.buildingID().size() + " buildings" + marker);
             if (!p.tribeCardID().isEmpty())
-                System.out.println(WHITE + "  ║   " + RESET + CYAN + "Tribù:    " + RESET + String.join(", ", p.tribeCardID()));
+                System.out.println("    " + CYAN + "Tribe:     " + RESET + String.join(", ", p.tribeCardID()));
             if (!p.buildingID().isEmpty())
-                System.out.println(WHITE + "  ║   " + RESET + MAGENTA + "Edifici:  " + RESET + String.join(", ", p.buildingID()));
+                System.out.println("    " + MAGENTA + "Buildings: " + RESET + String.join(", ", p.buildingID()));
         }
-        System.out.println(WHITE + BOLD + "  ╚" + "═".repeat(58) + "╝" + RESET);
+        System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
 
-        // ── ACTION PROMPT ─────────────────────────────────────
+        // ── ACTION PROMPT ──────────────────────────────────────────────────────
         if (clientModel.getCurrentPlayerNickname() != null) {
             if (nickname.equals(clientModel.getCurrentPlayerNickname())) {
-                System.out.println("\n" + BRIGHT_GREEN + BOLD + "  *** È IL TUO TURNO! ***" + RESET);
+                System.out.println("\n" + BRIGHT_GREEN + BOLD + "  *** IT IS YOUR TURN! ***" + RESET);
                 handleTurnInput(clientModel.getCurrentPhaseName());
             } else {
-                System.out.println("\n" + WHITE + "  In attesa di " + YELLOW + clientModel.getCurrentPlayerNickname() + RESET + "...");
+                System.out.println("\n" + WHITE + "  Waiting for " + YELLOW + clientModel.getCurrentPlayerNickname() + RESET + "...");
             }
         }
     }
@@ -165,25 +173,12 @@ public class TUI implements View {
             System.out.println("    " + RED + "[Empty]" + RESET);
             return;
         }
-        StringBuilder top = new StringBuilder("  ");
-        StringBuilder mid = new StringBuilder("  ");
-        StringBuilder bot = new StringBuilder("  ");
-        StringBuilder inf = new StringBuilder("  ");
         for (String id : cardIDs) {
             String desc = CardCatalog.getDescription(id);
-            top.append(color).append("┌─────────────────┐ ").append(RESET);
-            mid.append(color).append("│ ").append(RESET)
-                    .append(String.format("%-4s", id))
-                    .append(color).append(" │ ").append(RESET);
-            bot.append(color).append("│ ").append(RESET)
-                    .append(String.format("%-15s", desc))
-                    .append(color).append(" │ ").append(RESET);
-            inf.append(color).append("└─────────────────┘ ").append(RESET);
+            System.out.print(color + BOLD + "  " + String.format("%-6s", id) + RESET);
+            System.out.print(WHITE + String.format("%-17s", desc) + RESET);
         }
-        System.out.println(top);
-        System.out.println(mid);
-        System.out.println(bot);
-        System.out.println(inf);
+        System.out.println();
     }
 
     /**
@@ -191,44 +186,39 @@ public class TUI implements View {
      * Handles nickname entry, color selection, and lobby creation/joining.
      */
     public void run() {
-        System.out.println("=========================================");
-        System.out.println("          WELCOME TO MESOS               ");
-        System.out.println("=========================================");
+        System.out.println(CYAN + BOLD + "\n  ── LOBBY ──────────────────────────────────────" + RESET);
+        System.out.println();
 
-        // 1. Chiedi prima l'azione (Creare o Unirsi)
-        System.out.println("\nLOBBY MENU:");
-        System.out.println("1) Create a new Lobby");
-        System.out.println("2) Join an existing Lobby");
-        System.out.print("> ");
+        System.out.println(BOLD + "  LOBBY MENU:" + RESET);
+        System.out.println(CYAN + "  1)" + RESET + " Create a new Lobby");
+        System.out.println(CYAN + "  2)" + RESET + " Join an existing Lobby");
+        System.out.print(BOLD + "  > " + RESET);
         int lobbyChoice = Integer.parseInt(scanner.nextLine().trim());
 
-        // 2. Raccogli i dati del giocatore
-        System.out.print("\nPlease enter your Nickname: ");
+        System.out.print(BOLD + "\n  Nickname: " + RESET);
         this.nickname = scanner.nextLine().trim();
 
-        System.out.println("Available colors: " + java.util.Arrays.toString(TotemColor.values()));
+        System.out.println("\n  Available colors: " + BRIGHT_YELLOW + Arrays.toString(TotemColor.values()) + RESET);
         TotemColor chosenColor = null;
-        // Ciclo finché non otteniamo un colore valido
         while (chosenColor == null) {
-            System.out.print("Choose your Totem Color: ");
+            System.out.print(BOLD + "  Totem Color: " + RESET);
             String colorInput = scanner.nextLine().trim().toUpperCase();
-
             try {
                 chosenColor = TotemColor.valueOf(colorInput);
             } catch (IllegalArgumentException e) {
-                System.out.println("[ERRORE] Colore non valido. Per favore, scegli uno dei colori nella lista.");
+                System.out.println(RED + "  Invalid color. Please choose from the list." + RESET);
             }
         }
 
         if (lobbyChoice == 1) {
-            System.out.print("Enter number of expected players: ");
+            System.out.print(BOLD + "  Number of players (2-5): " + RESET);
             int players = Integer.parseInt(scanner.nextLine().trim());
             virtualServer.createLobby(nickname, chosenColor, players);
         } else {
             virtualServer.joinLobby(nickname, chosenColor);
         }
 
-        System.out.println("\n[INFO] Request sent. Waiting for game to start...");
+        System.out.println("\n" + CYAN + "  Request sent. Waiting for game to start..." + RESET);
     }
 
 

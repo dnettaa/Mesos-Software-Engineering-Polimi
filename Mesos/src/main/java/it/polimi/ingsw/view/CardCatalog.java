@@ -10,9 +10,9 @@ public class CardCatalog {
     private static final Map<String, String> descriptions = new HashMap<>();
 
     static {
-        loadJson("/characters.json");
-        loadJson("/events.json");
-        loadJson("/buildings.json");
+        loadJson("/JSON/characters.json");
+        loadJson("/JSON/events.json");
+        loadJson("/JSON/buildings.json");
     }
 
     private static void loadJson(String path) {
@@ -34,52 +34,76 @@ public class CardCatalog {
         String type = obj.has("type") ? obj.get("type").getAsString() : "?";
         String era = obj.has("era") ? obj.get("era").getAsString().replace("Era", "E") : "?";
 
-        // Characters
+        // ── Characters ──────────────────────────────────────────
         if (obj.has("hunterFoodBonus")) {
             boolean bonus = obj.get("hunterFoodBonus").getAsBoolean();
-            return String.format("HUNTER %s%s", era, bonus ? " +food" : "");
+            return bonus ? "Hunter " + era + " +🍖" : "Hunter " + era;
         }
         if (obj.has("builderDiscount")) {
             int disc = obj.get("builderDiscount").getAsInt();
-            int pp = obj.get("builderPrestige").getAsInt();
-            return String.format("BUILDER %s -%dfood +%dPP", era, disc, pp);
+            int pp   = obj.get("builderPrestige").getAsInt();
+            return "Builder " + era + " -" + disc + "🍖+" + pp + "⭐";
         }
         if (obj.has("shamanSymbols")) {
             int sym = obj.get("shamanSymbols").getAsInt();
-            return String.format("SHAMAN %s x%d", era, sym);
+            return "Shaman " + era + " x" + sym + "🔮";
         }
         if (obj.has("inventionType")) {
-            String inv = obj.get("inventionType").getAsString().replace("TYPE_", "T");
-            return String.format("INVENTOR %s %s", era, inv);
+            String inv = obj.get("inventionType").getAsString().replace("TYPE_", "");
+            return "Inventor " + era + " #" + inv;
         }
-        if (type.equals("GATHERER")) return "GATHERER " + era;
-        if (type.equals("ARTIST")) return "ARTIST " + era;
+        if (type.equals("GATHERER")) return "Gatherer " + era;
+        if (type.equals("ARTIST"))   return "Artist " + era;
 
-        // Events
+        // ── Events ──────────────────────────────────────────────
         if (type.equals("HUNT")) {
             int pp = obj.get("prestigeReward").getAsInt();
-            return String.format("HUNT %s +%dPP/hunter", era, pp);
+            return "Hunt +" + pp + "⭐/hunter";
         }
         if (type.equals("SUSTENANCE")) {
             int pen = obj.get("prestigePenalty").getAsInt();
-            return String.format("SUST %s -%dPP/missing", era, pen);
+            return "Sustenance -" + pen + "⭐";
         }
         if (type.equals("SHAMANIC_RITUAL")) {
             int rew = obj.get("majorityReward").getAsInt();
             int pen = obj.get("minorityPenalty").getAsInt();
-            return String.format("SHAMAN_R %s +%d/-%d", era, rew, pen);
+            return "Ritual +" + rew + "/-" + pen + "⭐";
         }
         if (type.equals("CAVE_PAINTINGS")) {
             int req = obj.get("requiredArtists").getAsInt();
             int rew = obj.get("rewardPerArtist").getAsInt();
-            return String.format("CAVE %s req%d +%d/art", era, req, rew);
+            return "Cave " + req + "art +" + rew + "⭐";
         }
 
-        // Buildings
+        // ── Buildings ───────────────────────────────────────────
         if (obj.has("cost")) {
             int cost = obj.get("cost").getAsInt();
-            int pp = obj.get("prestigePoints").getAsInt();
-            return String.format("BLD %s %s cost%d +%dPP", era, type.substring(0, Math.min(6, type.length())), cost, pp);
+            int pp   = obj.get("prestigePoints").getAsInt();
+            String shortType = switch (type) {
+                case "TRIGGER_SET"        -> "TrigSet";
+                case "TRIGGER_INVENTOR"   -> "TrigInv";
+                case "SUSTENANCE_DISCOUNT"-> "SustDisc";
+                case "SHAMAN_NO_PENALTY"  -> "ShamNoPen";
+                case "SHAMAN_DOUBLE_REWARD"-> "ShamDbl";
+                case "SHAMAN_BONUS_ICONS" -> "ShamIcon";
+                case "HUNT_BONUS"         -> "HuntBonus";
+                case "PAINTINGS_FOOD"     -> "PaintFood";
+                case "TURN_ORDER_BONUS"   -> "TurnBonus";
+                case "END_DOUBLE_BUILDER" -> "DblBuilder";
+                case "END_SIX_SET"        -> "SixSet";
+                case "END_PER_TYPE"       -> {
+                    String t = obj.has("targetType") ? obj.get("targetType").getAsString() : "";
+                    int ppp  = obj.has("ppPerCard")  ? obj.get("ppPerCard").getAsInt() : 0;
+                    yield "End/" + t.charAt(0) + t.substring(1,3).toLowerCase() + " +" + ppp + "⭐";
+                }
+                case "EXTRA_PICK"         -> "ExtraPick";
+                case "END_BONUS"          -> {
+                    int bonus = obj.has("prestigeBonus") ? obj.get("prestigeBonus").getAsInt() : 0;
+                    yield "EndBonus +" + bonus + "⭐";
+                }
+                default -> type.substring(0, Math.min(8, type.length()));
+            };
+            return shortType + " $" + cost + " +" + pp + "⭐";
         }
 
         return type + " " + era;
