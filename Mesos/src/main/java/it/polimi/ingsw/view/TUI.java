@@ -15,6 +15,7 @@ import java.util.Scanner;
 /**
  * Text User Interface (TUI) implementation of the View.
  * Final version integrated with the actual Network and Message classes.
+ * Implements a "Dumb Client" architecture: relies entirely on the Server for validation.
  */
 public class TUI implements View {
 
@@ -32,6 +33,21 @@ public class TUI implements View {
         this.virtualServer = vs;
     }
 
+    @Override
+    public ClientModel getClientModel() {
+        return null;
+    }
+
+    @Override
+    public void setClientModel(ClientModel model) {
+
+    }
+
+    @Override
+    public void render() {
+
+    }
+
     /**
      * Main entry point for the TUI interaction.
      * Handles nickname entry, color selection, and lobby creation/joining.
@@ -42,6 +58,7 @@ public class TUI implements View {
         System.out.println("=========================================");
 
         System.out.print("Please enter your Nickname: ");
+
         this.nickname = scanner.nextLine().trim();
 
         // 1. Pick a Color
@@ -60,13 +77,12 @@ public class TUI implements View {
         if (lobbyChoice == 1) {
             System.out.print("Enter number of expected players: ");
             int players = Integer.parseInt(scanner.nextLine().trim());
-            virtualServer.createLobby(nickname, chosenColor, players); //
+            virtualServer.createLobby(nickname, chosenColor, players);
         } else {
-            virtualServer.joinLobby(nickname, chosenColor); //
+            virtualServer.joinLobby(nickname, chosenColor);
         }
 
         System.out.println("\n[INFO] Request sent. Waiting for game to start...");
-        // From now on, showGameState will be called by the network thread when updates arrive.
     }
 
     // --- VIEW INTERFACE METHODS ---
@@ -84,7 +100,6 @@ public class TUI implements View {
         }
     }
 
-    @Override
     public void showGameState(GameStateMessage state) {
         this.lastState = state;
 
@@ -100,9 +115,9 @@ public class TUI implements View {
         // Offer Track
         System.out.println("\n>>> OFFER TRACK <<<");
         for (OfferSlotData slot : state.getOfferSlots()) {
-            String occ = slot.getOccupantNickname() == null ? "FREE" : slot.getOccupantNickname();
+            String occ = slot.occupantNickname() == null ? "FREE" : slot.occupantNickname();
             System.out.printf("[%c] Up:%d Down:%d Food:%d -> %s%n",
-                    slot.getSlotID(), slot.getUpSel(), slot.getDownSel(), slot.getFoodReward(), occ);
+                    slot.slotID(), slot.upSel(), slot.downSel(), slot.foodReward(), occ);
         }
 
         // ASCII Card Rows
@@ -115,7 +130,7 @@ public class TUI implements View {
         System.out.println(">>> PLAYERS <<<");
         for (PlayerData p : state.getPlayers()) {
             System.out.printf("%-10s | Food:%d | PP:%d | Tribe:%d cards%n",
-                    p.getNickname(), p.getFood(), p.getPrestigePoints(), p.getTribeCardID().size());
+                    p.nickname(), p.food(), p.prestigePoints(), p.tribeCardID().size());
         }
 
         // Action Logic
@@ -140,39 +155,53 @@ public class TUI implements View {
 
     private void handleTurnInput(String phase) {
         switch (phase) {
-            case "TotemPlacementPhase":
-                System.out.print("Select Offer Slot (A-G): ");
-                String slot = scanner.nextLine().trim().toUpperCase();
-                virtualServer.sendMessage(new PlaceTotemMessage(nickname, slot.charAt(0)));
+            case "TotemPlacementPhase": {
+                System.out.print("Select Offer Slot (Enter a letter): ");
+                String input = scanner.nextLine().trim().toUpperCase();
+                if (!input.isEmpty()) {
+                    virtualServer.sendMessage(new PlaceTotemMessage(nickname, input.charAt(0)));
+                }
                 break;
+            }
 
-            case "OfferResolutionPhase":
-                System.out.print("Enter IDs to take from Upper Row (space separated, or enter to skip): ");
-                List<String> up = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().split("\\s+")));
+            case "OfferResolutionPhase": {
+                System.out.print("Enter IDs to take from UPPER Row (space separated, or enter to skip): ");
+                List<String> up = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().toUpperCase().split("\\s+")));
                 up.removeIf(String::isEmpty);
 
-                System.out.print("Enter IDs to take from Lower Row (space separated, or enter to skip): ");
-                List<String> down = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().split("\\s+")));
+                System.out.print("Enter IDs to take from LOWER Row (space separated, or enter to skip): ");
+                List<String> down = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().toUpperCase().split("\\s+")));
                 down.removeIf(String::isEmpty);
 
                 virtualServer.sendMessage(new TakeCardsMessage(nickname, up, down));
                 break;
+            }
 
-            case "ExtraCardPhase":
+            case "ExtraCardPhase": {
                 System.out.print("Select Extra Card ID: ");
-                String extra = scanner.nextLine().trim();
+                String extra = scanner.nextLine().trim().toUpperCase();
                 virtualServer.sendMessage(new TakeExtraCardMessage(nickname, extra));
                 break;
+            }
 
-            default:
+            default: {
                 System.out.println("This phase is automatic. Waiting for server...");
                 break;
+            }
         }
     }
 
     @Override
     public void showError(String code, String description) {
+        // Stampa l'errore arrivato dal server
         System.err.println("\n[ERROR " + code + "] " + description);
+
+        // Se c'è un errore, lo stato non è cambiato.
+        // Se era il mio turno quando ho fatto l'errore, riapro l'input in automatico per farmi riprovare!
+        if (lastState != null && nickname.equals(lastState.getCurrentPlayerNickname())) {
+            System.out.println("⚠️ Mossa rifiutata dal server. Riprova:");
+            handleTurnInput(lastState.getCurrentPhaseName());
+        }
     }
 
     @Override
