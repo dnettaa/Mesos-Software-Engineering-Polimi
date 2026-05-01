@@ -33,6 +33,21 @@ public class TUI implements View {
         this.virtualServer = vs;
     }
 
+    @Override
+    public ClientModel getClientModel() {
+        return null;
+    }
+
+    @Override
+    public void setClientModel(ClientModel model) {
+
+    }
+
+    @Override
+    public void render() {
+
+    }
+
     /**
      * Main entry point for the TUI interaction.
      * Handles nickname entry, color selection, and lobby creation/joining.
@@ -43,6 +58,7 @@ public class TUI implements View {
         System.out.println("=========================================");
 
         System.out.print("Please enter your Nickname: ");
+
         this.nickname = scanner.nextLine().trim();
 
         // 1. Pick a Color
@@ -84,7 +100,6 @@ public class TUI implements View {
         }
     }
 
-    @Override
     public void showGameState(GameStateMessage state) {
         this.lastState = state;
 
@@ -100,9 +115,9 @@ public class TUI implements View {
         // Offer Track
         System.out.println("\n>>> OFFER TRACK <<<");
         for (OfferSlotData slot : state.getOfferSlots()) {
-            String occ = slot.getOccupantNickname() == null ? "FREE" : slot.getOccupantNickname();
+            String occ = slot.occupantNickname() == null ? "FREE" : slot.occupantNickname();
             System.out.printf("[%c] Up:%d Down:%d Food:%d -> %s%n",
-                    slot.getSlotID(), slot.getUpSel(), slot.getDownSel(), slot.getFoodReward(), occ);
+                    slot.slotID(), slot.upSel(), slot.downSel(), slot.foodReward(), occ);
         }
 
         // ASCII Card Rows
@@ -115,7 +130,7 @@ public class TUI implements View {
         System.out.println(">>> PLAYERS <<<");
         for (PlayerData p : state.getPlayers()) {
             System.out.printf("%-10s | Food:%d | PP:%d | Tribe:%d cards%n",
-                    p.getNickname(), p.getFood(), p.getPrestigePoints(), p.getTribeCardID().size());
+                    p.nickname(), p.food(), p.prestigePoints(), p.tribeCardID().size());
         }
 
         // Action Logic

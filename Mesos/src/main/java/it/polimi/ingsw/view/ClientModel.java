@@ -1,8 +1,8 @@
 package it.polimi.ingsw.view;
 
 import it.polimi.ingsw.model.game.Era;
-import it.polimi.ingsw.network.message.OfferSlotData;
-import it.polimi.ingsw.network.message.PlayerData;
+import it.polimi.ingsw.model.game.DTO.OfferSlotData;
+import it.polimi.ingsw.model.game.DTO.PlayerData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +25,7 @@ public class ClientModel {
     private List<String> lowerRowCardIDs;
     private List<OfferSlotData> offerSlots;
     private Map<String, PlayerData> players;
+    private List<String> placementOrder;
 
     public ClientModel() {
         this.resolutionOrder = new ArrayList<>();
@@ -54,12 +55,12 @@ public class ClientModel {
     public void addTribeCardTo(String nickname, String cardID) {
         PlayerData old = players.get(nickname);
         if (old != null) {
-            List<String> tribes = old.getTribeCardID();
+            List<String> tribes = old.tribeCardID();
             tribes.add(cardID);
             // PlayerData è immutabile, creiamo un rimpiazzo aggiornato
             PlayerData updated = new PlayerData(
-                    old.getNickname(), old.getTotemColor(), old.getFood(),
-                    old.getPrestigePoints(), tribes, old.getBuildingID()
+                    old.nickname(), old.totemColor(), old.food(),
+                    old.prestigePoints(), tribes, old.buildingID()
             );
             players.put(nickname, updated);
         }
@@ -68,11 +69,11 @@ public class ClientModel {
     public void addBuildingTo(String nickname, String cardID) {
         PlayerData old = players.get(nickname);
         if (old != null) {
-            List<String> builds = old.getBuildingID();
+            List<String> builds = old.buildingID();
             builds.add(cardID);
             PlayerData updated = new PlayerData(
-                    old.getNickname(), old.getTotemColor(), old.getFood(),
-                    old.getPrestigePoints(), old.getTribeCardID(), builds
+                    old.nickname(), old.totemColor(), old.food(),
+                    old.prestigePoints(), old.tribeCardID(), builds
             );
             players.put(nickname, updated);
         }
@@ -81,10 +82,10 @@ public class ClientModel {
     public void adjustFood(String nickname, int delta) {
         PlayerData old = players.get(nickname);
         if (old != null) {
-            int newFood = Math.max(0, old.getFood() + delta); // Evita cibo negativo
+            int newFood = Math.max(0, old.food() + delta); // Evita cibo negativo
             PlayerData updated = new PlayerData(
-                    old.getNickname(), old.getTotemColor(), newFood,
-                    old.getPrestigePoints(), old.getTribeCardID(), old.getBuildingID()
+                    old.nickname(), old.totemColor(), newFood,
+                    old.prestigePoints(), old.tribeCardID(), old.buildingID()
             );
             players.put(nickname, updated);
         }
@@ -93,10 +94,10 @@ public class ClientModel {
     public void adjustPP(String nickname, int delta) {
         PlayerData old = players.get(nickname);
         if (old != null) {
-            int newPP = Math.max(0, old.getPrestigePoints() + delta);
+            int newPP = Math.max(0, old.prestigePoints() + delta);
             PlayerData updated = new PlayerData(
-                    old.getNickname(), old.getTotemColor(), old.getFood(),
-                    newPP, old.getTribeCardID(), old.getBuildingID()
+                    old.nickname(), old.totemColor(), old.food(),
+                    newPP, old.tribeCardID(), old.buildingID()
             );
             players.put(nickname, updated);
         }
@@ -122,15 +123,22 @@ public class ClientModel {
 
     public void setCurrentRound(int currentRound) { this.currentRound = currentRound; }
     public void setCurrentEra(Era currentEra) { this.currentEra = currentEra; }
-    public void setCurrentPhaseName(String currentPhaseName) { this.currentPhaseName = currentPhaseName; }
-    public void setCurrentPlayerNickname(String currentPlayerNickname) { this.currentPlayerNickname = currentPlayerNickname; }
+    public void setCurrentPhase(String currentPhaseName) { this.currentPhaseName = currentPhaseName; }
+    public void setCurrentPlayer(String currentPlayerNickname) { this.currentPlayerNickname = currentPlayerNickname; }
     public void setResolutionOrder(List<Character> resolutionOrder) { this.resolutionOrder = new ArrayList<>(resolutionOrder); }
     public void setTurnOrder(List<String> turnOrder) { this.turnOrder = new ArrayList<>(turnOrder); }
     public void setTribeDeckRemaining(int tribeDeckRemaining) { this.tribeDeckRemaining = tribeDeckRemaining; }
-    public void setUpperRowCardIDs(List<String> upperRowCardIDs) { this.upperRowCardIDs = new ArrayList<>(upperRowCardIDs); }
-    public void setLowerRowCardIDs(List<String> lowerRowCardIDs) { this.lowerRowCardIDs = new ArrayList<>(lowerRowCardIDs); }
+    public void setUpperRow(List<String> upperRowCardIDs) { this.upperRowCardIDs = new ArrayList<>(upperRowCardIDs); }
+    public void setLowerRow(List<String> lowerRowCardIDs) { this.lowerRowCardIDs = new ArrayList<>(lowerRowCardIDs); }
     public void setOfferSlots(List<OfferSlotData> offerSlots) { this.offerSlots = new ArrayList<>(offerSlots); }
-    public void setPlayers(Map<String, PlayerData> players) { this.players = new HashMap<>(players); }
+    public void setPlayers(List<PlayerData> players) {
+        Map<String, PlayerData> playersList = new HashMap<>();
+        for(PlayerData p: players){
+            playersList.put(p.nickname(), p);
+        }
+        this.players = playersList;
+    }
+    public void setPlacementOrder(List<String> placementOrder){this.placementOrder = new ArrayList<>(placementOrder);}
 
 
     // =========================================================

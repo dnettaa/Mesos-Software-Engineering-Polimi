@@ -134,6 +134,6 @@ public class GameStateMessage extends ServerMessage{
         model.setPlayers(players);
 
         view.setClientModel(model);
-        view.render()
+        view.render();
     }
 }
