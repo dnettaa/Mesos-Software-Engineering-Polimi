@@ -53,32 +53,40 @@ public class CardsTakenMessage extends ServerMessage{
     }
 
 
-    public String getPlayerNickname(){
-        return playerNickname;
+    public String getNickname(){
+        return nickname;
     }
 
-    public List<String> getUpperCardIDs(){
-        return new ArrayList<>(upperCardIDs);
+    public List<String> getTakenUpperIDs(){
+        return new ArrayList<>(takenUpperIDs);
     }
 
-    public List<String> getLowerCardIDs(){
-        return new ArrayList<>(lowerCardIDs);
+    public List<String> getTakenLowerIDs(){
+        return new ArrayList<>(takenLowerIDs);
     }
 
-    public List<String> getCharacterCardIDs(){
-        return new ArrayList<>(characterCardIDs);
+    public List<String> getAddedTribeCardIDs(){
+        return new ArrayList<>(addedTribeCardIDs);
     }
 
-    public List<String> getBuildingCardIDs(){
-        return new ArrayList<>(buildingCardIDs);
+    public List<String> getAddedBuildingIDs(){
+        return new ArrayList<>(addedBuildingIDs);
     }
 
     public int getFoodDelta(){
         return foodDelta;
     }
 
-    public int getPrestigePointsDelta(){
-        return prestigePointsDelta;
+    public int getPpDelta(){
+        return ppDelta;
+    }
+
+    public char getFreedSlotID(){
+        return freedSlotID;
+    }
+
+    public int getTurnOrderPosition(){
+        return turnOrderPosition;
     }
 
     public String getNextPlayerNickname(){
@@ -92,24 +100,25 @@ public class CardsTakenMessage extends ServerMessage{
      */
     @Override
     public void apply(View view){
-        for(String cardID : upperCardIDs){
+        for(String cardID : takenUpperIDs){
             view.getClientModel().removeUpperCard(cardID);
         }
 
-        for(String cardID : lowerCardIDs){
+        for(String cardID : takenLowerIDs){
             view.getClientModel().removeLowerCard(cardID);
         }
 
-        for(String cardID : characterCardIDs){
-            view.getClientModel().addTribeCardTo(playerNickname, cardID);
+        for(String cardID : addedTribeCardIDs){
+            view.getClientModel().addTribeCardTo(nickname, cardID);
         }
 
-        for(String cardID : buildingCardIDs){
-            view.getClientModel().addBuildingTo(playerNickname, cardID);
+        for(String cardID : addedBuildingIDs){
+            view.getClientModel().addBuildingTo(nickname, cardID);
         }
 
-        view.getClientModel().adjustFood(playerNickname, foodDelta);
-        view.getClientModel().adjustPP(playerNickname, prestigePointsDelta);
+        view.getClientModel().adjustFood(nickname, foodDelta);
+        view.getClientModel().adjustPP(nickname, ppDelta);
+        view.getClientModel().freeSlot(freedSlotID);
         view.getClientModel().setCurrentPlayer(nextPlayerNickname);
 
         view.render();
