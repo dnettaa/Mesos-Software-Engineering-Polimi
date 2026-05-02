@@ -55,7 +55,8 @@ import it.polimi.ingsw.model.card.Card;
                                     card.getId(),
                                     true,
                                     card instanceof BuildingCard,
-                                    foodDelta
+                                    foodDelta,
+                                    game.getCurrentPhaseName()
         );
 
         game.fireExtraCardTaken(dto);

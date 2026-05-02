@@ -265,7 +265,8 @@ public class GameController implements GameListener {
         broadcast(new TotemPlacedMessage(
                 dto.placerNickname(),
                 dto.slotID(),
-                dto.nextPlayerNickname()
+                dto.nextPlayerNickname(),
+                dto.nextPhaseName()
         ));
     }
 
@@ -288,7 +289,8 @@ public class GameController implements GameListener {
                 dto.ppDelta(),
                 dto.freedSlotID(),
                 dto.turnOrderPosition(),
-                dto.nextPlayerNickname()
+                dto.nextPlayerNickname(),
+                dto.nextPhaseName()
         ));
     }
 
@@ -305,7 +307,8 @@ public class GameController implements GameListener {
                 dto.cardID(),
                 dto.fromUpperRow(),
                 dto.isBuilding(),
-                dto.foodDelta()
+                dto.foodDelta(),
+                dto.nextPhaseName()
         ));
     }
 
@@ -321,7 +324,8 @@ public class GameController implements GameListener {
                 dto.eventCardID(),
                 dto.eventType(),
                 dto.ppDeltaByPlayer(),
-                dto.foodDeltaByPlayer()
+                dto.foodDeltaByPlayer(),
+                dto.nextPhaseName()
         ));
     }
 
@@ -364,6 +368,6 @@ public class GameController implements GameListener {
                 dto.ranking()
         ));
 
-        closeAll();
+        //closeAll();
     }
 }

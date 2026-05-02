@@ -24,6 +24,7 @@ public class CardsTakenMessage extends ServerMessage{
     private final char freedSlotID;
     private final int turnOrderPosition;
     private final String nextPlayerNickname;
+    private final String nextPhaseName;
 
     /**
      * Creates a new cards-taken message.
@@ -39,7 +40,7 @@ public class CardsTakenMessage extends ServerMessage{
      * @param turnOrderPosition the position where the player returned on the turn-order track
      * @param nextPlayerNickname the nickname of the next player who must act
      */
-    public CardsTakenMessage(String nickname, List<String> takenUpperIDs, List<String> takenLowerIDs, List<String> addedTribeCardIDs, List<String> addedBuildingIDs, int foodDelta, int ppDelta, char freedSlotID, int turnOrderPosition, String nextPlayerNickname) {
+    public CardsTakenMessage(String nickname, List<String> takenUpperIDs, List<String> takenLowerIDs, List<String> addedTribeCardIDs, List<String> addedBuildingIDs, int foodDelta, int ppDelta, char freedSlotID, int turnOrderPosition, String nextPlayerNickname, String nextPhaseName) {
         this.nickname = nickname;
         this.takenUpperIDs = new ArrayList<>(takenUpperIDs);
         this.takenLowerIDs = new ArrayList<>(takenLowerIDs);
@@ -50,6 +51,7 @@ public class CardsTakenMessage extends ServerMessage{
         this.freedSlotID = freedSlotID;
         this.turnOrderPosition = turnOrderPosition;
         this.nextPlayerNickname = nextPlayerNickname;
+        this.nextPhaseName = nextPhaseName;
     }
 
 
@@ -120,6 +122,7 @@ public class CardsTakenMessage extends ServerMessage{
         view.getClientModel().adjustPP(nickname, ppDelta);
         view.getClientModel().freeSlot(freedSlotID);
         view.getClientModel().setCurrentPlayer(nextPlayerNickname);
+        view.getClientModel().setCurrentPhase(nextPhaseName);
 
         view.render();
     }

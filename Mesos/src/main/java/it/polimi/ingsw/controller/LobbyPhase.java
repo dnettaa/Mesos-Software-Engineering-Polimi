@@ -9,6 +9,7 @@ import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.game.GameSetupService;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
+import it.polimi.ingsw.network.message.ErrorMessage;
 import it.polimi.ingsw.network.message.LobbyUpdateMessage;
 import it.polimi.ingsw.network.message.JoinSuccessMessage;
 
@@ -51,8 +52,7 @@ public class LobbyPhase implements ControllerPhase {
     public void createLobby(String nickname, TotemColor color, VirtualView view) {
 
         if (!playerSelections.isEmpty()) {
-            gameController.sendError(nickname, ErrorCode.GAME_ALREADY_STARTED.name(),
-                    "Lobby already created");
+            view.send(new ErrorMessage(ErrorCode.GAME_ALREADY_STARTED.name(), "A lobby already exists. Please join the existing one."));
             return;
         }
 
@@ -80,26 +80,22 @@ public class LobbyPhase implements ControllerPhase {
     public void joinLobby(String nickname, TotemColor color, VirtualView view) {
 
         if (playerSelections.isEmpty()) {
-            gameController.sendError(nickname, ErrorCode.LOBBY_NOT_CREATED.name(),
-                    "Lobby has not been created yet");
+            view.send(new ErrorMessage(ErrorCode.LOBBY_NOT_CREATED.name(), "Lobby has not been created yet"));
             return;
         }
 
         if (playerSelections.size() >= expectedPlayers) {
-            gameController.sendError(nickname, ErrorCode.LOBBY_FULL.name(),
-                    "Lobby is full");
+            view.send(new ErrorMessage(ErrorCode.LOBBY_FULL.name(), "Lobby is full"));
             return;
         }
 
         if (playerSelections.containsKey(nickname)) {
-            gameController.sendError(nickname, ErrorCode.NICKNAME_TAKEN.name(),
-                    "Nickname already taken");
+            view.send(new ErrorMessage(ErrorCode.NICKNAME_TAKEN.name(), "Nickname already taken"));
             return;
         }
 
         if (playerSelections.containsValue(color)) {
-            gameController.sendError(nickname, ErrorCode.COLOR_TAKEN.name(),
-                    "Color already taken");
+            view.send(new ErrorMessage(ErrorCode.COLOR_TAKEN.name(), "Color already taken"));
             return;
         }
 

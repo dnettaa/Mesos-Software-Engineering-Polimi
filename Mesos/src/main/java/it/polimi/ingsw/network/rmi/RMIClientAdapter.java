@@ -113,7 +113,9 @@ public class RMIClientAdapter implements VirtualServer, ClientRMI{
      */
     @Override
     public void receiveMessage(ServerMessage message) throws RemoteException{
+        System.out.println("[RMI CLIENT] Ricevuto: " + message.getClass().getSimpleName());
         message.apply(view);
+        System.out.println("[RMI CLIENT] Applicato: " + message.getClass().getSimpleName());
     }
 
     /**

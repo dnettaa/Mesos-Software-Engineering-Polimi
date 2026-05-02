@@ -30,35 +30,61 @@ public class ClientMain {
 
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Choose interface: 1) TUI  2) GUI");
+        String RESET  = "\u001B[0m";
+        String BOLD   = "\u001B[1m";
+        String CYAN   = "\u001B[36m";
+        String YELLOW = "\u001B[93m";
+        String WHITE  = "\u001B[37m";
+        String RED    = "\u001B[31m";
+
+        System.out.println(YELLOW + BOLD);
+        System.out.println("  ███╗   ███╗███████╗███████╗ ██████╗ ███████╗");
+        System.out.println("  ████╗ ████║██╔════╝██╔════╝██╔═══██╗██╔════╝");
+        System.out.println("  ██╔████╔██║█████╗  ███████╗██║   ██║███████╗");
+        System.out.println("  ██║╚██╔╝██║██╔══╝  ╚════██║██║   ██║╚════██║");
+        System.out.println("  ██║ ╚═╝ ██║███████╗███████║╚██████╔╝███████║");
+        System.out.println("  ╚═╝     ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚══════╝");
+        System.out.println(RESET);
+        System.out.println(CYAN + "          A prehistoric civilization game" + RESET);
+        System.out.println(WHITE + "  " + "─".repeat(48) + RESET);
+        System.out.println();
+
+        System.out.println(BOLD + "  SELECT INTERFACE:" + RESET);
+        System.out.println(CYAN + "  1)" + RESET + " TUI  —  Text User Interface");
+        System.out.println(CYAN + "  2)" + RESET + " GUI  —  Graphic User Interface");
+        System.out.print(BOLD + "  > " + RESET);
         int choiceInterface = Integer.parseInt(scanner.nextLine().trim());
 
-        if(choiceInterface == 2){
-            //GUI gui = new GUI();
-            //gui.run();
-        }else if(choiceInterface == 1){
+        if (choiceInterface == 2) {
+            // GUI
+        } else if (choiceInterface == 1) {
 
             TUI tui = new TUI();
 
-            System.out.println("Choose connection type: 1) Socket  2) RMI");
+            System.out.println();
+            System.out.println(BOLD + "  SELECT CONNECTION:" + RESET);
+            System.out.println(CYAN + "  1)" + RESET + " Socket");
+            System.out.println(CYAN + "  2)" + RESET + " RMI");
+            System.out.print(BOLD + "  > " + RESET);
             int choiceConnection = Integer.parseInt(scanner.nextLine().trim());
 
-            if(choiceConnection == 1){
+            if (choiceConnection == 1) {
                 VirtualSocketServer socketServer = new VirtualSocketServer(tui);
                 tui.setVirtualServer(socketServer);
                 socketServer.connect(HOST, PORT);
-            }else if(choiceConnection == 2){
+            } else if (choiceConnection == 2) {
                 RMIClientAdapter rmiClient = new RMIClientAdapter(tui);
                 tui.setVirtualServer(rmiClient);
                 rmiClient.connect(HOST, RMI_PORT);
-            }else{
-                throw new IllegalArgumentException("Chose 1 or 2!");
+            } else {
+                System.out.println(RED + "  Invalid choice." + RESET);
+                return;
             }
 
             tui.run();
 
-        }else{
-            throw new IllegalArgumentException("Chose 1 or 2!");
+        } else {
+            System.out.println(RED + "  Invalid choice." + RESET);
         }
     }
 }

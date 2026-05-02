@@ -18,6 +18,7 @@ public class EventResolvedMessage extends ServerMessage{
     private final String eventType;
     private final Map<String, Integer> ppDeltaByPlayer;
     private final Map<String, Integer> foodDeltaByPlayer;
+    private final String nextPhaseName;
 
     /**
      * Creates a new event-resolved message.
@@ -27,11 +28,12 @@ public class EventResolvedMessage extends ServerMessage{
      * @param ppDeltaByPlayer the prestige point variation for each player nickname
      * @param foodDeltaByPlayer the food variation for each player nickname
      */
-    public EventResolvedMessage(String eventCardID, String eventType, Map<String, Integer> ppDeltaByPlayer, Map<String, Integer> foodDeltaByPlayer) {
+    public EventResolvedMessage(String eventCardID, String eventType, Map<String, Integer> ppDeltaByPlayer, Map<String, Integer> foodDeltaByPlayer, String nextPhaseName) {
         this.eventCardID = eventCardID;
         this.eventType = eventType;
         this.ppDeltaByPlayer = new HashMap<>(ppDeltaByPlayer);
         this.foodDeltaByPlayer = new HashMap<>(foodDeltaByPlayer);
+        this.nextPhaseName = nextPhaseName;
     }
 
     /**
@@ -77,6 +79,7 @@ public class EventResolvedMessage extends ServerMessage{
      */
     @Override
     public void apply(View view){
+
         for (Map.Entry<String, Integer> entry : ppDeltaByPlayer.entrySet()){
             view.getClientModel().adjustPP(entry.getKey(), entry.getValue());
         }
@@ -85,6 +88,7 @@ public class EventResolvedMessage extends ServerMessage{
             view.getClientModel().adjustFood(entry.getKey(), entry.getValue());
         }
 
-        view.render();
+        view.getClientModel().setCurrentPhase(nextPhaseName);
+        view.showEventResolved(eventCardID, eventType, ppDeltaByPlayer, foodDeltaByPlayer);
     }
 }

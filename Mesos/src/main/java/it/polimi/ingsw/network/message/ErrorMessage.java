@@ -1,6 +1,9 @@
 package it.polimi.ingsw.network.message;
 
+import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.view.View;
+
+import static it.polimi.ingsw.model.exception.ErrorCode.*;
 
 /**
  * Message sent by the server to notify a client about an invalid action or error.
@@ -46,7 +49,33 @@ public class ErrorMessage extends ServerMessage{
      * @param view the view that must display the error
      */
     @Override
-    public void apply(View view){
-        view.showError(errorCode, description);
+    public void apply(View view) {
+        ErrorCode codeEnum = ErrorCode.valueOf(this.errorCode);
+
+        switch (codeEnum) {
+            case NICKNAME_TAKEN:
+            case COLOR_TAKEN:
+            case LOBBY_FULL:
+            case GAME_ALREADY_STARTED:
+            case LOBBY_NOT_CREATED:
+                view.showLoginError(this.description);
+                break;
+
+            case UNKNOWN_PLAYER:
+            case UNKNOWN_CARD:
+            case NOT_YOUR_TURN:
+            case INVALID_PHASE:
+            case SLOT_OCCUPIED:
+            case INSUFFICIENT_FOOD:
+            case CARD_NOT_IN_ROW:
+            case INVALID_SELECTION:
+                view.showGameError(this.description);
+                break;
+
+            default:
+                view.showGameError("Errore sconosciuto: " + this.description);
+                break;
+        }
     }
 }
+

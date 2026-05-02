@@ -16,6 +16,7 @@ public class TotemPlacedMessage extends ServerMessage{
     private final String placerNickname;
     private final char slotID;
     private final String nextPlayerNickname;
+    private final String currentPhaseName;
 
 
     /**
@@ -25,10 +26,11 @@ public class TotemPlacedMessage extends ServerMessage{
      * @param slotID the identifier of the offer slot where the totem was placed
      * @param nextPlayerNickname the nickname of the next player who must act
      */
-    public TotemPlacedMessage(String placerNickname, char slotID, String nextPlayerNickname) {
+    public TotemPlacedMessage(String placerNickname, char slotID, String nextPlayerNickname, String currentPhaseName) {
         this.placerNickname = placerNickname;
         this.slotID = slotID;
         this.nextPlayerNickname = nextPlayerNickname;
+        this.currentPhaseName = currentPhaseName;
     }
 
     /**
@@ -67,6 +69,7 @@ public class TotemPlacedMessage extends ServerMessage{
     public void apply(View view){
         view.getClientModel().placeTotemOnSlot(placerNickname, slotID);
         view.getClientModel().setCurrentPlayer(nextPlayerNickname);
+        view.getClientModel().setCurrentPhase(currentPhaseName);
         view.render();
     }
 }

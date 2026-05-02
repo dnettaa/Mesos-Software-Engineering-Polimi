@@ -22,11 +22,6 @@ public interface View {
     void showLobbyUpdate(List<String> players, Map<String, TotemColor> colorsByPlayer, int expected);
 
     /**
-     * Displays an error message to the user.
-     */
-    void showError(String code, String description);
-
-    /**
      * Notifies the user of a disconnection from the server.
      */
     void notifyDisconnection(String reason);
@@ -35,8 +30,6 @@ public interface View {
      * Binds the view to the network layer (VirtualServer).
      */
     void setVirtualServer(VirtualServer vs);
-
-    // --- NUOVI METODI PER L'ARCHITETTURA A DELTA (CLIENT MODEL) ---
 
     /**
      * Restituisce la replica locale dello stato del gioco.
@@ -52,4 +45,17 @@ public interface View {
      * Legge lo stato dal ClientModel e ridisegna l'interfaccia.
      */
     void render();
+
+    /**
+     * Gestisce gli errori durante la fase pre-partita (Lobby e Login).
+     */
+    void showLoginError(String description);
+
+    /**
+     * Gestisce gli errori durante il gioco (mosse non valide, turno sbagliato).
+     */
+    void showGameError(String description);
+
+    void showEventResolved(String eventCardID, String eventType,
+                           Map<String, Integer> ppDelta, Map<String, Integer> foodDelta);
 }

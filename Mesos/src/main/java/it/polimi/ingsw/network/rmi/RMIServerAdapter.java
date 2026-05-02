@@ -146,6 +146,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void send(ServerMessage message){
+            System.out.println("[RMI SERVER] Invio in coda: " + message.getClass().getSimpleName());
             if (!connected){
                 return;
             }
@@ -153,6 +154,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             boolean accepted = outbox.offer(message);
 
             if (!accepted){
+                System.out.println("[RMI SERVER] Outbox piena per: " + nickname);
                 connected = false;
 
                 if (nickname != null){
@@ -193,11 +195,14 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             try{
                 while (connected && !Thread.currentThread().isInterrupted()){
                     ServerMessage message = outbox.take();
+                    System.out.println("[RMI SERVER] Mando a client: " + message.getClass().getSimpleName());
                     clientStub.receiveMessage(message);
+                    System.out.println("[RMI SERVER] Mandato: " + message.getClass().getSimpleName());
                 }
             } catch (InterruptedException e){
                 Thread.currentThread().interrupt();
             } catch (RemoteException e){
+                System.out.println("[RMI SERVER] RemoteException: " + e.getMessage());
                 if (connected){
                     connected = false;
 
