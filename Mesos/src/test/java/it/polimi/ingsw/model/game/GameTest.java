@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.game;
 
+import it.polimi.ingsw.model.game.DTO.*;
 import it.polimi.ingsw.model.player.*;
 import it.polimi.ingsw.model.board.*;
 import it.polimi.ingsw.model.exception.GameException;
@@ -12,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for {@link Game}.
- * Verifies core logic independent from Phase behavior.
+ * Verifies core logic and listener/DTO behavior.
  *
  * @author Andrea Markvukaj
  */
@@ -32,40 +33,53 @@ class GameTest {
     }
 
     /**
-     * Verifies that the game starts in "InProgress" state.
+     * Fake listener to capture events.
      */
+    static class TestListener implements GameListener {
+        boolean started = false;
+        GameStateSnapshot snapshot;
+
+        boolean totemCalled = false;
+        TotemPlacedDTO totemDTO;
+
+        @Override
+        public void onGameStarted(GameStateSnapshot snapshot) {
+            this.started = true;
+            this.snapshot = snapshot;
+        }
+
+        @Override
+        public void onTotemPlaced(TotemPlacedDTO dto) {
+            this.totemCalled = true;
+            this.totemDTO = dto;
+        }
+
+        @Override public void onCardsTaken(CardsTakenDTO dto) {}
+        @Override public void onExtraCardTaken(ExtraCardTakenDTO dto) {}
+        @Override public void onEventResolved(EventResolvedDTO dto) {}
+        @Override public void onRoundEnded(RoundEndedDTO dto) {}
+        @Override public void onGameEnded(GameEndedDTO dto) {}
+    }
+
     @Test
     void testInitialState() {
         Game game = createGame(3);
-
         assertEquals(GameState.InProgress, game.getState());
     }
 
-    /**
-     * Verifies that the game is not ended at start.
-     */
     @Test
     void testGameNotEndedInitially() {
         Game game = createGame(3);
-
         assertFalse(game.isGameEnded());
     }
 
-    /**
-     * Verifies validateState throws when game is not in progress.
-     */
     @Test
     void testValidateStateThrows() {
         Game game = createGame(3);
-
         game.setState(GameState.Finished);
-
         assertThrows(GameException.class, game::validateState);
     }
 
-    /**
-     * Verifies active player validation for totem placement.
-     */
     @Test
     void testValidateActivePlayerTotemPlacement() {
         Game game = createGame(3);
@@ -79,15 +93,11 @@ class GameTest {
         assertThrows(GameException.class, () -> game.validateActivePlayerTotemPlacement(wrong));
     }
 
-    /**
-     * Verifies applyTurnOrderBonus gives food when positive.
-     */
     @Test
     void testApplyTurnOrderBonusPositive() {
         Game game = createGame(3);
 
         Player player = game.getPlayers().getFirst();
-
         int before = player.getFood();
 
         game.applyTurnOrderBonus(player);
@@ -95,45 +105,69 @@ class GameTest {
         assertTrue(player.getFood() >= before);
     }
 
-    /**
-     * Verifies applyTurnOrderBonus handles penalty.
-     */
     @Test
     void testApplyTurnOrderBonusNegative() {
         Game game = createGame(3);
 
         Player player = game.getPlayers().getFirst();
-
-        player.spendFood(player.getFood()); // portalo a 0
+        player.spendFood(player.getFood());
 
         int beforePP = player.getPrestigePoints();
 
         game.applyTurnOrderBonus(player);
 
-        // può perdere PP se non ha cibo
         assertTrue(player.getPrestigePoints() <= beforePP);
     }
 
-    /**
-     * Verifies that buildGameStateMessage returns a valid object.
-     */
-    @Test
-    void testBuildGameStateMessage() {
-        Game game = createGame(3);
-
-        var message = game.buildGameStateMessage();
-
-        assertNotNull(message);
-    }
-
-    /**
-     * Verifies that unknown player throws exception.
-     */
     @Test
     void testFindPlayerUnknown() {
         Game game = createGame(3);
 
         assertThrows(GameException.class,
                 () -> game.placeTotem("UNKNOWN", 'A'));
+    }
+
+    @Test
+    void testStartGameFiresSnapshot() {
+        Game game = createGame(3);
+        TestListener listener = new TestListener();
+
+        game.addListener(listener);
+        game.startGame();
+
+        assertTrue(listener.started);
+        assertNotNull(listener.snapshot);
+
+        // record accessor
+        assertEquals(game.getCurrentRound(), listener.snapshot.currentRound());
+        assertEquals(game.getPlayers().size(), listener.snapshot.players().size());
+    }
+
+    @Test
+    void testRemoveListener() {
+        Game game = createGame(3);
+        TestListener listener = new TestListener();
+
+        game.addListener(listener);
+        game.removeListener(listener);
+
+        game.startGame();
+
+        assertFalse(listener.started);
+    }
+
+    @Test
+    void testFireTotemPlaced() {
+        Game game = createGame(3);
+        TestListener listener = new TestListener();
+
+        game.addListener(listener);
+
+        TotemPlacedDTO dto = new TotemPlacedDTO("P1", 'A', "P2");
+
+        game.fireTotemPlaced(dto);
+
+        assertTrue(listener.totemCalled);
+        assertEquals("P1", listener.totemDTO.placerNickname());
     }
 }
