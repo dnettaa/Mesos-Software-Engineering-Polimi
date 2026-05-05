@@ -25,6 +25,83 @@ class GameControllerTest{
         view = new FakeView();
     }
 
+    @Test
+    void testRegisterViewSetsNicknameAndAllowsSendTo(){
+        controller.registerView("Diana", view);
+
+        controller.sendTo("Diana", new ErrorMessage("TEST", "test message"));
+
+        assertEquals("Diana", view.nickname);
+        assertEquals(1, view.sentMessages.size());
+        assertTrue(view.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testUnregisterViewPreventsFutureSendTo(){
+        controller.registerView("Diana", view);
+        controller.unregisterView("Diana");
+
+        controller.sendTo("Diana", new ErrorMessage("TEST", "test message"));
+
+        assertTrue(view.sentMessages.isEmpty());
+    }
+
+    @Test
+    void testBroadcastOnlySendsToConnectedViews(){
+        FakeView connectedView = new FakeView();
+        FakeView disconnectedView = new FakeView();
+        disconnectedView.connected = false;
+
+        controller.registerView("Diana", connectedView);
+        controller.registerView("Luca", disconnectedView);
+
+        controller.broadcast(new ErrorMessage("TEST", "broadcast message"));
+
+        assertEquals(1, connectedView.sentMessages.size());
+        assertEquals(0, disconnectedView.sentMessages.size());
+    }
+
+    @Test
+    void testSendErrorSendsErrorMessageToSpecificPlayer(){
+        controller.registerView("Diana", view);
+
+        controller.sendError("Diana", "INVALID_PHASE", "Cannot do this now");
+
+        assertEquals(1, view.sentMessages.size());
+        assertTrue(view.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testCloseAllDisconnectsViewsAndClearsThem(){
+        controller.registerView("Diana", view);
+
+        controller.closeAll();
+
+        assertFalse(view.connected);
+
+        controller.sendTo("Diana", new ErrorMessage("TEST", "after close"));
+
+        assertTrue(view.sentMessages.isEmpty());
+    }
+
+    @Test
+    void testTransitionToChangesCurrentPhase(){
+        FakePhase phase = new FakePhase();
+
+        controller.transitionTo(phase);
+
+        assertEquals(phase, controller.getCurrentPhase());
+    }
+
+    @Test
+    void testCreateLobbyDelegatesToLobbyPhase(){
+        controller.createLobby("Diana", TotemColor.RED, 2, view);
+
+        assertNotNull(controller.getCurrentPhase());
+        assertTrue(controller.getCurrentPhase() instanceof LobbyPhase);
+    }
+
+
     /**
      * Fake implementation of VirtualView used to observe messages sent by the controller.
      */
@@ -90,5 +167,4 @@ class GameControllerTest{
         public void onDisconnect(String nickname){
         }
     }
-
 }
