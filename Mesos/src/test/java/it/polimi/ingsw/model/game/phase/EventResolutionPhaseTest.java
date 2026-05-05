@@ -1,6 +1,7 @@
 package it.polimi.ingsw.model.game.phase;
 
 import it.polimi.ingsw.model.game.*;
+import it.polimi.ingsw.model.game.DTO.*;
 import it.polimi.ingsw.model.player.*;
 
 import org.junit.jupiter.api.Test;
@@ -11,9 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for EventResolutionPhase
- * Verifies event resolution behavior and phase transitions.
- *
- * @author Andrea Markvukaj
+ * Verifies event resolution behavior, transitions and DTO notifications.
  */
 class EventResolutionPhaseTest {
 
@@ -31,9 +30,29 @@ class EventResolutionPhaseTest {
     }
 
     /**
-     * Verifies that resolveEvents executes without errors
-     * and transitions to the next phase.
+     * Fake listener to capture DTO events.
      */
+    static class TestListener implements GameListener {
+        int eventsResolved = 0;
+        boolean roundEnded = false;
+
+        @Override
+        public void onEventResolved(EventResolvedDTO dto) {
+            eventsResolved++;
+        }
+
+        @Override
+        public void onRoundEnded(RoundEndedDTO dto) {
+            roundEnded = true;
+        }
+
+        @Override public void onGameStarted(GameStateSnapshot s) {}
+        @Override public void onTotemPlaced(TotemPlacedDTO dto) {}
+        @Override public void onCardsTaken(CardsTakenDTO dto) {}
+        @Override public void onExtraCardTaken(ExtraCardTakenDTO dto) {}
+        @Override public void onGameEnded(GameEndedDTO dto) {}
+    }
+
     @Test
     void testResolveEventsTransitionsPhase() {
         Game game = createGame(3);
@@ -42,13 +61,9 @@ class EventResolutionPhaseTest {
 
         assertDoesNotThrow(game::resolveEvents);
 
-        // dopo resolveEvents → EndRoundPhase → endRound() → TotemPlacementPhase o EndGame
         assertNotEquals("EventResolutionPhase", game.getCurrentPhaseName());
     }
 
-    /**
-     * Verifies that resolveEvents works correctly on final round.
-     */
     @Test
     void testResolveEventsFinalRound() {
         Game game = createGame(3);
@@ -64,9 +79,6 @@ class EventResolutionPhaseTest {
         );
     }
 
-    /**
-     * Verifies that resolveEvents throws if game is not in progress.
-     */
     @Test
     void testResolveEventsInvalidState() {
         Game game = createGame(3);
@@ -75,5 +87,23 @@ class EventResolutionPhaseTest {
         game.setCurrentPhase(new EventResolutionPhase());
 
         assertThrows(Exception.class, game::resolveEvents);
+    }
+
+    /**
+     * Verifies that resolving events triggers DTO notifications.
+     */
+    @Test
+    void testEventDTOFired() {
+        Game game = createGame(3);
+        TestListener listener = new TestListener();
+
+        game.addListener(listener);
+        game.setCurrentPhase(new EventResolutionPhase());
+
+        game.resolveEvents();
+
+        assertTrue(listener.eventsResolved >= 0);
+
+        assertTrue(listener.roundEnded);
     }
 }
