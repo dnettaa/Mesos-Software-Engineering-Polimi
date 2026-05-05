@@ -9,6 +9,7 @@ import java.util.Map;
 
 /**
  * Message sent by the server to update all clients about the current lobby state.
+ * @author Diana
  */
 
 public class LobbyUpdateMessage extends ServerMessage{

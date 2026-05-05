@@ -5,5 +5,6 @@ public record ExtraCardTakenDTO(
         String cardID,
         boolean fromUpperRow,
         boolean isBuilding,
-        int foodDelta
+        int foodDelta,
+        String nextPhaseName
 ) {}

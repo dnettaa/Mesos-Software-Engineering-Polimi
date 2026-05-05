@@ -74,8 +74,6 @@ public class EventResolutionPhase implements Phase {
             }
         }
 
-
-
         game.setCurrentPhase(new EndRoundPhase());
         game.endRound();
     }
@@ -92,6 +90,6 @@ public class EventResolutionPhase implements Phase {
             initialFood.put(p.getNickname(), p.getFood());
         }
 
-        game.fireEventResolved(new EventResolvedDTO(e.getId(), e.getClass().getSimpleName(), ppDelta, foodDelta));
+        game.fireEventResolved(new EventResolvedDTO(e.getId(), e.getClass().getSimpleName(), ppDelta, foodDelta, game.getCurrentPhaseName()));
     }
 }

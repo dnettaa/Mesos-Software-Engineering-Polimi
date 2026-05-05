@@ -257,7 +257,10 @@ public class Game implements GameActions{
         List<Card> pickableUpper = board.getUpperRowCards();
         List<Card> pickableLower = board.getLowerRowCards();
 
-        if(action[0] != chosenUpper.size() || action[1] != chosenLower.size()){
+        int actualUpper = Math.min(action[0], pickableUpper.size());
+        int actualLower = Math.min(action[1], pickableLower.size());
+
+        if(actualUpper != chosenUpper.size() || actualLower != chosenLower.size()){
             throw new GameException(ErrorCode.INVALID_SELECTION, "Wrong number of chosen cards");
         }
 

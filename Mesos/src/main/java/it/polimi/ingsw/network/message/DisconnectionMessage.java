@@ -5,6 +5,7 @@ import it.polimi.ingsw.view.View;
 /**
  * Message sent by the server to notify a client that the game has been interrupted
  * because of a disconnection.
+ * @author Diana
  */
 
 public class DisconnectionMessage extends ServerMessage{

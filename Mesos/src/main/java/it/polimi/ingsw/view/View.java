@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
-import it.polimi.ingsw.network.message.GameStateMessage;
 
 /**
  * The View interface representing the client-side UI.
@@ -23,16 +22,6 @@ public interface View {
     void showLobbyUpdate(List<String> players, Map<String, TotemColor> colorsByPlayer, int expected);
 
     /**
-     * Renders the current state of the game board.
-     */
-    void showGameState(GameStateMessage state);
-
-    /**
-     * Displays an error message to the user.
-     */
-    void showError(String code, String description);
-
-    /**
      * Notifies the user of a disconnection from the server.
      */
     void notifyDisconnection(String reason);
@@ -41,4 +30,32 @@ public interface View {
      * Binds the view to the network layer (VirtualServer).
      */
     void setVirtualServer(VirtualServer vs);
+
+    /**
+     * Restituisce la replica locale dello stato del gioco.
+     */
+    ClientModel getClientModel();
+
+    /**
+     * Imposta il ClientModel per questa vista.
+     */
+    void setClientModel(ClientModel model);
+
+    /**
+     * Legge lo stato dal ClientModel e ridisegna l'interfaccia.
+     */
+    void render();
+
+    /**
+     * Gestisce gli errori durante la fase pre-partita (Lobby e Login).
+     */
+    void showLoginError(String description);
+
+    /**
+     * Gestisce gli errori durante il gioco (mosse non valide, turno sbagliato).
+     */
+    void showGameError(String description);
+
+    void showEventResolved(String eventCardID, String eventType,
+                           Map<String, Integer> ppDelta, Map<String, Integer> foodDelta);
 }
