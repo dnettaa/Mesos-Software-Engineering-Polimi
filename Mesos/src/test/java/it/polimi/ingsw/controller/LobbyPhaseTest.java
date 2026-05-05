@@ -29,6 +29,153 @@ class LobbyPhaseTest{
         lobbyPhase = new LobbyPhase(controller, 3);
     }
 
+    @Test
+    void testCreateLobbyRegistersFirstPlayerAndBroadcastsUpdate(){
+        FakeView dianaView = new FakeView();
+
+        lobbyPhase.createLobby("Diana", TotemColor.RED, dianaView);
+
+        assertEquals("Diana", dianaView.nickname);
+        assertEquals(2, dianaView.sentMessages.size());
+        assertTrue(dianaView.sentMessages.get(0) instanceof JoinSuccessMessage);
+        assertTrue(dianaView.sentMessages.get(1) instanceof LobbyUpdateMessage);
+    }
+
+    @Test
+    void testCreateLobbyWhenLobbyAlreadyExistsSendsError(){
+        FakeView dianaView = new FakeView();
+        FakeView lucaView = new FakeView();
+
+        lobbyPhase.createLobby("Diana", TotemColor.RED, dianaView);
+        lobbyPhase.createLobby("Luca", TotemColor.BLUE, lucaView);
+
+        assertEquals(1, lucaView.sentMessages.size());
+        assertTrue(lucaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testJoinLobbyBeforeCreationSendsError(){
+        FakeView lucaView = new FakeView();
+
+        lobbyPhase.joinLobby("Luca", TotemColor.BLUE, lucaView);
+
+        assertEquals(1, lucaView.sentMessages.size());
+        assertTrue(lucaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testJoinLobbyRegistersPlayerAndBroadcastsUpdate(){
+        FakeView dianaView = new FakeView();
+        FakeView lucaView = new FakeView();
+
+        lobbyPhase.createLobby("Diana", TotemColor.RED, dianaView);
+        lobbyPhase.joinLobby("Luca", TotemColor.BLUE, lucaView);
+
+        assertEquals("Luca", lucaView.nickname);
+        assertEquals(2, lucaView.sentMessages.size());
+        assertTrue(lucaView.sentMessages.get(0) instanceof JoinSuccessMessage);
+        assertTrue(lucaView.sentMessages.get(1) instanceof LobbyUpdateMessage);
+
+        assertEquals(3, dianaView.sentMessages.size());
+        assertTrue(dianaView.sentMessages.get(2) instanceof LobbyUpdateMessage);
+    }
+
+    @Test
+    void testJoinLobbyWithDuplicateNicknameSendsError(){
+        FakeView dianaView = new FakeView();
+        FakeView duplicateView = new FakeView();
+
+        lobbyPhase.createLobby("Diana", TotemColor.RED, dianaView);
+        lobbyPhase.joinLobby("Diana", TotemColor.BLUE, duplicateView);
+
+        assertEquals(1, duplicateView.sentMessages.size());
+        assertTrue(duplicateView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testJoinLobbyWithDuplicateColorSendsError(){
+        FakeView dianaView = new FakeView();
+        FakeView lucaView = new FakeView();
+
+        lobbyPhase.createLobby("Diana", TotemColor.RED, dianaView);
+        lobbyPhase.joinLobby("Luca", TotemColor.RED, lucaView);
+
+        assertEquals(1, lucaView.sentMessages.size());
+        assertTrue(lucaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testJoinLobbyWhenLobbyIsFullSendsError(){
+        LobbyPhase onePlayerLobby = new LobbyPhase(controller, 1);
+        FakeView dianaView = new FakeView();
+        FakeView lucaView = new FakeView();
+
+        onePlayerLobby.createLobby("Diana", TotemColor.RED, dianaView);
+        onePlayerLobby.joinLobby("Luca", TotemColor.BLUE, lucaView);
+
+        assertEquals(1, lucaView.sentMessages.size());
+        assertTrue(lucaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testPlaceTotemDuringLobbySendsInvalidPhaseError(){
+        FakeView dianaView = new FakeView();
+
+        lobbyPhase.createLobby("Diana", TotemColor.RED, dianaView);
+        dianaView.sentMessages.clear();
+
+        lobbyPhase.placeTotem("Diana", 'C');
+
+        assertEquals(1, dianaView.sentMessages.size());
+        assertTrue(dianaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testTakeCardsDuringLobbySendsInvalidPhaseError(){
+        FakeView dianaView = new FakeView();
+
+        lobbyPhase.createLobby("Diana", TotemColor.RED, dianaView);
+        dianaView.sentMessages.clear();
+
+        lobbyPhase.takeCards("Diana", List.of("U1"), List.of("L1"));
+
+        assertEquals(1, dianaView.sentMessages.size());
+        assertTrue(dianaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testTakeExtraCardDuringLobbySendsInvalidPhaseError(){
+        FakeView dianaView = new FakeView();
+
+        lobbyPhase.createLobby("Diana", TotemColor.RED, dianaView);
+        dianaView.sentMessages.clear();
+
+        lobbyPhase.takeExtraCard("Diana", "C1");
+
+        assertEquals(1, dianaView.sentMessages.size());
+        assertTrue(dianaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testOnDisconnectRemovesPlayerAndBroadcastsUpdate(){
+        FakeView dianaView = new FakeView();
+        FakeView lucaView = new FakeView();
+
+        lobbyPhase.createLobby("Diana", TotemColor.RED, dianaView);
+        lobbyPhase.joinLobby("Luca", TotemColor.BLUE, lucaView);
+
+        dianaView.sentMessages.clear();
+        lucaView.sentMessages.clear();
+
+        lobbyPhase.onDisconnect("Luca");
+
+        assertEquals(1, dianaView.sentMessages.size());
+        assertTrue(dianaView.sentMessages.getFirst() instanceof LobbyUpdateMessage);
+
+        controller.sendTo("Luca", new ErrorMessage("TEST", "Luca should be unregistered"));
+        assertTrue(lucaView.sentMessages.isEmpty());
+    }
+
     /**
      * Fake implementation of VirtualView used to observe messages sent during lobby tests.
      */
