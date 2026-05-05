@@ -2,9 +2,9 @@ package it.polimi.ingsw.network.rmi;
 
 import it.polimi.ingsw.controller.GameController;
 import it.polimi.ingsw.network.VirtualView;
-import it.polimi.ingsw.network.message.ClientMessage;
-import it.polimi.ingsw.network.message.ErrorMessage;
-import it.polimi.ingsw.network.message.ServerMessage;
+import it.polimi.ingsw.network.socket.message.ClientMessage;
+import it.polimi.ingsw.network.socket.message.ErrorMessage;
+import it.polimi.ingsw.network.socket.message.ServerMessage;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Map;

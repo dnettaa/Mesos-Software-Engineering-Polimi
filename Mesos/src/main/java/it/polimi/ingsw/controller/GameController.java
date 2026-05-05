@@ -3,9 +3,9 @@ package it.polimi.ingsw.controller;
 import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
-import it.polimi.ingsw.network.message.*;
 import it.polimi.ingsw.model.game.GameListener;
 import it.polimi.ingsw.model.game.DTO.*;
+import it.polimi.ingsw.network.socket.message.*;
 
 import java.util.HashMap;
 import java.util.Map;

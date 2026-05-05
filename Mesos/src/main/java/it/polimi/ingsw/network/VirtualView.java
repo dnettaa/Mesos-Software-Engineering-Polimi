@@ -1,6 +1,6 @@
 package it.polimi.ingsw.network;
 
-import it.polimi.ingsw.network.message.ServerMessage;
+import it.polimi.ingsw.network.socket.message.ServerMessage;
 
 /**
  * Server-side abstraction of a connected client.

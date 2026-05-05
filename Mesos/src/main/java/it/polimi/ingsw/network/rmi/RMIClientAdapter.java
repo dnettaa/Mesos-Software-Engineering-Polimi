@@ -2,10 +2,10 @@ package it.polimi.ingsw.network.rmi;
 
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
-import it.polimi.ingsw.network.message.ClientMessage;
-import it.polimi.ingsw.network.message.CreateLobbyMessage;
-import it.polimi.ingsw.network.message.JoinLobbyMessage;
-import it.polimi.ingsw.network.message.ServerMessage;
+import it.polimi.ingsw.network.socket.message.ClientMessage;
+import it.polimi.ingsw.network.socket.message.CreateLobbyMessage;
+import it.polimi.ingsw.network.socket.message.JoinLobbyMessage;
+import it.polimi.ingsw.network.socket.message.ServerMessage;
 import it.polimi.ingsw.view.View;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;

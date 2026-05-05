@@ -1,12 +1,10 @@
 package it.polimi.ingsw.network.socket;
 
-import it.polimi.ingsw.model.card.Card;
-import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.game.DTO.*;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
-import it.polimi.ingsw.network.message.*;
 import it.polimi.ingsw.controller.GameController;
+import it.polimi.ingsw.network.socket.message.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

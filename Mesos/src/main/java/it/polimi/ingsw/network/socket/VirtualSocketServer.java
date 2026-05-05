@@ -2,7 +2,7 @@ package it.polimi.ingsw.network.socket;
 
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
-import it.polimi.ingsw.network.message.*;
+import it.polimi.ingsw.network.socket.message.*;
 import it.polimi.ingsw.view.View;
 
 import java.io.IOException;
