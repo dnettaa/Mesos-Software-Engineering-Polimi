@@ -163,11 +163,20 @@ class GameTest {
 
         game.addListener(listener);
 
-        TotemPlacedDTO dto = new TotemPlacedDTO("P1", 'A', "P2");
+        TotemPlacedDTO dto = new TotemPlacedDTO(
+                "P1",
+                'A',
+                "P2",
+                "OfferResolutionPhase"
+        );
 
         game.fireTotemPlaced(dto);
 
         assertTrue(listener.totemCalled);
+
         assertEquals("P1", listener.totemDTO.placerNickname());
+        assertEquals('A', listener.totemDTO.slotID());
+        assertEquals("P2", listener.totemDTO.nextPlayerNickname());
+        assertEquals("OfferResolutionPhase", listener.totemDTO.nextPhaseName());
     }
 }
