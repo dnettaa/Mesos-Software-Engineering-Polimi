@@ -79,56 +79,126 @@ public class SocketClientHandler implements VirtualView, Runnable {
         }
     }
 
+    /**
+     * Notifies the client of a successful lobby join.
+     * Wraps the data into a {@link JoinSuccessMessage} and enqueues it.
+     *
+     * @param nickname the assigned nickname
+     * @param color the assigned totem color
+     */
     @Override
     public void onJoinSuccess(String nickname, TotemColor color){
         enqueue(new JoinSuccessMessage(nickname, color));
     }
 
+    /**
+     * Notifies the client of an update to the lobby state.
+     * Wraps the data into a {@link LobbyUpdateMessage} and enqueues it.
+     *
+     * @param players the list of players currently in the lobby
+     * @param colorsByPlayer a map of player nicknames to their respective totem colors
+     * @param expected the total number of players expected to start the game
+     */
     @Override
     public void onLobbyUpdate(List<String> players, Map<String,TotemColor> colorsByPlayer, int expected){
         enqueue(new LobbyUpdateMessage(players, colorsByPlayer, expected));
     }
 
+    /**
+     * Notifies the client of an error.
+     * Wraps the error details into an {@link ErrorMessage} and enqueues it.
+     *
+     * @param code the error code
+     * @param desc the error description
+     */
     @Override
     public void onError(String code, String desc){
         enqueue(new ErrorMessage(code, desc));
     }
 
+    /**
+     * Notifies the client of a disconnection event.
+     * Wraps the reason into a {@link DisconnectionMessage} and enqueues it.
+     *
+     * @param reason the reason for disconnection
+     */
     @Override
     public void onDisconnection(String reason){
         enqueue(new DisconnectionMessage(reason));
     }
 
+    /**
+     * Notifies the client that the game has started.
+     * Wraps the initial game state snapshot into a {@link GameStartedMessage} and enqueues it.
+     *
+     * @param snapshot the complete snapshot of the initial game state
+     */
     @Override
     public void onGameStarted(GameStateSnapshot snapshot){
         enqueue(new GameStartedMessage(snapshot));
     }
 
+    /**
+     * Notifies the client that a totem has been placed on the offer track.
+     * Wraps the event data into a {@link TotemPlacedMessage} and enqueues it.
+     *
+     * @param dto the data transfer object containing details of the placement
+     */
     @Override
     public void onTotemPlaced(TotemPlacedDTO dto){
         enqueue(new TotemPlacedMessage(dto));
     }
 
+    /**
+     * Notifies the client that cards have been taken from the board.
+     * Wraps the event data into a {@link CardsTakenMessage} and enqueues it.
+     *
+     * @param dto the data transfer object containing details of the taken cards
+     */
     @Override
     public void onCardsTaken(CardsTakenDTO dto){
         enqueue(new CardsTakenMessage(dto));
     }
 
+    /**
+     * Notifies the client that an extra card has been taken during the Extra Card Phase.
+     * Wraps the event data into an {@link ExtraCardTakenMessage} and enqueues it.
+     *
+     * @param dto the data transfer object containing details of the extra card action
+     */
     @Override
     public void onExtraCardTaken(ExtraCardTakenDTO dto){
         enqueue(new ExtraCardTakenMessage(dto));
     }
 
+    /**
+     * Notifies the client that an event card has been resolved.
+     * Wraps the event data into an {@link EventResolvedMessage} and enqueues it.
+     *
+     * @param dto the data transfer object containing details of the resolved event
+     */
     @Override
     public void onEventResolved(EventResolvedDTO dto){
         enqueue(new EventResolvedMessage(dto));
     }
 
+    /**
+     * Notifies the client that the current round has ended.
+     * Wraps the round end data into a {@link RoundEndedMessage} and enqueues it.
+     *
+     * @param dto the data transfer object containing details of the board refresh and next round
+     */
     @Override
     public void onRoundEnded(RoundEndedDTO dto){
         enqueue(new RoundEndedMessage(dto));
     }
 
+    /**
+     * Notifies the client that the game has ended.
+     * Wraps the final scoring data into a {@link GameEndedMessage} and enqueues it.
+     *
+     * @param dto the data transfer object containing final scores and the winner ranking
+     */
     @Override
     public void onGameEnded(GameEndedDTO dto){
         enqueue(new GameEndedMessage(dto));
@@ -196,6 +266,11 @@ public class SocketClientHandler implements VirtualView, Runnable {
         }
     }
 
+    /**
+     * Adds a {@link ServerMessage} to the outbox queue to be sent to the client.
+     *
+     * @param msg the message to be queued
+     */
     private void enqueue(ServerMessage msg) {
         outbox.add(msg);
     }

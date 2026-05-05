@@ -83,28 +83,65 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
 
     // --- VirtualServer: client-to-server commands ---
 
+    /**
+     * Sends a request to the server to create a new lobby.
+     * Wraps the parameters into a {@link CreateLobbyMessage} and writes it to the socket.
+     *
+     * @param nickname the player's chosen nickname
+     * @param color the player's chosen totem color
+     * @param expectedPlayers the number of players required to start the game
+     */
     @Override
     public void createLobby(String nickname, TotemColor color, int expectedPlayers){
         this.nickname = nickname;
         write(new CreateLobbyMessage(nickname, color, expectedPlayers));
     }
 
+    /**
+     * Sends a request to the server to join an existing lobby.
+     * Wraps the parameters into a {@link JoinLobbyMessage} and writes it to the socket.
+     *
+     * @param nickname the player's chosen nickname
+     * @param color the player's chosen totem color
+     */
     @Override
     public void joinLobby(String nickname, TotemColor color){
         this.nickname = nickname;
         write(new JoinLobbyMessage(nickname, color));
     }
 
+    /**
+     * Sends a command to the server to place a totem on a specific offer slot.
+     * Wraps the action into a {@link PlaceTotemMessage} and writes it to the socket.
+     *
+     * @param nickname the nickname of the player making the move
+     * @param slotID the ID of the offer slot (e.g., 'A', 'B', 'C')
+     */
     @Override
     public void placeTotem(String nickname, char slotID) {
         write(new PlaceTotemMessage(nickname, slotID));
     }
 
+    /**
+     * Sends a command to the server to take selected cards from the board.
+     * Wraps the action into a {@link TakeCardsMessage} and writes it to the socket.
+     *
+     * @param nickname the nickname of the player taking the cards
+     * @param upperIDs the list of IDs for the selected cards in the upper row
+     * @param lowerIDs the list of IDs for the selected cards in the lower row
+     */
     @Override
     public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs) {
         write(new TakeCardsMessage(nickname, upperIDs, lowerIDs));
     }
 
+    /**
+     * Sends a command to the server to take an extra card (e.g., triggered by a specific effect).
+     * Wraps the action into a {@link TakeExtraCardMessage} and writes it to the socket.
+     *
+     * @param nickname the nickname of the player taking the extra card
+     * @param cardID the ID of the chosen extra card
+     */
     @Override
     public void takeExtraCard(String nickname, String cardID) {
         write(new TakeExtraCardMessage(nickname, cardID));
