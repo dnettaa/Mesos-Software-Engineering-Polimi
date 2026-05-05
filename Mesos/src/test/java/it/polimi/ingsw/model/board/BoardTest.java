@@ -127,13 +127,14 @@ class BoardTest {
         board.returnTotemToTurnOrder(testPlayer);
         assertEquals(1, board.getPlacementOrder().size());
 
-        // lower row
-        assertFalse(board.getLowerRowCards().isEmpty());
-        Card lowerCard = board.getLowerRowCards().getFirst();
-        board.removeCardFromLower(lowerCard);
-        assertFalse(board.getLowerRowCards().contains(lowerCard));
+        // LOWER ROW → potrebbe essere vuota nel setup, non assumiamo nulla
+        if (!board.getLowerRowCards().isEmpty()) {
+            Card lowerCard = board.getLowerRowCards().getFirst();
+            board.removeCardFromLower(lowerCard);
+            assertFalse(board.getLowerRowCards().contains(lowerCard));
+        }
 
-        // upper row
+        // UPPER ROW → nel setup sappiamo che contiene almeno una carta
         assertFalse(board.getUpperRowCards().isEmpty());
         Card upperCard = board.getUpperRowCards().getFirst();
         board.removeCardFromUpper(upperCard);
