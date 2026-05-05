@@ -25,7 +25,6 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private final View view;
-    private Thread readerThread;
     private boolean running;
     private String nickname;
 
@@ -56,8 +55,8 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             this.in = new ObjectInputStream(socket.getInputStream());
 
             this.running = true;
-            this.readerThread = new Thread(this, "VirtualSocketServer-Reader");
-            this.readerThread.start();
+            Thread readerThread = new Thread(this, "VirtualSocketServer-Reader");
+            readerThread.start();
         } catch (IOException e) {
             throw new RuntimeException("Failed to connect to server", e);
         }

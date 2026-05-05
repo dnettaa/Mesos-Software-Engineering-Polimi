@@ -1,14 +1,19 @@
 package it.polimi.ingsw.network.socket;
 
+import it.polimi.ingsw.model.card.Card;
+import it.polimi.ingsw.model.exception.ErrorCode;
+import it.polimi.ingsw.model.game.DTO.*;
+import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
-import it.polimi.ingsw.network.message.ClientMessage;
-import it.polimi.ingsw.network.message.ServerMessage;
+import it.polimi.ingsw.network.message.*;
 import it.polimi.ingsw.controller.GameController;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -74,6 +79,61 @@ public class SocketClientHandler implements VirtualView, Runnable {
         }
     }
 
+    @Override
+    public void onJoinSuccess(String nickname, TotemColor color){
+        enqueue(new JoinSuccessMessage(nickname, color));
+    }
+
+    @Override
+    public void onLobbyUpdate(List<String> players, Map<String,TotemColor> colorsByPlayer, int expected){
+        enqueue(new LobbyUpdateMessage(players, colorsByPlayer, expected));
+    }
+
+    @Override
+    public void onError(String code, String desc){
+        enqueue(new ErrorMessage(code, desc));
+    }
+
+    @Override
+    public void onDisconnection(String reason){
+        enqueue(new DisconnectionMessage(reason));
+    }
+
+    @Override
+    public void onGameStarted(GameStateSnapshot snapshot){
+        enqueue(new GameStartedMessage(snapshot));
+    }
+
+    @Override
+    public void onTotemPlaced(TotemPlacedDTO dto){
+        enqueue(new TotemPlacedMessage(dto));
+    }
+
+    @Override
+    public void onCardsTaken(CardsTakenDTO dto){
+        enqueue(new CardsTakenMessage(dto));
+    }
+
+    @Override
+    public void onExtraCardTaken(ExtraCardTakenDTO dto){
+        enqueue(new ExtraCardTakenMessage(dto));
+    }
+
+    @Override
+    public void onEventResolved(EventResolvedDTO dto){
+        enqueue(new EventResolvedMessage(dto));
+    }
+
+    @Override
+    public void onRoundEnded(RoundEndedDTO dto){
+        enqueue(new RoundEndedMessage(dto));
+    }
+
+    @Override
+    public void onGameEnded(GameEndedDTO dto){
+        enqueue(new GameEndedMessage(dto));
+    }
+
     /**
      * Returns the nickname of the player associated with this handler.
      *
@@ -94,15 +154,6 @@ public class SocketClientHandler implements VirtualView, Runnable {
         this.nickname = nickname;
     }
 
-    /**
-     * Adds a message to the outbox to be sent to the client.
-     *
-     * @param msg the message to send
-     */
-    @Override
-    public void send(ServerMessage msg){
-        outbox.add(msg);
-    }
 
     /**
      * Disconnects the client by closing the socket and notifying the controller.
@@ -143,5 +194,9 @@ public class SocketClientHandler implements VirtualView, Runnable {
                 if (connected) disconnect();
             }
         }
+    }
+
+    private void enqueue(ServerMessage msg) {
+        outbox.add(msg);
     }
 }
