@@ -13,15 +13,27 @@ import java.util.Map;
 import java.util.Scanner;
 
 /**
- * Text User Interface (TUI) implementation of the View.
- * Final version integrated with the actual Network and Message classes.
- * Implements a "Dumb Client" architecture: relies entirely on the Server for validation.
+ * Text User Interface (TUI) implementation of the View for the Mesos game.
+ * <p>
+ * This class provides a rich console-based interface utilizing ANSI escape codes
+ * for colored and formatted output. It strictly adheres to a "Dumb Client"
+ * architecture: it relies entirely on the server for rule validation and game logic,
+ * maintaining only a local replica of the state ({@link ClientModel}) updated via
+ * delta messages.
+ * </p>
  */
 public class TUI implements View {
 
+    /** Reference to the network layer to send messages to the server. */
     private VirtualServer virtualServer;
+
+    /** Local replica of the game state, updated by the server's delta messages. */
     private ClientModel clientModel;
+
+    /** The chosen nickname of the player using this client. */
     private String nickname;
+
+    /** Scanner used to read standard input from the user. */
     private final Scanner scanner;
 
     // =========================================================
@@ -41,25 +53,52 @@ public class TUI implements View {
     private static final String BRIGHT_RED    = "\u001B[91m";
     private static final String BRIGHT_CYAN   = "\u001B[96m";
 
+    /**
+     * Constructs a new TUI instance and initializes the input scanner.
+     */
     public TUI() {
         this.scanner = new Scanner(System.in);
     }
 
+    /**
+     * Links the view to the network communication layer.
+     *
+     * @param vs The {@link VirtualServer} instance managing network output.
+     */
     @Override
     public void setVirtualServer(VirtualServer vs) {
         this.virtualServer = vs;
     }
 
+    /**
+     * Retrieves the local replica of the game state.
+     *
+     * @return The current {@link ClientModel} associated with this view.
+     */
     @Override
     public ClientModel getClientModel() {
         return clientModel;
     }
 
+    /**
+     * Sets the local replica of the game state.
+     *
+     * @param model The {@link ClientModel} to be stored and rendered.
+     */
     @Override
     public void setClientModel(ClientModel model) {
         this.clientModel = model;
     }
 
+    /**
+     * Core rendering method. Reads the current state from the {@link ClientModel}
+     * and draws the entire graphical board on the console using ASCII art and ANSI colors.
+     * <p>
+     * It handles the display of the End-Game leaderboard as well as the standard
+     * in-game board (Turn Order, Offer Track, Card Rows, and Player Stats).
+     * Automatically triggers the input prompt if it is the local player's turn.
+     * </p>
+     */
     @Override
     public void render() {
         if (clientModel == null) return;
@@ -168,6 +207,13 @@ public class TUI implements View {
         }
     }
 
+    /**
+     * Helper method to render a horizontal row of cards.
+     * Integrates with the CardCatalog to fetch and display card descriptions.
+     *
+     * @param cardIDs The list of string IDs representing the cards in the row.
+     * @param color   The ANSI color code used to format the card IDs.
+     */
     private void drawCardRow(List<String> cardIDs, String color) {
         if (cardIDs == null || cardIDs.isEmpty()) {
             System.out.println("    " + RED + "[Empty]" + RESET);
@@ -182,8 +228,9 @@ public class TUI implements View {
     }
 
     /**
-     * Main entry point for the TUI interaction.
-     * Handles nickname entry, color selection, and lobby creation/joining.
+     * Main entry point for the TUI execution.
+     * Guides the user through a setup wizard to input their nickname,
+     * select a Totem color, and either create or join a game lobby.
      */
     public void run() {
         System.out.println(CYAN + BOLD + "\n  ── LOBBY ──────────────────────────────────────" + RESET);
@@ -221,12 +268,24 @@ public class TUI implements View {
         System.out.println("\n" + CYAN + "  Request sent. Waiting for game to start..." + RESET);
     }
 
-
+    /**
+     * Displays a success message confirming the user has joined the lobby.
+     *
+     * @param nickname The accepted nickname of the user.
+     * @param color    The accepted Totem color of the user.
+     */
     @Override
     public void showJoinSuccess(String nickname, TotemColor color) {
         System.out.println("\n[SUCCESS] Welcome " + nickname + "! Your color is: " + color);
     }
 
+    /**
+     * Displays the current status of the lobby as players connect.
+     *
+     * @param players        The list of currently connected player nicknames.
+     * @param colorsByPlayer A mapping linking each player to their chosen color.
+     * @param expected       The total number of players required to start the game.
+     */
     @Override
     public void showLobbyUpdate(List<String> players, Map<String, TotemColor> colorsByPlayer, int expected) {
         System.out.println("\n--- LOBBY STATUS (" + players.size() + "/" + expected + ") ---");
@@ -235,6 +294,13 @@ public class TUI implements View {
         }
     }
 
+    /**
+     * Gathers user input based on the current active phase of the game and
+     * sends the corresponding network messages to the server.
+     *
+     * @param phase The string identifier of the current game phase
+     *              (e.g., "TotemPlacementPhase", "OfferResolutionPhase").
+     */
     private void handleTurnInput(String phase) {
         switch (phase) {
             case "TotemPlacementPhase": {
@@ -273,13 +339,23 @@ public class TUI implements View {
         }
     }
 
-
+    /**
+     * Notifies the user that the connection to the server has been lost and terminates the client.
+     *
+     * @param reason A string detailing why the disconnection occurred.
+     */
     @Override
     public void notifyDisconnection(String reason) {
         System.out.println("\n[DISCONNECTED] " + reason);
         System.exit(0);
     }
 
+    /**
+     * Displays setup or networking errors that occur before the game starts
+     * (e.g., Lobby full, Name already taken) and restarts the setup wizard.
+     *
+     * @param description The human-readable error description.
+     */
     @Override
     public void showLoginError(String description) {
         System.out.println("\n\u001B[31m[SETUP ERROR] " + description + "\u001B[0m");
@@ -288,15 +364,30 @@ public class TUI implements View {
         run();
     }
 
+    /**
+     * Displays errors regarding rule violations during gameplay.
+     * If it is still the user's turn, it prompts them to input a valid move again.
+     *
+     * @param description The human-readable error description from the server's GameController.
+     */
     @Override
     public void showGameError(String description) {
         System.out.println("\u001B[31m[GAME ERROR] " + description + "\u001B[0m");
-        // Ri-mostra il prompt se è ancora il tuo turno
+        // Re-open input prompt if it is still the local player's turn
         if (nickname.equals(clientModel.getCurrentPlayerNickname())) {
             handleTurnInput(clientModel.getCurrentPhaseName());
         }
     }
 
+    /**
+     * Displays a summary of the effects resolved from playing an Event Card,
+     * detailing how it impacted the resources of the players.
+     *
+     * @param eventCardID The identifier of the resolved event card.
+     * @param eventType   The semantic type or name of the event.
+     * @param ppDelta     A map linking player nicknames to their Prestige Point variation.
+     * @param foodDelta   A map linking player nicknames to their Food variation.
+     */
     @Override
     public void showEventResolved(String eventCardID, String eventType,
                                   Map<String, Integer> ppDelta, Map<String, Integer> foodDelta) {
@@ -309,6 +400,4 @@ public class TUI implements View {
             System.out.printf("  %-12s → PP: %s  Food: %s%n", player, ppStr, foodStr);
         }
     }
-
-
 }
