@@ -37,6 +37,104 @@ class InGamePhaseTest{
         controller.registerView("Diana", dianaView);
     }
 
+    @Test
+    void testPlaceTotemDelegatesToGame(){
+        inGamePhase.placeTotem("Diana", 'C');
+
+        assertEquals("Diana", game.lastTotemNickname);
+        assertEquals('C', game.lastSlotID);
+        assertEquals(1, game.placeTotemCalls);
+        assertTrue(dianaView.sentMessages.isEmpty());
+    }
+
+    @Test
+    void testPlaceTotemExceptionSendsError(){
+        game.exceptionToThrow = new GameException(ErrorCode.NOT_YOUR_TURN, "Not your turn");
+
+        inGamePhase.placeTotem("Diana", 'C');
+
+        assertEquals(1, dianaView.sentMessages.size());
+        assertTrue(dianaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testTakeCardsDelegatesToGame(){
+        List<String> upper = List.of("U1", "U2");
+        List<String> lower = List.of("L1");
+
+        inGamePhase.takeCards("Diana", upper, lower);
+
+        assertEquals("Diana", game.lastTakeCardsNickname);
+        assertEquals(upper, game.lastUpperIDs);
+        assertEquals(lower, game.lastLowerIDs);
+        assertEquals(1, game.takeCardsCalls);
+        assertTrue(dianaView.sentMessages.isEmpty());
+    }
+
+    @Test
+    void testTakeCardsExceptionSendsError(){
+        game.exceptionToThrow = new GameException(ErrorCode.INVALID_SELECTION, "Invalid selection");
+
+        inGamePhase.takeCards("Diana", List.of("U1"), List.of("L1"));
+
+        assertEquals(1, dianaView.sentMessages.size());
+        assertTrue(dianaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testTakeExtraCardDelegatesToGame(){
+        inGamePhase.takeExtraCard("Diana", "C1");
+
+        assertEquals("Diana", game.lastExtraCardNickname);
+        assertEquals("C1", game.lastCardID);
+        assertEquals(1, game.takeExtraCardCalls);
+        assertTrue(dianaView.sentMessages.isEmpty());
+    }
+
+    @Test
+    void testTakeExtraCardExceptionSendsError(){
+        game.exceptionToThrow = new GameException(ErrorCode.UNKNOWN_CARD, "Unknown card");
+
+        inGamePhase.takeExtraCard("Diana", "C1");
+
+        assertEquals(1, dianaView.sentMessages.size());
+        assertTrue(dianaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testCreateLobbyDuringGameSendsError(){
+        FakeView lucaView = new FakeView();
+        controller.registerView("Luca", lucaView);
+
+        inGamePhase.createLobby("Luca", TotemColor.BLUE, lucaView);
+
+        assertEquals(1, lucaView.sentMessages.size());
+        assertTrue(lucaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testJoinLobbyDuringGameSendsError(){
+        FakeView lucaView = new FakeView();
+        controller.registerView("Luca", lucaView);
+
+        inGamePhase.joinLobby("Luca", TotemColor.BLUE, lucaView);
+
+        assertEquals(1, lucaView.sentMessages.size());
+        assertTrue(lucaView.sentMessages.getFirst() instanceof ErrorMessage);
+    }
+
+    @Test
+    void testOnDisconnectClosesAllViews(){
+        FakeView lucaView = new FakeView();
+        controller.registerView("Luca", lucaView);
+
+        inGamePhase.onDisconnect("Diana");
+
+        assertFalse(dianaView.connected);
+        assertFalse(lucaView.connected);
+    }
+
+
     /**
      * Fake model used to verify that InGamePhase delegates actions correctly.
      */
