@@ -6,6 +6,7 @@ import it.polimi.ingsw.model.player.TotemColor;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,14 +20,22 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class EndRoundPhaseTest {
 
+    private Game createGame() {
+        Map<String, TotemColor> players = new LinkedHashMap<>();
+        players.put("P1", TotemColor.RED);
+        players.put("P2", TotemColor.BLUE);
+
+        GameSetupService setup = new GameSetupService();
+        return setup.createNewGame(players, 1);
+    }
+
     /**
      * Test ensures that round number is incremented
      * when the game is not at the last round.
      */
     @Test
     void testRoundIncrement() {
-        GameSetupService setup = new GameSetupService();
-        Game game = setup.createNewGame(Map.of("P1", TotemColor.RED), 1);
+        Game game = createGame();
 
         game.setCurrentPhase(new EndRoundPhase());
         game.endRound();
@@ -40,8 +49,7 @@ class EndRoundPhaseTest {
      */
     @Test
     void testTransitionToEndGame() {
-        GameSetupService setup = new GameSetupService();
-        Game game = setup.createNewGame(Map.of("P1", TotemColor.RED), 1);
+        Game game = createGame();
 
         game.setCurrentRound(10);
         game.setCurrentPhase(new EndRoundPhase());
@@ -56,8 +64,7 @@ class EndRoundPhaseTest {
      */
     @Test
     void testRoundEndedDTOFired() {
-        GameSetupService setup = new GameSetupService();
-        Game game = setup.createNewGame(Map.of("P1", TotemColor.RED), 1);
+        Game game = createGame();
 
         class TestListener implements GameListener {
             boolean roundEnded = false;
@@ -89,8 +96,7 @@ class EndRoundPhaseTest {
      */
     @Test
     void testGameEndedDTOFired() {
-        GameSetupService setup = new GameSetupService();
-        Game game = setup.createNewGame(Map.of("P1", TotemColor.RED), 1);
+        Game game = createGame();
 
         class TestListener implements GameListener {
             boolean gameEnded = false;
