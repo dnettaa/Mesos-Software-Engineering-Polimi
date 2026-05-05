@@ -9,9 +9,6 @@ import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.game.GameSetupService;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
-import it.polimi.ingsw.network.message.ErrorMessage;
-import it.polimi.ingsw.network.message.LobbyUpdateMessage;
-import it.polimi.ingsw.network.message.JoinSuccessMessage;
 
 /**
  * Controller phase representing the lobby state of the game.
@@ -19,7 +16,7 @@ import it.polimi.ingsw.network.message.JoinSuccessMessage;
  * The class is responsible for:
  *     Managing player registrations and color assignments
  *     Validating lobby constraints (e.g., unique nickname and color)
- *     Broadcasting lobby updates to all connected clients
+ *     Notifying all connected clients of lobby updates via VirtualView callbacks
  *     Creating the game when the expected number of players is reached
  * All game-related actions (e.g., placing a totem, taking cards) are rejected
  * during this phase.
@@ -42,7 +39,7 @@ public class LobbyPhase implements ControllerPhase {
     /**
      * Handles the creation of a new lobby.
      * Only allowed if the lobby is empty. Registers the player,
-     * sends a confirmation message, and broadcasts the updated lobby state.
+     * notifies them of success, and updates all clients with the new lobby state.
      *
      * @param nickname the nickname of the player creating the lobby
      * @param color the chosen totem color
@@ -52,25 +49,27 @@ public class LobbyPhase implements ControllerPhase {
     public void createLobby(String nickname, TotemColor color, VirtualView view) {
 
         if (!playerSelections.isEmpty()) {
-            view.send(new ErrorMessage(ErrorCode.GAME_ALREADY_STARTED.name(), "A lobby already exists. Please join the existing one."));
+            gameController.sendError(
+                    nickname,
+                    ErrorCode.GAME_ALREADY_STARTED.name(),
+                    "A lobby already exists. Please join the existing one."
+            );
             return;
         }
 
         gameController.registerView(nickname, view);
         playerSelections.put(nickname, color);
-        gameController.sendTo(nickname, new JoinSuccessMessage(nickname, color));
 
-        gameController.broadcast(
-                new LobbyUpdateMessage(List.copyOf(playerSelections.keySet()), playerSelections, this.expectedPlayers)
-        );
+        view.onJoinSuccess(nickname, color);
+
+        broadcastLobbyUpdate();
     }
 
     /**
      * Handles a player's request to join an existing lobby.
      * Validates lobby constraints (existence, capacity, uniqueness of nickname and color).
-     * If successful, registers the player, sends confirmation, and broadcasts the updated lobby.
-     * When the expected number of players is reached, initializes the game and transitions
-     * to {@link InGamePhase}.
+     * If successful, registers the player and updates all clients.
+     * When the lobby is full, the game is created and started.
      *
      * @param nickname the nickname of the player
      * @param color the chosen totem color
@@ -80,34 +79,49 @@ public class LobbyPhase implements ControllerPhase {
     public void joinLobby(String nickname, TotemColor color, VirtualView view) {
 
         if (playerSelections.isEmpty()) {
-            view.send(new ErrorMessage(ErrorCode.LOBBY_NOT_CREATED.name(), "Lobby has not been created yet"));
+            gameController.sendError(
+                    nickname,
+                    ErrorCode.LOBBY_NOT_CREATED.name(),
+                    "Lobby has not been created yet"
+            );
             return;
         }
 
         if (playerSelections.size() >= expectedPlayers) {
-            view.send(new ErrorMessage(ErrorCode.LOBBY_FULL.name(), "Lobby is full"));
+            gameController.sendError(
+                    nickname,
+                    ErrorCode.LOBBY_FULL.name(),
+                    "Lobby is full"
+            );
             return;
         }
 
         if (playerSelections.containsKey(nickname)) {
-            view.send(new ErrorMessage(ErrorCode.NICKNAME_TAKEN.name(), "Nickname already taken"));
+            gameController.sendError(
+                    nickname,
+                    ErrorCode.NICKNAME_TAKEN.name(),
+                    "Nickname already taken"
+            );
             return;
         }
 
         if (playerSelections.containsValue(color)) {
-            view.send(new ErrorMessage(ErrorCode.COLOR_TAKEN.name(), "Color already taken"));
+            gameController.sendError(
+                    nickname,
+                    ErrorCode.COLOR_TAKEN.name(),
+                    "Color already taken"
+            );
             return;
         }
 
         gameController.registerView(nickname, view);
         playerSelections.put(nickname, color);
-        gameController.sendTo(nickname, new JoinSuccessMessage(nickname, color));
 
-        gameController.broadcast(
-                new LobbyUpdateMessage(List.copyOf(playerSelections.keySet()), playerSelections, expectedPlayers)
-        );
+        view.onJoinSuccess(nickname, color);
 
-        // Creazione del Game e transizione alla fase successiva se la lobby è completa.
+        broadcastLobbyUpdate();
+
+        // game is started when lobby is completed
         if (playerSelections.size() == expectedPlayers) {
 
             GameSetupService gameSetupService = new GameSetupService();
@@ -115,6 +129,7 @@ public class LobbyPhase implements ControllerPhase {
 
             gameController.setGame(game);
             gameController.transitionTo(new InGamePhase(gameController, game));
+
             game.startGame();
         }
     }
@@ -159,7 +174,7 @@ public class LobbyPhase implements ControllerPhase {
     /**
      * Handles player disconnection during the lobby phase.
      * Removes the player from the lobby, unregisters the associated view,
-     * and broadcasts the updated lobby state to the remaining players.
+     * and updates all remaining clients.
      *
      * @param nickname the nickname of the disconnected player
      */
@@ -170,9 +185,29 @@ public class LobbyPhase implements ControllerPhase {
 
             gameController.unregisterView(nickname);
 
-            gameController.broadcast(
-                    new LobbyUpdateMessage(List.copyOf(playerSelections.keySet()), playerSelections, expectedPlayers)
-            );
+            for (VirtualView v : gameController.getViews().values()) {
+                if (v.isConnected()) {
+                    v.onLobbyUpdate(
+                            List.copyOf(playerSelections.keySet()),
+                            new LinkedHashMap<>(playerSelections),
+                            expectedPlayers
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * Notifies all connected clients with the current lobby state.
+     */
+    private void broadcastLobbyUpdate() {
+        List<String> players = List.copyOf(playerSelections.keySet());
+        Map<String, TotemColor> colorsCopy = new LinkedHashMap<>(playerSelections);
+
+        for (VirtualView v : gameController.getViews().values()) {
+            if (v.isConnected()) {
+                v.onLobbyUpdate(players, colorsCopy, expectedPlayers);
+            }
         }
     }
 }
