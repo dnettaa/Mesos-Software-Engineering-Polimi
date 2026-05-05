@@ -5,16 +5,32 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Utility class responsible for loading and managing human-readable descriptions
+ * for all the cards in the game (Characters, Events, and Buildings).
+ * <p>
+ * It reads card data from internal JSON resources upon initialization and caches
+ * the formatted descriptions in memory for fast retrieval by the UI.
+ * </p>
+ */
 public class CardCatalog {
 
+    /** Cache storing the mapping between card IDs and their formatted descriptions. */
     private static final Map<String, String> descriptions = new HashMap<>();
 
+    // Static block to preload all card definitions as soon as the class is loaded into memory.
     static {
         loadJson("/JSON/characters.json");
         loadJson("/JSON/events.json");
         loadJson("/JSON/buildings.json");
     }
 
+    /**
+     * Parses a JSON file from the specified classpath resource path and extracts
+     * card IDs and their corresponding descriptions.
+     *
+     * @param path The absolute path to the JSON resource file (e.g., "/JSON/events.json").
+     */
     private static void loadJson(String path) {
         try (InputStream is = CardCatalog.class.getResourceAsStream(path)) {
             if (is == null) return;
@@ -30,6 +46,13 @@ public class CardCatalog {
         }
     }
 
+    /**
+     * Inspects the JSON object representing a card and constructs a concise,
+     * human-readable string summarizing its effects, costs, and rewards.
+     *
+     * @param obj The {@link JsonObject} containing the raw card data.
+     * @return A formatted string describing the card's mechanics.
+     */
     private static String buildDescription(JsonObject obj) {
         String type = obj.has("type") ? obj.get("type").getAsString() : "?";
         String era = obj.has("era") ? obj.get("era").getAsString().replace("Era", "E") : "?";
@@ -109,6 +132,12 @@ public class CardCatalog {
         return type + " " + era;
     }
 
+    /**
+     * Retrieves the formatted description for a specific card ID.
+     *
+     * @param cardID The unique identifier of the card (e.g., "CH15", "EV02").
+     * @return The formatted description string. If the ID is not found, returns the ID itself as a fallback.
+     */
     public static String getDescription(String cardID) {
         return descriptions.getOrDefault(cardID, cardID);
     }
