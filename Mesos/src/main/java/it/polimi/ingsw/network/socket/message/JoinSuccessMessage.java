@@ -1,4 +1,4 @@
-package it.polimi.ingsw.network.message;
+package it.polimi.ingsw.network.socket.message;
 
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.view.View;

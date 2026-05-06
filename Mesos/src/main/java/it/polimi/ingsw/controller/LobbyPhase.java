@@ -9,9 +9,9 @@ import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.game.GameSetupService;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
-import it.polimi.ingsw.network.message.ErrorMessage;
-import it.polimi.ingsw.network.message.LobbyUpdateMessage;
-import it.polimi.ingsw.network.message.JoinSuccessMessage;
+import it.polimi.ingsw.network.socket.message.ErrorMessage;
+import it.polimi.ingsw.network.socket.message.LobbyUpdateMessage;
+import it.polimi.ingsw.network.socket.message.JoinSuccessMessage;
 
 /**
  * Controller phase representing the lobby state of the game.

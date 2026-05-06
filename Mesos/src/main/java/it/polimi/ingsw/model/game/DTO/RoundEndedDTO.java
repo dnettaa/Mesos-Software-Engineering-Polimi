@@ -3,6 +3,7 @@ package it.polimi.ingsw.model.game.DTO;
 import it.polimi.ingsw.model.game.Era;
 
 import java.util.List;
+import java.io.Serializable;
 
 public record RoundEndedDTO(
         List<String> discardedLowerTribeIDs,
@@ -17,4 +18,6 @@ public record RoundEndedDTO(
         List<String> newTurnOrder,
         String firstPlayerNickname,
         int tribeDeckRemaining
-) {}
+) implements Serializable{
+    private static final long serialVersionUID = 1L;
+}

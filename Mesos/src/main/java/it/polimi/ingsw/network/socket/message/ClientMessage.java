@@ -1,4 +1,4 @@
-package it.polimi.ingsw.network.message;
+package it.polimi.ingsw.network.socket.message;
 
 import it.polimi.ingsw.network.VirtualView;
 import it.polimi.ingsw.controller.GameController;

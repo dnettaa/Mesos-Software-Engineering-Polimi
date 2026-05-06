@@ -2,7 +2,7 @@
 
 package it.polimi.ingsw.network;
 
-import it.polimi.ingsw.network.message.ClientMessage;
+import it.polimi.ingsw.network.socket.message.ClientMessage;
 import it.polimi.ingsw.model.player.TotemColor;
 
 /**
