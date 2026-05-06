@@ -13,6 +13,8 @@ import java.util.List;
  * In this phase, all valid game actions (such as placing a totem,
  * selecting cards, or taking an extra card) are accepted and delegated
  * to the {@link GameActions} model.
+ * The model notifies its listeners (via {@link it.polimi.ingsw.model.game.GameListener}),
+ * and the {@link GameController} forwards those updates to the clients.
  * Any invalid action or rule violation is handled through
  * {@link GameException}, which is caught and translated into
  * an error message sent to the corresponding client.
@@ -35,9 +37,10 @@ public class InGamePhase implements ControllerPhase {
 
     /**
      * Handles the placement of a totem by a player.
-     * Delegates the action to the model. If successful, broadcasts
-     * the updated game state to all players. Otherwise, sends an error
-     * message to the requesting player.
+     * Delegates the action to the model. If the action is valid,
+     * the model will notify all listeners, and the update will be
+     * propagated to clients by the controller.
+     * In case of rule violations, an error is sent to the requesting player.
      *
      * @param nickname the nickname of the player
      * @param slotID the identifier of the chosen slot
@@ -53,9 +56,10 @@ public class InGamePhase implements ControllerPhase {
 
     /**
      * Handles the selection of cards by a player.
-     * Delegates the action to the model. If successful, broadcasts
-     * the updated game state. In case of rule violations, sends
-     * an error message to the player.
+     * Delegates the action to the model. If the action is valid,
+     * the model will notify all listeners, and the update will be
+     * propagated to clients by the controller.
+     * In case of rule violations, an error is sent to the player.
      *
      * @param nickname the nickname of the player
      * @param upperIDs identifiers of selected cards from the upper row
@@ -72,8 +76,10 @@ public class InGamePhase implements ControllerPhase {
 
     /**
      * Handles the selection of an extra card by a player.
-     * Delegates the action to the model. If successful, broadcasts
-     * the updated game state. In case of errors, sends an error message.
+     * Delegates the action to the model. If the action is valid,
+     * the model will notify all listeners, and the update will be
+     * propagated to clients by the controller.
+     * In case of rule violations, an error is sent to the player.
      *
      * @param nickname the nickname of the player
      * @param cardID the identifier of the selected card
@@ -126,5 +132,4 @@ public class InGamePhase implements ControllerPhase {
         controller.sendError(nickname, ErrorCode.GAME_ALREADY_STARTED.name(),
                 "Game already started");
     }
-
 }
