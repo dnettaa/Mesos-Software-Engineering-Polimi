@@ -1,8 +1,7 @@
 package it.polimi.ingsw.view;
 
+import it.polimi.ingsw.model.game.DTO.*;
 import it.polimi.ingsw.model.game.Era;
-import it.polimi.ingsw.model.game.DTO.OfferSlotData;
-import it.polimi.ingsw.model.game.DTO.PlayerData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -264,4 +263,158 @@ public class ClientModel {
     public Map<String, Integer> getFinalPP() { return finalPPByPlayer; }
     /** @return A map of the bonus Prestige Points awarded specifically at the end of the game. */
     public Map<String, Integer> getEndGameBonus() { return endGameBonusByPlayer; }
+
+    // =========================================================
+    // APPLY METHODS
+    // =========================================================
+
+    /**
+     * Applies a complete game state snapshot, effectively resetting and overriding
+     * the local model with the server's master state. Usually called at the start
+     * of the game or upon reconnection.
+     *
+     * @param snapshot The data transfer object containing the full game state.
+     */
+    public void applyGameStarted(GameStateSnapshot snapshot) {
+        this.currentRound = snapshot.currentRound();
+        this.currentEra = snapshot.currentEra();
+        this.currentPhaseName = snapshot.currentPhaseName();
+        this.currentPlayerNickname = snapshot.currentPlayerNickname();
+        this.placementOrder = new ArrayList<>(snapshot.placementOrder());
+        this.resolutionOrder = new ArrayList<>(snapshot.resolutionOrder());
+        this.turnOrder = new ArrayList<>(snapshot.turnOrder());
+        this.tribeDeckRemaining = snapshot.tribeDeckRemaining();
+        this.upperRowCardIDs = new ArrayList<>(snapshot.upperRowCardIDs());
+        this.lowerRowCardIDs = new ArrayList<>(snapshot.lowerRowCardIDs());
+        this.offerSlots = new ArrayList<>(snapshot.offerSlots());
+        setPlayers(snapshot.players());
+    }
+
+    /**
+     * Updates the local model to reflect a totem placement action by a player.
+     * Updates the target offer slot and advances the active player turn.
+     *
+     * @param dto The data object describing the totem placement details.
+     */
+    public void applyTotemPlaced(TotemPlacedDTO dto) {
+        this.placeTotemOnSlot(dto.placerNickname(), dto.slotID());
+        this.currentPlayerNickname = dto.nextPlayerNickname();
+        this.currentPhaseName = dto.nextPhaseName();
+    }
+
+    /**
+     * Updates the local model to reflect a player taking cards from the board.
+     * Removes the taken cards from the rows, adds them to the player's inventory,
+     * adjusts resources, frees the corresponding offer slot, and advances the turn.
+     *
+     * @param dto The data object containing the details of the taken cards.
+     */
+    public void applyCardsTaken(CardsTakenDTO dto) {
+        for(String cardID : dto.takenUpperIDs()){
+            this.removeUpperCard(cardID);
+        }
+
+        for(String cardID : dto.takenLowerIDs()){
+            this.removeLowerCard(cardID);
+        }
+
+        for(String cardID : dto.addedTribeCardIDs()){
+            this.addTribeCardTo(dto.nickname(), cardID);
+        }
+
+        for(String cardID : dto.addedBuildingIDs()){
+            this.addBuildingTo(dto.nickname(), cardID);
+        }
+
+        this.adjustFood(dto.nickname(), dto.foodDelta());
+        this.adjustPP(dto.nickname(), dto.ppDelta());
+        this.freeSlot(dto.freedSlotID());
+        this.currentPlayerNickname = dto.nextPlayerNickname();
+        this.currentPhaseName = dto.nextPhaseName();
+    }
+
+    /**
+     * Updates the local model when a player takes an extra card outside the normal
+     * offer resolution (e.g., triggered by a specific building or event effect).
+     *
+     * @param dto The data object describing the extra card acquisition.
+     */
+    public void applyExtraCardTaken(ExtraCardTakenDTO dto) {
+        if (dto.fromUpperRow()) {
+            this.removeUpperCard(dto.cardID());
+        } else {
+            this.removeLowerCard(dto.cardID());
+        }
+
+        if (dto.isBuilding()) {
+            this.addBuildingTo(dto.nickname(), dto.cardID());
+        } else {
+            this.addTribeCardTo(dto.nickname(), dto.cardID());
+        }
+
+        this.adjustFood(dto.nickname(), dto.foodDelta());
+        this.currentPhaseName = dto.nextPhaseName();
+    }
+
+    /**
+     * Updates the local model after an Event Card has been resolved.
+     * Applies the resulting resource variations (Prestige Points and Food) to
+     * all affected players.
+     *
+     * @param dto The data object detailing the resource deltas by player.
+     */
+    public void applyEventResolved(EventResolvedDTO dto) {
+        for (Map.Entry<String, Integer> entry : dto.ppDeltaByPlayer().entrySet()){
+            this.adjustPP(entry.getKey(), entry.getValue());
+        }
+
+        for (Map.Entry<String, Integer> entry : dto.foodDeltaByPlayer().entrySet()){
+            this.adjustFood(entry.getKey(), entry.getValue());
+        }
+
+        this.currentPhaseName = dto.nextPhaseName();
+    }
+
+    /**
+     * Handles the end-of-round board maintenance.
+     * Slides cards from the upper row to the lower row, discards leftover cards
+     * based on the provided deltas, and updates the turn order and Era state
+     * for the new round.
+     *
+     * @param dto The data object containing the board deltas and next round info.
+     */
+    public void applyRoundEnded(RoundEndedDTO dto) {
+        List<String> lowerRow = new ArrayList<>(this.lowerRowCardIDs);
+
+        lowerRow.removeAll(dto.discardedLowerTribeIDs());
+        lowerRow.removeAll(dto.discardedLowerEventIDs());
+        lowerRow.removeAll(dto.discardedLowerBuildingIDs());
+        lowerRow.removeAll(dto.movedUpperToLowerBuildingIDs());
+        lowerRow.addAll(dto.movedUpperToLowerTribeIDs());
+        lowerRow.addAll(dto.movedUpperToLowerBuildingIDs());
+
+        this.lowerRowCardIDs = lowerRow;
+        this.upperRowCardIDs = new ArrayList<>(dto.newUpperRowIDs());
+
+        this.currentRound = dto.newRound();
+        this.currentEra = dto.newEra();
+        this.turnOrder = new ArrayList<>(dto.newTurnOrder());
+        this.currentPlayerNickname = dto.firstPlayerNickname();
+        this.tribeDeckRemaining = dto.tribeDeckRemaining();
+        this.currentPhaseName = "TotemPlacementPhase";
+    }
+
+    /**
+     * Transitions the model into the endgame state.
+     * Receives and stores the final calculated scores, endgame bonuses, and the
+     * definitive player ranking.
+     *
+     * @param dto The data object containing the final scoring results.
+     */
+    public void applyGameEnded(GameEndedDTO dto) {
+        this.currentPhaseName = "EndGame";
+        this.ranking = new ArrayList<>(dto.ranking());
+        this.finalPPByPlayer = new HashMap<>(dto.finalPPByPlayer());
+        this.endGameBonusByPlayer = new HashMap<>(dto.endGameBonusByPlayer());
+    }
 }

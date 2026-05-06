@@ -14,7 +14,9 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Server-side RMI adapter.
@@ -161,14 +163,18 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         RMIClientConnection connection = new RMIClientConnection(client);
         connection.setNickname(nickname);
 
-        RMIClientConnection previous = connectionsByNickname.putIfAbsent(nickname, connection);
 
-        if(previous != null && previous.isConnected()){
-            connection.onError("NICKNAME_ALREADY_USED", "Nickname already associated with an active RMI connection.");
-            throw new RemoteException("Nickname already associated with an active RMI connection: " + nickname);
+        while (true) {
+            RMIClientConnection previous = connectionsByNickname.putIfAbsent(nickname, connection);
+            if (previous == null) return connection;                     // OK, registrata
+            if (previous.isConnected()) {
+                connection.onError("NICKNAME_ALREADY_USED",
+                        "Nickname already associated with an active RMI connection.");
+                connection.disconnect();
+                throw new RemoteException("Nickname in use: " + nickname);
+            }
+            if (connectionsByNickname.replace(nickname, previous, connection)) return connection;
         }
-
-        return connection;
     }
 
     /**
@@ -199,6 +205,8 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         private final ClientRMI clientStub;
         private volatile String nickname;
         private volatile boolean connected;
+        private final BlockingQueue<RemoteCallback> outbox = new LinkedBlockingQueue<>();
+        private final Thread writerThread;
 
         /**
          * Creates a virtual view for one RMI client.
@@ -208,6 +216,31 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         private RMIClientConnection(ClientRMI clientStub){
             this.clientStub = clientStub;
             this.connected = true;
+            this.writerThread = new Thread(this::writerLoop, "rmi-writer");
+            this.writerThread.setDaemon(true);
+            this.writerThread.start();
+        }
+
+        private void writerLoop() {
+            while (connected) {
+                try {
+                    RemoteCallback call = outbox.take();
+                    if (!connected) return;
+                    try {
+                        call.call();
+                    } catch (RemoteException e) {
+                        handleClientFailure();
+                        return;
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
+
+        private void enqueue(RemoteCallback call) {
+            if (connected) outbox.offer(call);
         }
 
         /**
@@ -246,6 +279,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         @Override
         public void disconnect(){
             connected = false;
+            outbox.offer(() -> {});
         }
 
         /**
@@ -256,7 +290,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onJoinSuccess(String nickname, TotemColor color){
-            callClient(() -> clientStub.onJoinSuccess(nickname, color));
+            enqueue(() -> clientStub.onJoinSuccess(nickname, color));
         }
 
         /**
@@ -268,7 +302,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onLobbyUpdate(List<String> players, Map<String, TotemColor> colorsByPlayer, int expected){
-            callClient(() -> clientStub.onLobbyUpdate(players, colorsByPlayer, expected));
+            enqueue(() -> clientStub.onLobbyUpdate(players, colorsByPlayer, expected));
         }
 
         /**
@@ -279,7 +313,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onError(String code, String description){
-            callClient(() -> clientStub.onError(code, description));
+            enqueue(() -> clientStub.onError(code, description));
         }
 
         /**
@@ -289,7 +323,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onDisconnection(String reason){
-            callClient(() -> clientStub.onDisconnection(reason));
+            enqueue(() -> clientStub.onDisconnection(reason));
             disconnect();
         }
 
@@ -300,7 +334,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onGameStarted(GameStateSnapshot snapshot){
-            callClient(() -> clientStub.onGameStarted(snapshot));
+            enqueue(() -> clientStub.onGameStarted(snapshot));
         }
 
         /**
@@ -310,7 +344,8 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onTotemPlaced(TotemPlacedDTO dto){
-            callClient(() -> clientStub.onTotemPlaced(dto));
+            enqueue(() -> clientStub.onTotemPlaced(dto));
+
         }
 
         /**
@@ -320,7 +355,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onCardsTaken(CardsTakenDTO dto){
-            callClient(() -> clientStub.onCardsTaken(dto));
+            enqueue(() -> clientStub.onCardsTaken(dto));
         }
 
         /**
@@ -330,7 +365,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onExtraCardTaken(ExtraCardTakenDTO dto){
-            callClient(() -> clientStub.onExtraCardTaken(dto));
+            enqueue(() -> clientStub.onExtraCardTaken(dto));
         }
 
         /**
@@ -340,7 +375,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onEventResolved(EventResolvedDTO dto){
-            callClient(() -> clientStub.onEventResolved(dto));
+            enqueue(() -> clientStub.onEventResolved(dto));
         }
 
         /**
@@ -350,7 +385,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onRoundEnded(RoundEndedDTO dto){
-            callClient(() -> clientStub.onRoundEnded(dto));
+            enqueue(() -> clientStub.onRoundEnded(dto));
         }
 
         /**
@@ -360,25 +395,9 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          */
         @Override
         public void onGameEnded(GameEndedDTO dto){
-            callClient(() -> clientStub.onGameEnded(dto));
+            enqueue(() -> clientStub.onGameEnded(dto));
         }
 
-        /**
-         * Executes a remote callback and handles connection failures.
-         *
-         * @param remoteCall callback to execute on the remote client
-         */
-        private void callClient(RemoteCallback remoteCall){
-            if(!connected){
-                return;
-            }
-
-            try{
-                remoteCall.call();
-            } catch(RemoteException e){
-                handleClientFailure();
-            }
-        }
 
         /**
          * Marks this client as disconnected and notifies the controller.
