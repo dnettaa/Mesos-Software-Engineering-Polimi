@@ -98,12 +98,32 @@ class EventResolutionPhaseTest {
         TestListener listener = new TestListener();
 
         game.addListener(listener);
-        game.setCurrentPhase(new EventResolutionPhase());
 
+        // totem placement
+        for (int i = 0; i < game.getPlayers().size(); i++) {
+            String current = game.getCurrentPlayerNickname();
+
+            char slotID = game.getBoard()
+                    .buildOfferSlotsData()
+                    .stream()
+                    .filter(s -> s.occupantNickname() == null)
+                    .findFirst()
+                    .orElseThrow()
+                    .slotID();
+
+            game.placeTotem(current, slotID);
+        }
+
+        // simulo fine del round
+        // sposta upper -> lower
+        game.setCurrentPhase(new EndRoundPhase());
+        game.endRound();
+
+        // event resolution
+        game.setCurrentPhase(new EventResolutionPhase());
         game.resolveEvents();
 
-        assertTrue(listener.eventsResolved >= 0);
-
+        assertTrue(listener.eventsResolved > 0);
         assertTrue(listener.roundEnded);
     }
 }

@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.board;
 
+import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.player.Player;
 import it.polimi.ingsw.model.player.Tribe;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,49 +27,50 @@ class OfferTrackTest {
         player2 = new Player("P2", null, new Tribe(), 0, 0);
 
         List<OfferSlot> slots = new ArrayList<>();
-
-        // Using the correct OfferSlot constructor: (slotID, upSel, downSel, foodReward)
         slots.add(new OfferSlot('A', 1, 0, 2));
         slots.add(new OfferSlot('B', 0, 1, 0));
 
-        offerTrack = new OfferTrack(slots); //
+        offerTrack = new OfferTrack(slots);
     }
 
     /**
-     * Verifies that a player is correctly placed in a slot and the slot is no longer free.
+     * Verifies that a player is correctly placed in a slot.
      */
     @Test
-    void testPlacePlayerAndSlotAvailability() {
-        assertTrue(offerTrack.isSlotFree('A'));
-
+    void testPlacePlayer() {
         offerTrack.placePlayer(player1, 'A');
 
-        assertFalse(offerTrack.isSlotFree('A'));
-        assertTrue(offerTrack.isSlotFree('B'));
-
-        // 'A' is occupied, so there should be only 1 free slot left ('B')
-        assertEquals(1, offerTrack.getFreeSlots().size());
-        assertEquals('B', offerTrack.getFreeSlots().getFirst().getSlotID());
+        assertEquals(player1, offerTrack.getSlot('A').getOccupant());
     }
 
     /**
-     * Verifies that the resolution order returns only occupied slots in the correct order.
+     * Verifies that placing on an occupied slot throws.
+     */
+    @Test
+    void testPlaceOnOccupiedSlotThrows() {
+        offerTrack.placePlayer(player1, 'A');
+
+        assertThrows(GameException.class,
+                () -> offerTrack.placePlayer(player2, 'A'));
+    }
+
+    /**
+     * Verifies that resolution order returns only occupied slots in correct order.
      */
     @Test
     void testGetResolutionOrder() {
         offerTrack.placePlayer(player2, 'B');
         offerTrack.placePlayer(player1, 'A');
 
-        List<OfferSlot> resolutionOrder = offerTrack.getResolutionOrder();
+        List<OfferSlot> order = offerTrack.getResolutionOrder();
 
-        // Should return slots that are occupied, in track order (A then B)
-        assertEquals(2, resolutionOrder.size());
-        assertEquals('A', resolutionOrder.get(0).getSlotID());
-        assertEquals('B', resolutionOrder.get(1).getSlotID());
+        assertEquals(2, order.size());
+        assertEquals('A', order.get(0).getSlotID());
+        assertEquals('B', order.get(1).getSlotID());
     }
 
     /**
-     * Verifies that the correct action values (upper and lower selections) are retrieved for a placed player.
+     * Verifies action retrieval for a placed player.
      */
     @Test
     void testGetActionFor() {
@@ -76,16 +78,21 @@ class OfferTrackTest {
 
         int[] action = offerTrack.getActionFor(player1);
 
-        // Slot 'A' gives 1 upper selection and 0 lower selections
         assertEquals(1, action[0]);
         assertEquals(0, action[1]);
-
-        // Unplaced player should throw an exception
-        assertThrows(IllegalArgumentException.class, () -> offerTrack.getActionFor(player2));
     }
 
     /**
-     * Verifies that resetting the track frees all slots.
+     * Verifies exception when player is not on any slot.
+     */
+    @Test
+    void testGetActionForUnplacedPlayerThrows() {
+        assertThrows(IllegalArgumentException.class,
+                () -> offerTrack.getActionFor(player2));
+    }
+
+    /**
+     * Verifies reset frees all slots.
      */
     @Test
     void testReset() {
@@ -94,35 +101,60 @@ class OfferTrackTest {
 
         offerTrack.reset();
 
-        // All slots should be free again
-        assertTrue(offerTrack.isSlotFree('A'));
-        assertTrue(offerTrack.isSlotFree('B'));
-        assertEquals(2, offerTrack.getFreeSlots().size());
+        assertNull(offerTrack.getSlot('A').getOccupant());
+        assertNull(offerTrack.getSlot('B').getOccupant());
     }
+
     /**
-     * Verifies that getSlots returns the correct list of all slots.
+     * Verifies getSlot returns correct slot.
      */
     @Test
-    void testGetSlots() {
-        List<OfferSlot> allSlots = offerTrack.getSlots();
+    void testGetSlot() {
+        OfferSlot slot = offerTrack.getSlot('A');
 
-        // We expect exactly 2 slots as initialized in setUp
-        assertEquals(2, allSlots.size());
-        assertEquals('A', allSlots.get(0).getSlotID());
-        assertEquals('B', allSlots.get(1).getSlotID());
+        assertEquals('A', slot.getSlotID());
     }
 
     /**
-     * Verifies that getSlot throws an exception when requesting a non-existent slot ID.
+     * Verifies exception when slot does not exist.
      */
     @Test
     void testGetSlotException() {
-        // Attempting to get a slot that doesn't exist (e.g., 'Z') should throw an exception
-        assertThrows(IllegalArgumentException.class, () -> offerTrack.getSlot('Z'));
+        assertThrows(GameException.class,
+                () -> offerTrack.getSlot('Z'));
+    }
 
-        // This also covers the exception path for placePlayer and isSlotFree,
-        // since they both rely on getSlot internally
-        assertThrows(IllegalArgumentException.class, () -> offerTrack.placePlayer(player1, 'Z'));
-        assertThrows(IllegalArgumentException.class, () -> offerTrack.isSlotFree('Z'));
+    /**
+     * Verifies that buildOfferSlotsData correctly maps slot state into DTOs.
+     */
+    @Test
+    void testBuildOfferSlotsData() {
+        offerTrack.placePlayer(player1, 'A');
+
+        var dtoList = offerTrack.buildOfferSlotsData();
+
+        assertEquals(2, dtoList.size());
+
+        // DTO slot A (occupato)
+        var slotA = dtoList.stream()
+                .filter(s -> s.slotID() == 'A')
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(1, slotA.upSel());
+        assertEquals(0, slotA.downSel());
+        assertEquals(2, slotA.foodReward());
+        assertEquals("P1", slotA.occupantNickname());
+
+        // DTO slot B (libero)
+        var slotB = dtoList.stream()
+                .filter(s -> s.slotID() == 'B')
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(0, slotB.upSel());
+        assertEquals(1, slotB.downSel());
+        assertEquals(0, slotB.foodReward());
+        assertNull(slotB.occupantNickname());
     }
 }
