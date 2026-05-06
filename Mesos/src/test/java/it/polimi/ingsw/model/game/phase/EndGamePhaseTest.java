@@ -25,7 +25,13 @@ class EndGamePhaseTest {
     @Test
     void testEndGameSetsFinished() {
         GameSetupService setup = new GameSetupService();
-        Game game = setup.createNewGame(Map.of("P1", TotemColor.RED), 1);
+        Game game = setup.createNewGame(
+                Map.of(
+                        "P1", TotemColor.RED,
+                        "P2", TotemColor.BLUE
+                ),
+                1
+        );
 
         game.setCurrentPhase(new EndGamePhase());
         game.endGame();
@@ -39,7 +45,13 @@ class EndGamePhaseTest {
     @Test
     void testGameEndedDTOFired() {
         GameSetupService setup = new GameSetupService();
-        Game game = setup.createNewGame(Map.of("P1", TotemColor.RED), 1);
+        Game game = setup.createNewGame(
+                Map.of(
+                        "P1", TotemColor.RED,
+                        "P2", TotemColor.BLUE
+                ),
+                1
+        );
 
         class TestListener implements GameListener {
             boolean called = false;

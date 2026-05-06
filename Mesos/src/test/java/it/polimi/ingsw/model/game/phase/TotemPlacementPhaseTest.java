@@ -32,7 +32,20 @@ class TotemPlacementPhaseTest {
     }
 
     /**
-     * Fake listener to capture DTO
+     * Helper method to retrieve a valid free slot dynamically.
+     */
+    private char getFreeSlot(Game game) {
+        return game.getBoard()
+                .buildOfferSlotsData()
+                .stream()
+                .filter(s -> s.occupantNickname() == null)
+                .findFirst()
+                .orElseThrow()
+                .slotID();
+    }
+
+    /**
+     * Fake listener to capture DTO events.
      */
     static class TestListener implements GameListener {
         boolean called = false;
@@ -60,8 +73,9 @@ class TotemPlacementPhaseTest {
         Game game = createGame(3);
 
         String current = game.getCurrentPlayerNickname();
+        char slotID = getFreeSlot(game);
 
-        assertDoesNotThrow(() -> game.placeTotem(current, 'A'));
+        assertDoesNotThrow(() -> game.placeTotem(current, slotID));
     }
 
     /**
@@ -74,9 +88,10 @@ class TotemPlacementPhaseTest {
         List<Player> players = game.getPlayers();
 
         String wrong = players.get(1).getNickname();
+        char slotID = getFreeSlot(game);
 
         assertThrows(GameException.class,
-                () -> game.placeTotem(wrong, 'A'));
+                () -> game.placeTotem(wrong, slotID));
     }
 
     /**
@@ -86,9 +101,11 @@ class TotemPlacementPhaseTest {
     void testTransitionToOfferResolutionPhase() {
         Game game = createGame(3);
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < game.getPlayers().size(); i++) {
             String current = game.getCurrentPlayerNickname();
-            game.placeTotem(current, 'A');
+            char slotID = getFreeSlot(game);
+
+            game.placeTotem(current, slotID);
         }
 
         assertEquals("OfferResolutionPhase", game.getCurrentPhaseName());
@@ -97,6 +114,7 @@ class TotemPlacementPhaseTest {
     /**
      * Verifies that placing a totem triggers a DTO notification.
      */
+    @Test
     void testTotemPlacedDTOFired() {
         Game game = createGame(3);
         TestListener listener = new TestListener();
@@ -104,17 +122,17 @@ class TotemPlacementPhaseTest {
         game.addListener(listener);
 
         String current = game.getCurrentPlayerNickname();
+        char slotID = getFreeSlot(game);
 
-        game.placeTotem(current, 'A');
+        game.placeTotem(current, slotID);
 
         assertTrue(listener.called);
         assertNotNull(listener.dto);
 
         assertEquals(current, listener.dto.placerNickname());
-        assertEquals('A', listener.dto.slotID());
+        assertEquals(slotID, listener.dto.slotID());
 
         assertNotNull(listener.dto.nextPlayerNickname());
         assertNotNull(listener.dto.nextPhaseName());
     }
-
 }

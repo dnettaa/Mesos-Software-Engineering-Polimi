@@ -2,16 +2,14 @@ package it.polimi.ingsw.network.socket;
 
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
-import it.polimi.ingsw.network.message.ClientMessage;
-import it.polimi.ingsw.network.message.CreateLobbyMessage;
-import it.polimi.ingsw.network.message.JoinLobbyMessage;
-import it.polimi.ingsw.network.message.ServerMessage;
+import it.polimi.ingsw.network.socket.message.*;
 import it.polimi.ingsw.view.View;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.List;
 
 /**
  * Client-side socket adapter that implements {@link VirtualServer}.
@@ -28,6 +26,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     private ObjectOutputStream out;
     private final View view;
     private boolean running;
+    private String nickname;
 
     /**
      * Creates a new VirtualSocketServer for the given view.
@@ -50,11 +49,13 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
      */
     public void connect(String host, int port){
         try{
-            socket = new Socket(host, port);
-            out = new ObjectOutputStream(socket.getOutputStream());
-            in = new ObjectInputStream(socket.getInputStream());
-            running = true;
-            Thread readerThread = new Thread(this);
+            this.socket = new Socket(host, port);
+            this.out = new ObjectOutputStream(socket.getOutputStream());
+            this.out.flush();
+            this.in = new ObjectInputStream(socket.getInputStream());
+
+            this.running = true;
+            Thread readerThread = new Thread(this, "VirtualSocketServer-Reader");
             readerThread.start();
         } catch (IOException e) {
             throw new RuntimeException("Failed to connect to server", e);
@@ -67,24 +68,83 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
      */
     @Override
     public void run(){
-        while(running){
-            try{
-                ServerMessage message = (ServerMessage) in.readObject();
-                message.apply(view);
-            }catch (IOException | ClassNotFoundException e){
+        try {
+            while (running) {
+                ServerMessage msg = (ServerMessage) in.readObject();
+                msg.apply(view);
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            if (running) {
+                view.notifyDisconnection("Connection lost: " + e.getMessage());
                 disconnect();
             }
         }
     }
 
+    // --- VirtualServer: client-to-server commands ---
+
     /**
-     * Sends a message to the server by delegating to {@link #write}.
+     * Sends a request to the server to create a new lobby.
+     * Wraps the parameters into a {@link CreateLobbyMessage} and writes it to the socket.
      *
-     * @param msg the message to send
+     * @param nickname the player's chosen nickname
+     * @param color the player's chosen totem color
+     * @param expectedPlayers the number of players required to start the game
      */
     @Override
-    public void sendMessage(ClientMessage msg){
-        write(msg);
+    public void createLobby(String nickname, TotemColor color, int expectedPlayers){
+        this.nickname = nickname;
+        write(new CreateLobbyMessage(nickname, color, expectedPlayers));
+    }
+
+    /**
+     * Sends a request to the server to join an existing lobby.
+     * Wraps the parameters into a {@link JoinLobbyMessage} and writes it to the socket.
+     *
+     * @param nickname the player's chosen nickname
+     * @param color the player's chosen totem color
+     */
+    @Override
+    public void joinLobby(String nickname, TotemColor color){
+        this.nickname = nickname;
+        write(new JoinLobbyMessage(nickname, color));
+    }
+
+    /**
+     * Sends a command to the server to place a totem on a specific offer slot.
+     * Wraps the action into a {@link PlaceTotemMessage} and writes it to the socket.
+     *
+     * @param nickname the nickname of the player making the move
+     * @param slotID the ID of the offer slot (e.g., 'A', 'B', 'C')
+     */
+    @Override
+    public void placeTotem(String nickname, char slotID) {
+        write(new PlaceTotemMessage(nickname, slotID));
+    }
+
+    /**
+     * Sends a command to the server to take selected cards from the board.
+     * Wraps the action into a {@link TakeCardsMessage} and writes it to the socket.
+     *
+     * @param nickname the nickname of the player taking the cards
+     * @param upperIDs the list of IDs for the selected cards in the upper row
+     * @param lowerIDs the list of IDs for the selected cards in the lower row
+     */
+    @Override
+    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs) {
+        write(new TakeCardsMessage(nickname, upperIDs, lowerIDs));
+    }
+
+    /**
+     * Sends a command to the server to take an extra card (e.g., triggered by a specific effect).
+     * Wraps the action into a {@link TakeExtraCardMessage} and writes it to the socket.
+     *
+     * @param nickname the nickname of the player taking the extra card
+     * @param cardID the ID of the chosen extra card
+     */
+    @Override
+    public void takeExtraCard(String nickname, String cardID) {
+        write(new TakeExtraCardMessage(nickname, cardID));
     }
 
     /**
@@ -102,29 +162,6 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     }
 
     /**
-     * Sends a {@link CreateLobbyMessage} to the server.
-     *
-     * @param nickname the nickname of the player creating the lobby
-     * @param color the chosen totem color
-     * @param expectedPlayers the expected number of players
-     */
-    @Override
-    public void createLobby(String nickname, TotemColor color, int expectedPlayers){
-        sendMessage(new CreateLobbyMessage(nickname, color, expectedPlayers));
-    }
-
-    /**
-     * Sends a {@link JoinLobbyMessage} to the server.
-     *
-     * @param nickname the nickname of the player joining the lobby
-     * @param color the chosen totem color
-     */
-    @Override
-    public void joinLobby(String nickname, TotemColor color){
-        sendMessage(new JoinLobbyMessage(nickname, color));
-    }
-
-    /**
      * Serializes and sends a message to the server.
      * Synchronized to prevent concurrent writes on the output stream.
      *
@@ -133,11 +170,11 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     private synchronized void write(ClientMessage msg){
         try{
             out.writeObject(msg);
+            out.flush();
+            out.reset();
         }catch(IOException e){
+            view.notifyDisconnection("Send failed: " + e.getMessage());
             disconnect();
         }
     }
-
-
-
 }

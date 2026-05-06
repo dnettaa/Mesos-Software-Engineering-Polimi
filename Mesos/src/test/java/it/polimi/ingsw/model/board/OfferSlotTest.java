@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.board;
 
+import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.player.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,21 +66,23 @@ public class OfferSlotTest {
     @Test
     void testPlaceAlreadyOccupiedThrows(){
         slotB.place(p1);
-        assertThrows(IllegalStateException.class, () -> slotB.place(p2));
+        assertThrows(GameException.class, () -> slotB.place(p2));
     }
 
     @Test
     void testRemove(){
         slotE.place(p1);
-        Player removed = slotE.remove();
-        assertEquals(p1, removed);
+
+        slotE.remove();
+
         assertFalse(slotE.isOccupied());
         assertNull(slotE.getOccupant());
     }
 
     @Test
     void testRemoveEmptySlot(){
-        Player removed = slotC.remove();
-        assertNull(removed);
+        slotC.remove();
+        assertFalse(slotC.isOccupied());
+        assertNull(slotC.getOccupant());
     }
 }

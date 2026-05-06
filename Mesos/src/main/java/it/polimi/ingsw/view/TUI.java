@@ -3,8 +3,10 @@ package it.polimi.ingsw.view;
 import it.polimi.ingsw.model.game.DTO.OfferSlotData;
 import it.polimi.ingsw.model.game.DTO.PlayerData;
 import it.polimi.ingsw.network.VirtualServer;
-import it.polimi.ingsw.network.message.*;
 import it.polimi.ingsw.model.player.TotemColor;
+import it.polimi.ingsw.network.socket.message.PlaceTotemMessage;
+import it.polimi.ingsw.network.socket.message.TakeCardsMessage;
+import it.polimi.ingsw.network.socket.message.TakeExtraCardMessage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +59,7 @@ public class TUI implements View {
      * Constructs a new TUI instance and initializes the input scanner.
      */
     public TUI() {
+        this.clientModel = new ClientModel();
         this.scanner = new Scanner(System.in);
     }
 
@@ -307,7 +310,7 @@ public class TUI implements View {
                 System.out.print("Select Offer Slot (Enter a letter): ");
                 String input = scanner.nextLine().trim().toUpperCase();
                 if (!input.isEmpty()) {
-                    virtualServer.sendMessage(new PlaceTotemMessage(nickname, input.charAt(0)));
+                    virtualServer.placeTotem(nickname, input.charAt(0));
                 }
                 break;
             }
@@ -321,14 +324,14 @@ public class TUI implements View {
                 List<String> down = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().toUpperCase().split("\\s+")));
                 down.removeIf(String::isEmpty);
 
-                virtualServer.sendMessage(new TakeCardsMessage(nickname, up, down));
+                virtualServer.takeCards(nickname, up, down);
                 break;
             }
 
             case "ExtraCardPhase": {
                 System.out.print("Select Extra Card ID: ");
                 String extra = scanner.nextLine().trim().toUpperCase();
-                virtualServer.sendMessage(new TakeExtraCardMessage(nickname, extra));
+                virtualServer.takeExtraCard(nickname, extra);
                 break;
             }
 

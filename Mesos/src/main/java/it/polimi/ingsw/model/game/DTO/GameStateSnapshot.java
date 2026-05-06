@@ -3,6 +3,7 @@ package it.polimi.ingsw.model.game.DTO;
 import it.polimi.ingsw.model.game.Era;
 
 import java.util.List;
+import java.io.Serializable;
 
 public record GameStateSnapshot(
         int currentRound,
@@ -17,5 +18,7 @@ public record GameStateSnapshot(
         List<String> lowerRowCardIDs,
         List<OfferSlotData> offerSlots,
         List<PlayerData> players
-){}
+) implements Serializable{
+    private static final long serialVersionUID = 1L;
+}
 
