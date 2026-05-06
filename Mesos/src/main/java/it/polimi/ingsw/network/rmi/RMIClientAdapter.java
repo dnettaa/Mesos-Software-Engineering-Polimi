@@ -2,44 +2,65 @@ package it.polimi.ingsw.network.rmi;
 
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
-import it.polimi.ingsw.network.socket.message.ClientMessage;
-import it.polimi.ingsw.network.socket.message.CreateLobbyMessage;
-import it.polimi.ingsw.network.socket.message.JoinLobbyMessage;
-import it.polimi.ingsw.network.socket.message.ServerMessage;
+import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
+import it.polimi.ingsw.model.game.DTO.EventResolvedDTO;
+import it.polimi.ingsw.model.game.DTO.ExtraCardTakenDTO;
+import it.polimi.ingsw.model.game.DTO.GameEndedDTO;
+import it.polimi.ingsw.model.game.DTO.GameStateSnapshot;
+import it.polimi.ingsw.model.game.DTO.RoundEndedDTO;
+import it.polimi.ingsw.model.game.DTO.TotemPlacedDTO;
 import it.polimi.ingsw.view.View;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Client-side RMI adapter.
  * <p>
- * It implements {@link VirtualServer}, so the View can use it as a normal server,
- * and {@link ClientRMI}, so the real server can call it back remotely.
+ * This class adapts the local {@link View} to the RMI protocol.
+ * As a {@link VirtualServer}, it lets the view invoke server-side game actions
+ * without knowing that RMI is used underneath.
+ * As a {@link ClientRMI}, it exposes remote callback methods that the server
+ * can invoke directly.
+ * <p>
+ * Unlike the Socket implementation, this adapter does not create or dispatch
+ * network messages. Every client-to-server action and server-to-client
+ * notification is represented by a specific remote method call.
+ *
  * @author Diana
  */
 
-public class RMIClientAdapter implements VirtualServer, ClientRMI{
+public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, VirtualServer{
+
     private static final String SERVER_NAME = "MesosServer";
     private final View view;
     private ServerRMI serverStub;
-    private ClientRMI clientStub;
     private String nickname;
     private boolean connected;
 
     /**
      * Creates a new RMI client adapter.
      *
-     * @param view the local client-side view
+     * @param view the local client-side view updated by remote callbacks
+     * @throws RemoteException if this remote object cannot be exported
      */
-    public RMIClientAdapter(View view){
+    public RMIClientAdapter(View view) throws RemoteException{
+        super();
         this.view = view;
         this.connected = false;
     }
 
     /**
-     * Connects this client to the RMI registry and registers it on the server.
+     * Connects this adapter to the remote RMI server.
+     * <p>
+     * The method retrieves the server stub from the RMI registry. The current
+     * object is already exported because this class extends
+     * {@link UnicastRemoteObject}, so it can be passed directly to the server
+     * in {@link #createLobby(String, TotemColor, int)} or
+     * {@link #joinLobby(String, TotemColor)}.
      *
      * @param host the host where the RMI registry is running
      * @param port the port where the RMI registry is listening
@@ -48,96 +69,307 @@ public class RMIClientAdapter implements VirtualServer, ClientRMI{
         try{
             Registry registry = LocateRegistry.getRegistry(host, port);
             serverStub = (ServerRMI) registry.lookup(SERVER_NAME);
-
-            clientStub = (ClientRMI) UnicastRemoteObject.exportObject(this, 0);
-            serverStub.connect(clientStub);
-
             connected = true;
-        } catch (Exception e){
+        } catch(Exception e){
             connected = false;
             view.notifyDisconnection("Unable to connect to RMI server: " + e.getMessage());
         }
     }
 
     /**
-     * Sends a create-lobby request to the server.
+     * Requests the creation of a new lobby through a direct remote method call.
      *
-     * @param nickname the nickname chosen by the player
-     * @param color the totem color chosen by the player
-     * @param expectedPlayers the number of players required to start the game
+     * @param nickname        nickname of the player creating the lobby
+     * @param color           chosen totem color
+     * @param expectedPlayers number of players required to start the game
      */
     @Override
     public void createLobby(String nickname, TotemColor color, int expectedPlayers){
+        if(!isReady()){
+            return;
+        }
+
         this.nickname = nickname;
-        sendMessage(new CreateLobbyMessage(nickname, color, expectedPlayers));
+
+        try{
+            serverStub.createLobby(nickname, color, expectedPlayers, this);
+        } catch(RemoteException e){
+            handleRemoteFailure("Connection with the RMI server lost while creating the lobby.");
+        }
     }
 
     /**
-     * Sends a join-lobby request to the server.
+     * Requests to join an existing lobby through a direct remote method call.
      *
-     * @param nickname the nickname chosen by the player
-     * @param color the totem color chosen by the player
+     * @param nickname nickname of the joining player
+     * @param color    chosen totem color
      */
     @Override
     public void joinLobby(String nickname, TotemColor color){
+        if(!isReady()){
+            return;
+        }
+
         this.nickname = nickname;
-        sendMessage(new JoinLobbyMessage(nickname, color));
+
+        try{
+            serverStub.joinLobby(nickname, color, this);
+        } catch(RemoteException e){
+            handleRemoteFailure("Connection with the RMI server lost while joining the lobby.");
+        }
     }
 
-
     /**
-     * Sends a generic client message to the remote server.
+     * Requests to place a totem through a direct remote method call.
      *
-     * @param message the message representing the client action
+     * @param nickname nickname of the player performing the action
+     * @param slotID   identifier of the chosen offer slot
      */
     @Override
-    public void sendMessage(ClientMessage message){
-        if (!connected || serverStub == null || clientStub == null){
-            view.notifyDisconnection("RMI client is not connected to the server.");
+    public void placeTotem(String nickname, char slotID){
+        if(!isReady()){
             return;
         }
 
         try{
-            serverStub.sendMessage(message, clientStub);
-        } catch (RemoteException e){
-            connected = false;
-            view.notifyDisconnection("Connection with the RMI server lost.");
+            serverStub.placeTotem(nickname, slotID);
+        } catch(RemoteException e){
+            handleRemoteFailure("Connection with the RMI server lost while placing the totem.");
         }
     }
 
     /**
-     * Receives a server message through RMI and applies it to the local view.
+     * Requests to take cards through a direct remote method call.
      *
-     * @param message the server message to be delivered to the view
-     * @throws RemoteException if a remote communication error occurs
+     * @param nickname nickname of the player performing the action
+     * @param upperIDs identifiers of the selected upper-row cards
+     * @param lowerIDs identifiers of the selected lower-row cards
      */
     @Override
-    public void receiveMessage(ServerMessage message) throws RemoteException{
-        System.out.println("[RMI CLIENT] Ricevuto: " + message.getClass().getSimpleName());
-        message.apply(view);
-        System.out.println("[RMI CLIENT] Applicato: " + message.getClass().getSimpleName());
+    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs){
+        if(!isReady()){
+            return;
+        }
+
+        try{
+            serverStub.takeCards(nickname, upperIDs, lowerIDs);
+        } catch(RemoteException e){
+            handleRemoteFailure("Connection with the RMI server lost while taking cards.");
+        }
     }
 
     /**
-     * Disconnects this client from the remote server and unexports the local RMI object.
+     * Requests to take an extra card through a direct remote method call.
+     *
+     * @param nickname nickname of the player performing the action
+     * @param cardID   identifier of the selected card
+     */
+    @Override
+    public void takeExtraCard(String nickname, String cardID){
+        if(!isReady()){
+            return;
+        }
+
+        try{
+            serverStub.takeExtraCard(nickname, cardID);
+        } catch(RemoteException e){
+            handleRemoteFailure("Connection with the RMI server lost while taking the extra card.");
+        }
+    }
+
+    /**
+     * Disconnects this client from the remote server.
      */
     @Override
     public void disconnect(){
-        if (!connected){
+        if(!connected){
             return;
         }
 
         connected = false;
 
         try{
-            if (serverStub != null && clientStub != null){
-                serverStub.disconnect(clientStub);
+            if (serverStub != null && nickname != null){
+                serverStub.disconnect(nickname);
             }
-        }catch (RemoteException ignored){}
+        } catch(RemoteException ignored){
+            // The client is already disconnecting, so there is no useful recovery action here.
+        }
 
         try{
             UnicastRemoteObject.unexportObject(this, true);
-        } catch (Exception ignored){}
+        } catch(Exception ignored){
+            // The object may already be unexported.
+        }
+    }
+
+    /**
+     * Notifies the local view that the join operation succeeded.
+     *
+     * @param nickname assigned nickname
+     * @param color    assigned totem color
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onJoinSuccess(String nickname, TotemColor color) throws RemoteException{
+        this.nickname = nickname;
+        view.showJoinSuccess(nickname, color);
+    }
+
+    /**
+     * Notifies the local view that the lobby state changed.
+     *
+     * @param players        nicknames of the players currently in the lobby
+     * @param colorsByPlayer selected color for each player
+     * @param expected       number of players required to start the game
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onLobbyUpdate(List<String> players, Map<String, TotemColor> colorsByPlayer, int expected)
+            throws RemoteException{
+        view.showLobbyUpdate(players, colorsByPlayer, expected);
+    }
+
+    /**
+     * Notifies the local view about an error.
+     *
+     * @param code        error code
+     * @param description human-readable error description
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onError(String code, String description) throws RemoteException{
+        view.showError(code, description);
+    }
+
+    /**
+     * Notifies the local view that the connection has been closed.
+     *
+     * @param reason reason of the disconnection
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onDisconnection(String reason) throws RemoteException{
+        connected = false;
+        view.notifyDisconnection(reason);
+    }
+
+    /**
+     * Applies the initial game snapshot to the local client model and renders the view.
+     *
+     * @param snapshot initial game state snapshot
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onGameStarted(GameStateSnapshot snapshot) throws RemoteException{
+        view.getClientModel().applyGameStarted(snapshot);
+        view.render();
+    }
+
+    /**
+     * Applies a totem placement update to the local client model and renders the view.
+     *
+     * @param dto data describing the totem placement
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onTotemPlaced(TotemPlacedDTO dto) throws RemoteException{
+        view.getClientModel().applyTotemPlaced(dto);
+        view.render();
+    }
+
+    /**
+     * Applies a card-taking update to the local client model and renders the view.
+     *
+     * @param dto data describing the taken cards and resulting state changes
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onCardsTaken(CardsTakenDTO dto) throws RemoteException{
+        view.getClientModel().applyCardsTaken(dto);
+        view.render();
+    }
+
+    /**
+     * Applies an extra-card update to the local client model and renders the view.
+     *
+     * @param dto data describing the extra card action
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onExtraCardTaken(ExtraCardTakenDTO dto) throws RemoteException{
+        view.getClientModel().applyExtraCardTaken(dto);
+        view.render();
+    }
+
+    /**
+     * Applies an event-resolution update to the local client model and renders the view.
+     *
+     * @param dto data describing the resolved events
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onEventResolved(EventResolvedDTO dto) throws RemoteException{
+        view.getClientModel().applyEventResolved(dto);
+        view.render();
+    }
+
+    /**
+     * Applies an end-round update to the local client model and renders the view.
+     *
+     * @param dto data describing the new round state
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onRoundEnded(RoundEndedDTO dto) throws RemoteException{
+        view.getClientModel().applyRoundEnded(dto);
+        view.render();
+    }
+
+    /**
+     * Applies an end-game update to the local client model and renders the view.
+     *
+     * @param dto data describing the final game result
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onGameEnded(GameEndedDTO dto) throws RemoteException{
+        view.getClientModel().applyGameEnded(dto);
+        view.render();
+    }
+
+    /**
+     * Checks whether this client callback object is reachable.
+     *
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void ping() throws RemoteException{
+        // Empty by design: a successful remote invocation is enough to prove reachability.
+    }
+
+    /**
+     * Checks whether the adapter can perform a remote call to the server.
+     *
+     * @return {@code true} if the server stub is available, {@code false} otherwise
+     */
+    private boolean isReady(){
+        if(!connected || serverStub == null){
+            view.notifyDisconnection("RMI client is not connected to the server.");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Handles a failed remote call by marking the connection as closed and notifying the view.
+     *
+     * @param message message shown to the user
+     */
+    private void handleRemoteFailure(String message){
+        connected = false;
+        view.notifyDisconnection(message);
     }
 
     /**
