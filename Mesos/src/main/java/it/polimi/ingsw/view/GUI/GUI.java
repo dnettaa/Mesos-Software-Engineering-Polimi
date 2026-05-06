@@ -225,7 +225,12 @@ public class GUI extends Application implements View {
      */
     @Override
     public void showJoinSuccess(String nickname, TotemColor color) {
-        this.nickname = nickname;
+        Platform.runLater(() -> {
+            this.nickname = nickname;
+            if (lobbyController != null) {
+                lobbyController.switchToWaitingMode();
+            }
+        });
     }
 
     /**
@@ -240,11 +245,9 @@ public class GUI extends Application implements View {
                                 Map<String, TotemColor> colorsByPlayer,
                                 int expected) {
         Platform.runLater(() -> {
-            if (lobbyController == null) {
-                showLobbyScreen();
+            if (lobbyController != null) {
+                lobbyController.updateLobby(players, colorsByPlayer, expected);
             }
-            lobbyController.updateLobby(players, colorsByPlayer, expected);
-            lobbyController.switchToWaitingMode();
         });
     }
 
@@ -269,7 +272,11 @@ public class GUI extends Application implements View {
      */
     @Override
     public void showGameError(String description) {
-        // TODO: implement when GUIGameController is ready
+        Platform.runLater(() -> {
+            if (lobbyController != null) {
+                lobbyController.showError(description);
+            }
+        });
     }
 
     /**

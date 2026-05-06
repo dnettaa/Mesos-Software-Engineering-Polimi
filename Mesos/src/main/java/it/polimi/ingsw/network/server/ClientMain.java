@@ -78,7 +78,12 @@ public class ClientMain {
             } else if (choiceConnection == 2) {
                 RMIClientAdapter rmiClient = new RMIClientAdapter(tui);
                 tui.setVirtualServer(rmiClient);
-                rmiClient.connect(HOST, RMI_PORT);
+                try {
+                    rmiClient.connect(HOST, RMI_PORT);
+                } catch (Exception e) {
+                    System.out.println(RED + "  Connection failed: " + e.getMessage() + RESET);
+                    return;
+                }
             } else {
                 System.out.println(RED + "  Invalid choice." + RESET);
                 return;

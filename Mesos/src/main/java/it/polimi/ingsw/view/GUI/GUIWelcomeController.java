@@ -118,6 +118,7 @@ public class GUIWelcomeController {
             }
             gui.showLobbyScreen();
         } catch (Exception e) {
+            gui.setVirtualServer(null);
             errorLabel.setText("Connection failed: " + e.getMessage());
             errorLabel.setVisible(true);
             connectButton.setDisable(false);

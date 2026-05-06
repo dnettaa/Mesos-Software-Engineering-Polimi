@@ -122,7 +122,6 @@ public class GUILobbyController {
 
         confirmButton.setDisable(true);
         errorLabel.setVisible(false);
-        gui.setNickname(nickname);
 
         if (createRadio.isSelected()) {
             int numPlayers = playersSpinner.getValue();
