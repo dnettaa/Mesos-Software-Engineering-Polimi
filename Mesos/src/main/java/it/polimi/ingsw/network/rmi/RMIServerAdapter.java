@@ -1,6 +1,7 @@
 package it.polimi.ingsw.network.rmi;
 
 import it.polimi.ingsw.controller.GameController;
+import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
 import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
@@ -159,22 +160,11 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
      * @return the virtual view representing the RMI client
      * @throws RemoteException if the nickname is already associated with an active RMI connection
      */
-    private RMIClientConnection registerConnection(String nickname, ClientRMI client) throws RemoteException{
+    private RMIClientConnection registerConnection(String nickname, ClientRMI client){
         RMIClientConnection connection = new RMIClientConnection(client);
         connection.setNickname(nickname);
-
-
-        while (true) {
-            RMIClientConnection previous = connectionsByNickname.putIfAbsent(nickname, connection);
-            if (previous == null) return connection;                     // OK, registrata
-            if (previous.isConnected()) {
-                connection.onError("NICKNAME_ALREADY_USED",
-                        "Nickname already associated with an active RMI connection.");
-                connection.disconnect();
-                throw new RemoteException("Nickname in use: " + nickname);
-            }
-            if (connectionsByNickname.replace(nickname, previous, connection)) return connection;
-        }
+        connectionsByNickname.put(nickname, connection);
+        return connection;
     }
 
     /**

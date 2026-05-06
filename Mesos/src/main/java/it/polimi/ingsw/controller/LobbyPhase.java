@@ -48,20 +48,21 @@ public class LobbyPhase implements ControllerPhase {
     @Override
     public void createLobby(String nickname, TotemColor color, VirtualView view) {
 
+        gameController.registerView(nickname, view);
+
         if (!playerSelections.isEmpty()) {
             gameController.sendError(
                     nickname,
                     ErrorCode.GAME_ALREADY_STARTED.name(),
                     "A lobby already exists. Please join the existing one."
             );
+            gameController.unregisterView(nickname);
             return;
         }
 
-        gameController.registerView(nickname, view);
+
         playerSelections.put(nickname, color);
-
         view.onJoinSuccess(nickname, color);
-
         broadcastLobbyUpdate();
     }
 
@@ -79,13 +80,19 @@ public class LobbyPhase implements ControllerPhase {
     public void joinLobby(String nickname, TotemColor color, VirtualView view) {
 
         if (playerSelections.isEmpty()) {
-            gameController.sendError(
-                    nickname,
-                    ErrorCode.LOBBY_NOT_CREATED.name(),
-                    "Lobby has not been created yet"
-            );
+            gameController.registerView(nickname, view);
+            gameController.sendError(nickname, ErrorCode.LOBBY_NOT_CREATED.name(),
+                    "Lobby has not been created yet");
+            gameController.unregisterView(nickname);
             return;
         }
+
+        if (playerSelections.containsKey(nickname)) {
+            view.onError(ErrorCode.NICKNAME_TAKEN.name(), "Nickname already taken");
+            return;
+        }
+
+        gameController.registerView(nickname, view);
 
         if (playerSelections.size() >= expectedPlayers) {
             gameController.sendError(
@@ -93,15 +100,7 @@ public class LobbyPhase implements ControllerPhase {
                     ErrorCode.LOBBY_FULL.name(),
                     "Lobby is full"
             );
-            return;
-        }
-
-        if (playerSelections.containsKey(nickname)) {
-            gameController.sendError(
-                    nickname,
-                    ErrorCode.NICKNAME_TAKEN.name(),
-                    "Nickname already taken"
-            );
+            gameController.unregisterView(nickname);
             return;
         }
 
@@ -111,14 +110,13 @@ public class LobbyPhase implements ControllerPhase {
                     ErrorCode.COLOR_TAKEN.name(),
                     "Color already taken"
             );
+            gameController.unregisterView(nickname);
             return;
         }
 
-        gameController.registerView(nickname, view);
+
         playerSelections.put(nickname, color);
-
         view.onJoinSuccess(nickname, color);
-
         broadcastLobbyUpdate();
 
         // game is started when lobby is completed

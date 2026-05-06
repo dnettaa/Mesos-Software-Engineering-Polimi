@@ -4,7 +4,9 @@ import java.rmi.RemoteException;
 import java.util.Scanner;
 import it.polimi.ingsw.network.rmi.RMIClientAdapter;
 import it.polimi.ingsw.network.socket.VirtualSocketServer;
+import it.polimi.ingsw.view.GUI.GUI;
 import it.polimi.ingsw.view.TUI;
+import javafx.application.Application;
 
 /**
  * Entry point for the Mesos game client.
@@ -57,7 +59,7 @@ public class ClientMain {
         int choiceInterface = Integer.parseInt(scanner.nextLine().trim());
 
         if (choiceInterface == 2) {
-            // GUI
+            Application.launch(GUI.class, args);
         } else if (choiceInterface == 1) {
 
             TUI tui = new TUI();
@@ -76,7 +78,12 @@ public class ClientMain {
             } else if (choiceConnection == 2) {
                 RMIClientAdapter rmiClient = new RMIClientAdapter(tui);
                 tui.setVirtualServer(rmiClient);
-                rmiClient.connect(HOST, RMI_PORT);
+                try {
+                    rmiClient.connect(HOST, RMI_PORT);
+                } catch (Exception e) {
+                    System.out.println(RED + "  Connection failed: " + e.getMessage() + RESET);
+                    return;
+                }
             } else {
                 System.out.println(RED + "  Invalid choice." + RESET);
                 return;
