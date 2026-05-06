@@ -1,46 +1,63 @@
-//contratto lato client
-
 package it.polimi.ingsw.network;
 
-import it.polimi.ingsw.network.message.ClientMessage;
 import it.polimi.ingsw.model.player.TotemColor;
+import java.util.List;
 
 /**
  * Client-side abstraction of the remote game server.
  * <p>
- * The View uses this interface to communicate with the server without knowing
- * whether the underlying network technology is Socket or RMI.
+ * The view uses this interface to request domain actions without knowing
+ * whether the underlying network protocol is Socket or RMI.
+ *
  * @author Diana
  */
 
-public interface VirtualServer {
+public interface VirtualServer{
 
     /**
-     * Creates a new lobby and joins it as the first player.
+     * Requests the creation of a new lobby.
      *
-     * @param nickname the nickname chosen by the player
-     * @param color the totem color chosen by the player
-     * @param expectedPlayers the number of players required to start the game
+     * @param nickname        nickname of the player creating the lobby
+     * @param color           chosen totem color
+     * @param expectedPlayers number of players required to start the game
      */
     void createLobby(String nickname, TotemColor color, int expectedPlayers);
 
     /**
-     * Joins an existing lobby.
+     * Requests to join an existing lobby.
      *
-     * @param nickname the nickname chosen by the player
-     * @param color the totem color chosen by the player
+     * @param nickname nickname of the joining player
+     * @param color    chosen totem color
      */
     void joinLobby(String nickname, TotemColor color);
 
     /**
-     * Sends a generic client message to the server.
+     * Requests to place the player's totem on an offer slot.
      *
-     * @param message the message representing a client-side action
+     * @param nickname nickname of the player performing the action
+     * @param slotID   identifier of the chosen offer slot
      */
-    void sendMessage(ClientMessage message);
+    void placeTotem(String nickname, char slotID);
 
     /**
-     * Closes the connection with the server.
+     * Requests to take cards from the upper and lower rows.
+     *
+     * @param nickname nickname of the player performing the action
+     * @param upperIDs identifiers of the selected upper-row cards
+     * @param lowerIDs identifiers of the selected lower-row cards
+     */
+    void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs);
+
+    /**
+     * Requests to take an extra card.
+     *
+     * @param nickname nickname of the player performing the action
+     * @param cardID   identifier of the selected card
+     */
+    void takeExtraCard(String nickname, String cardID);
+
+    /**
+     * Requests a voluntary disconnection from the server.
      */
     void disconnect();
 }

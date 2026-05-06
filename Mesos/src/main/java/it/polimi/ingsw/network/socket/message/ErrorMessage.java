@@ -1,9 +1,7 @@
-package it.polimi.ingsw.network.message;
+package it.polimi.ingsw.network.socket.message;
 
 import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.view.View;
-
-import static it.polimi.ingsw.model.exception.ErrorCode.*;
 
 /**
  * Message sent by the server to notify a client about an invalid action or error.
