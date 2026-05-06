@@ -3,8 +3,10 @@ package it.polimi.ingsw.view;
 import it.polimi.ingsw.model.game.DTO.OfferSlotData;
 import it.polimi.ingsw.model.game.DTO.PlayerData;
 import it.polimi.ingsw.network.VirtualServer;
-import it.polimi.ingsw.network.message.*;
 import it.polimi.ingsw.model.player.TotemColor;
+import it.polimi.ingsw.network.socket.message.PlaceTotemMessage;
+import it.polimi.ingsw.network.socket.message.TakeCardsMessage;
+import it.polimi.ingsw.network.socket.message.TakeExtraCardMessage;
 
 import java.util.ArrayList;
 import java.util.Arrays;

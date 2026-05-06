@@ -1,5 +1,6 @@
 package it.polimi.ingsw.network.server;
 
+import java.rmi.RemoteException;
 import java.util.Scanner;
 import it.polimi.ingsw.network.rmi.RMIClientAdapter;
 import it.polimi.ingsw.network.socket.VirtualSocketServer;
@@ -26,7 +27,7 @@ public class ClientMain {
      * @param args command-line arguments (not used)
      * @throws IllegalArgumentException if the user enters an invalid choice
      */
-    public static void main(String args[]){
+    public static void main(String args[]) throws RemoteException {
 
         Scanner scanner = new Scanner(System.in);
 

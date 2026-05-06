@@ -1,44 +1,86 @@
 package it.polimi.ingsw.network.rmi;
 
-import it.polimi.ingsw.network.message.ClientMessage;
+import it.polimi.ingsw.model.player.TotemColor;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.List;
 
 /**
- * Remote interface exposed by the server.
+ * Remote interface exposed by the server to RMI clients.
  * <p>
- * This interface defines the methods that a client can invoke remotely
- * to interact with the server using RMI.
- * @author Diana
+ * This interface contains domain-specific methods. RMI clients call these
+ * methods directly instead of sending generic network messages.
  */
-
 public interface ServerRMI extends Remote{
 
     /**
-     * Registers a client to the server.
-     * <p>
-     * The server stores the reference to the client to allow callbacks
-     * (server-to-client communication).
+     * Remotely requests the creation of a new lobby.
      *
-     * @param client the remote reference to the client
-     * @throws RemoteException if a communication error occurs
+     * @param nickname        nickname of the player creating the lobby
+     * @param color           chosen totem color
+     * @param expectedPlayers number of players required to start the game
+     * @param client          remote callback object of the client
+     * @throws RemoteException if the remote invocation fails
      */
-    void connect(ClientRMI client) throws RemoteException;
+    void createLobby(String nickname, TotemColor color, int expectedPlayers, ClientRMI client)
+            throws RemoteException;
 
     /**
-     * Sends a generic client message to the server.
+     * Remotely requests to join an existing lobby.
      *
-     * @param message the message representing a client action
-     * @param sender to understand which client sent a message
-     * @throws RemoteException if a communication error occurs
+     * @param nickname nickname of the joining player
+     * @param color    chosen totem color
+     * @param client   remote callback object of the client
+     * @throws RemoteException if the remote invocation fails
      */
-    void sendMessage(ClientMessage message, ClientRMI sender) throws RemoteException;
+    void joinLobby(String nickname, TotemColor color, ClientRMI client)
+            throws RemoteException;
 
     /**
-     * Disconnects an RMI client from the server.
+     * Remotely requests to place a totem on an offer slot.
      *
-     * @param client the remote client reference
-     * @throws RemoteException if a remote communication error occurs
+     * @param nickname nickname of the player performing the action
+     * @param slotID   identifier of the chosen offer slot
+     * @throws RemoteException if the remote invocation fails
      */
-    void disconnect(ClientRMI client) throws RemoteException;
+    void placeTotem(String nickname, char slotID)
+            throws RemoteException;
+
+    /**
+     * Remotely requests to take cards from the upper and lower rows.
+     *
+     * @param nickname nickname of the player performing the action
+     * @param upperIDs identifiers of the selected upper-row cards
+     * @param lowerIDs identifiers of the selected lower-row cards
+     * @throws RemoteException if the remote invocation fails
+     */
+    void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs)
+            throws RemoteException;
+
+    /**
+     * Remotely requests to take an extra card.
+     *
+     * @param nickname nickname of the player performing the action
+     * @param cardID   identifier of the selected card
+     * @throws RemoteException if the remote invocation fails
+     */
+    void takeExtraCard(String nickname, String cardID)
+            throws RemoteException;
+
+    /**
+     * Remotely requests a disconnection for the given player.
+     *
+     * @param nickname nickname of the disconnecting player
+     * @throws RemoteException if the remote invocation fails
+     */
+    void disconnect(String nickname)
+            throws RemoteException;
+
+    /**
+     * Checks whether the remote server is reachable.
+     *
+     * @throws RemoteException if the remote invocation fails
+     */
+    void ping()
+            throws RemoteException;
 }
