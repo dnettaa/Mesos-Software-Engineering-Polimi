@@ -2,16 +2,16 @@ package it.polimi.ingsw.controller;
 
 import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.exception.GameException;
+import it.polimi.ingsw.model.game.DTO.*;
 import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.game.GameListener;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
-import it.polimi.ingsw.network.socket.message.ErrorMessage;
-import it.polimi.ingsw.network.socket.message.ServerMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -44,7 +44,7 @@ class InGamePhaseTest{
         assertEquals("Diana", game.lastTotemNickname);
         assertEquals('C', game.lastSlotID);
         assertEquals(1, game.placeTotemCalls);
-        assertTrue(dianaView.sentMessages.isEmpty());
+        assertNull(dianaView.lastErrorDescription); // nessun errore
     }
 
     @Test
@@ -53,8 +53,8 @@ class InGamePhaseTest{
 
         inGamePhase.placeTotem("Diana", 'C');
 
-        assertEquals(1, dianaView.sentMessages.size());
-        assertTrue(dianaView.sentMessages.getFirst() instanceof ErrorMessage);
+        assertNotNull(dianaView.lastErrorDescription);
+        assertEquals("Not your turn", dianaView.lastErrorDescription);
     }
 
     @Test
@@ -68,7 +68,7 @@ class InGamePhaseTest{
         assertEquals(upper, game.lastUpperIDs);
         assertEquals(lower, game.lastLowerIDs);
         assertEquals(1, game.takeCardsCalls);
-        assertTrue(dianaView.sentMessages.isEmpty());
+        assertNull(dianaView.lastErrorDescription);
     }
 
     @Test
@@ -77,8 +77,8 @@ class InGamePhaseTest{
 
         inGamePhase.takeCards("Diana", List.of("U1"), List.of("L1"));
 
-        assertEquals(1, dianaView.sentMessages.size());
-        assertTrue(dianaView.sentMessages.getFirst() instanceof ErrorMessage);
+        assertNotNull(dianaView.lastErrorDescription);
+        assertEquals("Invalid selection", dianaView.lastErrorDescription);
     }
 
     @Test
@@ -88,7 +88,7 @@ class InGamePhaseTest{
         assertEquals("Diana", game.lastExtraCardNickname);
         assertEquals("C1", game.lastCardID);
         assertEquals(1, game.takeExtraCardCalls);
-        assertTrue(dianaView.sentMessages.isEmpty());
+        assertNull(dianaView.lastErrorDescription);
     }
 
     @Test
@@ -97,8 +97,8 @@ class InGamePhaseTest{
 
         inGamePhase.takeExtraCard("Diana", "C1");
 
-        assertEquals(1, dianaView.sentMessages.size());
-        assertTrue(dianaView.sentMessages.getFirst() instanceof ErrorMessage);
+        assertNotNull(dianaView.lastErrorDescription);
+        assertEquals("Unknown card", dianaView.lastErrorDescription);
     }
 
     @Test
@@ -108,8 +108,7 @@ class InGamePhaseTest{
 
         inGamePhase.createLobby("Luca", TotemColor.BLUE, lucaView);
 
-        assertEquals(1, lucaView.sentMessages.size());
-        assertTrue(lucaView.sentMessages.getFirst() instanceof ErrorMessage);
+        assertNotNull(lucaView.lastErrorDescription);
     }
 
     @Test
@@ -119,8 +118,7 @@ class InGamePhaseTest{
 
         inGamePhase.joinLobby("Luca", TotemColor.BLUE, lucaView);
 
-        assertEquals(1, lucaView.sentMessages.size());
-        assertTrue(lucaView.sentMessages.getFirst() instanceof ErrorMessage);
+        assertNotNull(lucaView.lastErrorDescription);
     }
 
     @Test
@@ -220,35 +218,29 @@ class InGamePhaseTest{
     /**
      * Fake implementation of VirtualView used to observe messages sent by the controller.
      */
-    private static class FakeView implements VirtualView{
+    private static class FakeView implements VirtualView {
         private String nickname;
         private boolean connected = true;
-        private final List<ServerMessage> sentMessages = new ArrayList<>();
 
-        @Override
-        public String getNickname(){
-            return nickname;
-        }
+        public String lastErrorDescription;
+        public TotemPlacedDTO lastTotemPlaced;
+        public CardsTakenDTO lastCardsTaken;
 
-        @Override
-        public void setNickname(String nickname){
-            this.nickname = nickname;
-        }
+        @Override public String getNickname() { return nickname; }
+        @Override public void setNickname(String nickname) { this.nickname = nickname; }
+        @Override public boolean isConnected() { return connected; }
+        @Override public void disconnect() { connected = false; }
 
-        @Override
-        public boolean isConnected(){
-            return connected;
-        }
-
-        @Override
-        public void send(ServerMessage message){
-            sentMessages.add(message);
-        }
-
-        @Override
-        public void disconnect(){
-            connected = false;
-            sentMessages.clear();
-        }
+        @Override public void onJoinSuccess(String nickname, TotemColor color) {}
+        @Override public void onLobbyUpdate(List<String> players, Map<String, TotemColor> colorsByPlayer, int expected) {}
+        @Override public void onError(String code, String description) { this.lastErrorDescription = description; }
+        @Override public void onDisconnection(String reason) {}
+        @Override public void onGameStarted(GameStateSnapshot snapshot) {}
+        @Override public void onTotemPlaced(TotemPlacedDTO dto) { this.lastTotemPlaced = dto; }
+        @Override public void onCardsTaken(CardsTakenDTO dto) { this.lastCardsTaken = dto; }
+        @Override public void onExtraCardTaken(ExtraCardTakenDTO dto) {}
+        @Override public void onEventResolved(EventResolvedDTO dto) {}
+        @Override public void onRoundEnded(RoundEndedDTO dto) {}
+        @Override public void onGameEnded(GameEndedDTO dto) {}
     }
 }

@@ -275,7 +275,7 @@ public class ClientModel {
      *
      * @param snapshot The data transfer object containing the full game state.
      */
-    public void applyGameState(GameStateSnapshot snapshot) {
+    public void applyGameStarted(GameStateSnapshot snapshot) {
         this.currentRound = snapshot.currentRound();
         this.currentEra = snapshot.currentEra();
         this.currentPhaseName = snapshot.currentPhaseName();

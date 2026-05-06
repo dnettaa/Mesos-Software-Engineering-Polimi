@@ -16,6 +16,9 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Client-side RMI adapter.
@@ -40,6 +43,21 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     private ServerRMI serverStub;
     private String nickname;
     private boolean connected;
+    private static final Set<String> LOGIN_ERROR_CODES = Set.of(
+            "NICKNAME_TAKEN",
+            "COLOR_TAKEN",
+            "LOBBY_FULL",
+            "GAME_ALREADY_STARTED",
+            "LOBBY_NOT_CREATED"
+    );
+    private final ExecutorService renderExecutor = Executors.newSingleThreadExecutor();
+
+    private void applyAndRender(Runnable applyDTO) {
+        renderExecutor.submit(() -> {
+            applyDTO.run();
+            view.render();
+        });
+    }
 
     /**
      * Creates a new RMI client adapter.
@@ -182,6 +200,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void disconnect(){
+        renderExecutor.shutdown();
         if(!connected){
             return;
         }
@@ -238,8 +257,12 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      * @throws RemoteException if the remote invocation fails
      */
     @Override
-    public void onError(String code, String description) throws RemoteException{
-        view.showError(code, description);
+    public void onError(String code, String description) throws RemoteException {
+        if (LOGIN_ERROR_CODES.contains(code)) {
+            view.showLoginError(description);
+        } else {
+            view.showGameError(description);
+        }
     }
 
     /**
@@ -262,8 +285,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onGameStarted(GameStateSnapshot snapshot) throws RemoteException{
-        view.getClientModel().applyGameStarted(snapshot);
-        view.render();
+        applyAndRender(() -> view.getClientModel().applyGameStarted(snapshot));
+
     }
 
     /**
@@ -274,8 +297,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onTotemPlaced(TotemPlacedDTO dto) throws RemoteException{
-        view.getClientModel().applyTotemPlaced(dto);
-        view.render();
+        applyAndRender(() -> view.getClientModel().applyTotemPlaced(dto));
+
     }
 
     /**
@@ -286,8 +309,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onCardsTaken(CardsTakenDTO dto) throws RemoteException{
-        view.getClientModel().applyCardsTaken(dto);
-        view.render();
+        applyAndRender(() -> view.getClientModel().applyCardsTaken(dto));
     }
 
     /**
@@ -298,8 +320,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onExtraCardTaken(ExtraCardTakenDTO dto) throws RemoteException{
-        view.getClientModel().applyExtraCardTaken(dto);
-        view.render();
+        applyAndRender(() -> view.getClientModel().applyExtraCardTaken(dto));
     }
 
     /**
@@ -310,8 +331,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onEventResolved(EventResolvedDTO dto) throws RemoteException{
-        view.getClientModel().applyEventResolved(dto);
-        view.render();
+        applyAndRender(() -> view.getClientModel().applyEventResolved(dto));
     }
 
     /**
@@ -322,8 +342,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onRoundEnded(RoundEndedDTO dto) throws RemoteException{
-        view.getClientModel().applyRoundEnded(dto);
-        view.render();
+        applyAndRender(() -> view.getClientModel().applyRoundEnded(dto));
     }
 
     /**
@@ -334,8 +353,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onGameEnded(GameEndedDTO dto) throws RemoteException{
-        view.getClientModel().applyGameEnded(dto);
-        view.render();
+        applyAndRender(() -> view.getClientModel().applyGameEnded(dto));
     }
 
     /**
