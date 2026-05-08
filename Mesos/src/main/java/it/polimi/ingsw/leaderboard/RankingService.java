@@ -36,7 +36,7 @@ public class RankingService {
 
         return repository.findByPlayerCount(playerCount)
                 .stream()
-                .sorted(Comparator.comparingInt(MatchResult::getFinalScore).reversed())
+                .sorted(Comparator.comparingInt(MatchResult::finalScore).reversed())
                 .collect(Collectors.toList());
     }
 
@@ -45,7 +45,7 @@ public class RankingService {
 
         for(int i = 0; i < ranking.size(); i++) {
 
-            if(ranking.get(i).getNickname().equals(nickname)) {
+            if(ranking.get(i).nickname().equals(nickname)) {
                 return i + 1;
             }
         }

@@ -1,4 +1,10 @@
 package it.polimi.ingsw.leaderboard;
 
-public class MatchResult {
-}
+import java.time.LocalDateTime;
+
+public record MatchResult(
+        String nickname,
+        int finalScore,
+        int playerCount,
+        LocalDateTime timestamp
+) {}
