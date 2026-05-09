@@ -5,6 +5,7 @@
     import it.polimi.ingsw.network.VirtualView;
     import it.polimi.ingsw.model.game.GameListener;
     import it.polimi.ingsw.model.game.DTO.*;
+    import it.polimi.ingsw.leaderboard.*;
 
     import java.util.HashMap;
     import java.util.Map;
@@ -26,13 +27,32 @@
         private GameActions game;
         private ControllerPhase currentPhase;
         private final Map<String, VirtualView> views;
+        private int playerCount;
+        private final RankingService rankingService;
 
+        /**
+         * Constructs a new GameController.
+         * Initializes the view map and sets up the leaderboard service
+         * using a SQL-based repository connected to a PostgreSQL database.
+         */
         public GameController() {
             this.views = new HashMap<>();
+
+            MatchResultRepository repo = new SqlMatchResultRepository(
+                    "jdbc:postgresql://localhost:5432/mesos",
+                    "postgres",
+                    "postgres123"
+            );
+
+            this.rankingService = new RankingService(repo);
         }
 
         public Map<String, VirtualView> getViews() {
             return views;
+        }
+
+        public void setPlayerCount(int playerCount) {
+            this.playerCount = playerCount;
         }
 
         // METODI DA DELEGARE ALLA LOBBY PHASE
@@ -293,12 +313,16 @@
 
         /**
          * Invoked when the game ends.
-         * Forwards the final results DTO to all connected views.
+         * Stores the final results in the leaderboard system and
+         * forwards the GameEnded DTO to all connected views.
          *
          * @param dto contains final scores and ranking
          */
         @Override
         public void onGameEnded(GameEndedDTO dto) {
+
+            rankingService.recordGame(dto, playerCount);
+
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) {
                     view.onGameEnded(dto);
