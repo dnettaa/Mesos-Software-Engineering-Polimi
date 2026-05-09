@@ -1,5 +1,6 @@
 package it.polimi.ingsw.network;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
 import it.polimi.ingsw.model.game.DTO.EventResolvedDTO;
@@ -128,4 +129,12 @@ public interface VirtualView{
      * @param dto data describing the final game result
      */
     void onGameEnded(GameEndedDTO dto);
+
+    /**
+     * Notifies the client with the current leaderboard.
+     *
+     * @param ranking list of match results sorted by score
+     * @param position position of the requesting player
+     */
+    void onLeaderboard(List<MatchResult> ranking, int position);
 }

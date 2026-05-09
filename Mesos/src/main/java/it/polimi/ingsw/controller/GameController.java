@@ -8,6 +8,7 @@
     import it.polimi.ingsw.leaderboard.*;
 
     import java.util.HashMap;
+    import java.util.List;
     import java.util.Map;
 
     /**
@@ -132,6 +133,22 @@
          */
         public synchronized void takeExtraCard(String nickname, String cardID) {
             currentPhase.takeExtraCard(nickname, cardID);
+        }
+
+        /**
+         * Sends the leaderboard and the player's position to the requesting client.
+         *
+         * @param nickname the nickname of the requesting player
+         */
+        public synchronized void showLeaderboard(String nickname) {
+
+            List<MatchResult> ranking = rankingService.getRanking(playerCount);
+            int position = rankingService.getPlayerPosition(nickname, playerCount);
+
+            VirtualView view = views.get(nickname);
+            if (view != null && view.isConnected()) {
+                view.onLeaderboard(ranking, position);
+            }
         }
 
         // GESTIONE DELLE VIEW
