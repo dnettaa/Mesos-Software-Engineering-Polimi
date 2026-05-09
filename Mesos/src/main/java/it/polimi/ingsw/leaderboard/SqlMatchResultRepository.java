@@ -5,7 +5,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * SQL-based implementation of {@link MatchResultRepository}.
+ * Persists match results in a PostgreSQL database using JDBC.
+ * Handles saving and retrieving results through SQL queries.
+ *
+ * @author Andrea Markvukaj
+ */
 public class SqlMatchResultRepository implements MatchResultRepository {
 
     private final String url;
@@ -19,11 +25,22 @@ public class SqlMatchResultRepository implements MatchResultRepository {
         this.password = password;
     }
 
+    /**
+     * Opens a new connection to the database using the configured credentials.
+     *
+     * @return an active {@link Connection} to the database
+     * @throws SQLException if the connection cannot be established
+     */
     private Connection getConnection() throws SQLException  {
 
         return DriverManager.getConnection(url, user, password);
     }
 
+    /**
+     * Saves a match result into the database.
+     *
+     * @param result the match result to store
+     */
     @Override
     public void save(MatchResult result) {
 
@@ -45,6 +62,12 @@ public class SqlMatchResultRepository implements MatchResultRepository {
 
     }
 
+    /**
+     * Retrieves all match results for a given number of players.
+     *
+     * @param playerCount the number of players in the match
+     * @return a list of matching results
+     */
     @Override
     public List<MatchResult> findByPlayerCount(int playerCount) {
 
