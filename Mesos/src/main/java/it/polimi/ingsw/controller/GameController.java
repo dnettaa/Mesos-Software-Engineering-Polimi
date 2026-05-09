@@ -199,7 +199,6 @@
             return currentPhase;
         }
 
-        // METODI DI GAME LISTENER
 
         /**
          * Invoked when the game starts.
@@ -209,100 +208,58 @@
          */
         @Override
         public void onGameStarted(GameStateSnapshot snap) {
+            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) {
-                    view.onGameStarted(snap);
-                }
+                if (view.isConnected()) view.onGameStarted(snap);
             }
         }
 
-        /**
-         * Invoked when a player places a totem on the board.
-         * Forwards the corresponding update DTO to all connected views.
-         *
-         * @param dto contains information about the placement and next player
-         */
         @Override
         public void onTotemPlaced(TotemPlacedDTO dto) {
+            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) {
-                    view.onTotemPlaced(dto);
-                }
+                if (view.isConnected()) view.onTotemPlaced(dto);
             }
         }
 
-        /**
-         * Invoked when a player takes cards from the board.
-         * Forwards the DTO containing all state changes to all connected views.
-         *
-         * @param dto contains details about the card selection and resulting changes
-         */
         @Override
         public void onCardsTaken(CardsTakenDTO dto) {
+            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) {
-                    view.onCardsTaken(dto);
-                }
+                if (view.isConnected()) view.onCardsTaken(dto);
             }
         }
 
-        /**
-         * Invoked when a player takes an extra card.
-         * Forwards the update DTO to all connected views.
-         *
-         * @param dto contains information about the extra card taken
-         */
         @Override
         public void onExtraCardTaken(ExtraCardTakenDTO dto) {
+            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) {
-                    view.onExtraCardTaken(dto);
-                }
+                if (view.isConnected()) view.onExtraCardTaken(dto);
             }
         }
 
-        /**
-         * Invoked when an event is resolved.
-         * Forwards the resulting DTO to all connected views.
-         *
-         * @param dto contains the effects of the resolved event
-         */
         @Override
         public void onEventResolved(EventResolvedDTO dto) {
+            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) {
-                    view.onEventResolved(dto);
-                }
+                if (view.isConnected()) view.onEventResolved(dto);
             }
         }
 
-        /**
-         * Invoked at the end of a round.
-         * Forwards the DTO describing the new round setup to all connected views.
-         *
-         * @param dto contains all state changes for the new round
-         */
         @Override
         public void onRoundEnded(RoundEndedDTO dto) {
+            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) {
-                    view.onRoundEnded(dto);
-                }
+                if (view.isConnected()) view.onRoundEnded(dto);
             }
         }
 
-        /**
-         * Invoked when the game ends.
-         * Forwards the final results DTO to all connected views.
-         *
-         * @param dto contains final scores and ranking
-         */
         @Override
         public void onGameEnded(GameEndedDTO dto) {
+            it.polimi.ingsw.network.server.PersistenceManager.deleteSave();
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) {
-                    view.onGameEnded(dto);
-                }
+                if (view.isConnected()) view.onGameEnded(dto);
             }
         }
+
     }
