@@ -151,13 +151,16 @@
         }
 
         /**
-         * Disconnects all connected clients and clears the view map.
+         * Disconnects all connected clients and clears the view map safely.
          */
         public void closeAll() {
-            for (VirtualView view : views.values()) {
+            java.util.List<VirtualView> viewsToDisconnect = new java.util.ArrayList<>(views.values());
+
+            views.clear();
+
+            for (VirtualView view : viewsToDisconnect) {
                 view.disconnect();
             }
-            views.clear();
         }
 
         // GESTIONE DEL MODEL
@@ -261,5 +264,6 @@
                 if (view.isConnected()) view.onGameEnded(dto);
             }
         }
+
 
     }
