@@ -1,6 +1,7 @@
 package it.polimi.ingsw.network.rmi;
 
 import it.polimi.ingsw.controller.GameController;
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
@@ -386,6 +387,11 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         @Override
         public void onGameEnded(GameEndedDTO dto){
             enqueue(() -> clientStub.onGameEnded(dto));
+        }
+
+        @Override
+        public void onLeaderboard(List<MatchResult> ranking, int position){
+            enqueue(() -> clientStub.onLeaderboard(ranking, position));
         }
 
 

@@ -1,5 +1,6 @@
 package it.polimi.ingsw.view.GUI;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
 import it.polimi.ingsw.view.ClientModel;
@@ -362,5 +363,10 @@ public class GUI extends Application implements View {
      */
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    @Override
+    public void showLeaderboard(List<MatchResult> ranking, int position) {
+        // da implementare per gui
     }
 }

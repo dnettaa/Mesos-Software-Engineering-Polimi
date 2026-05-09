@@ -1,5 +1,6 @@
 package it.polimi.ingsw.view;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.game.DTO.OfferSlotData;
 import it.polimi.ingsw.model.game.DTO.PlayerData;
 import it.polimi.ingsw.network.VirtualServer;
@@ -37,6 +38,10 @@ public class TUI implements View {
 
     /** Scanner used to read standard input from the user. */
     private final Scanner scanner;
+
+    private List<MatchResult> leaderboard;
+
+    private int myPosition;
 
     // =========================================================
     // ANSI COLORS
@@ -129,6 +134,39 @@ public class TUI implements View {
                         medal, i + 1, player, base, endBonus, total);
             }
             System.out.println(WHITE + "  " + "─".repeat(47) + RESET);
+
+            // SHOW LEADERBOARD
+            if (leaderboard != null && !leaderboard.isEmpty()) {
+                System.out.println("\n" + CYAN + BOLD + "  GLOBAL LEADERBOARD (" + leaderboard.get(0).playerCount() + " players)" + RESET);
+                System.out.println(CYAN + "  " + "─".repeat(50) + RESET);
+
+                System.out.println(BOLD + "  Pos  Player          Score    Date" + RESET);
+                System.out.println(WHITE + "  " + "─".repeat(50) + RESET);
+
+                for (int i = 0; i < leaderboard.size(); i++) {
+                    MatchResult r = leaderboard.get(i);
+
+                    String medal =
+                            i == 0 ? BRIGHT_YELLOW + "🥇" :
+                                    i == 1 ? WHITE + "🥈" :
+                                    i == 2 ? YELLOW + "🥉" : "  ";
+
+                    String color = (i + 1 == myPosition) ? BRIGHT_GREEN : WHITE;
+
+                    System.out.printf("  %s %2d.  " + color + "%-14s" + RESET +
+                                    "  %5d    %s%n",
+                            medal,
+                            i + 1,
+                            r.nickname(),
+                            r.finalScore(),
+                            r.timestamp().toLocalDate()
+                    );
+                }
+
+                System.out.println(WHITE + "  " + "─".repeat(50) + RESET);
+                System.out.println("\n" + BRIGHT_GREEN + "  ➤ Your position: " + myPosition + RESET);
+            }
+
             return;
         }
 
@@ -402,5 +440,13 @@ public class TUI implements View {
             String foodStr = food >= 0 ? "+" + food : String.valueOf(food);
             System.out.printf("  %-12s → PP: %s  Food: %s%n", player, ppStr, foodStr);
         }
+    }
+
+    @Override
+    public void showLeaderboard(List<MatchResult> ranking, int position) {
+        this.leaderboard = ranking;
+        this.myPosition = position;
+
+        render();
     }
 }

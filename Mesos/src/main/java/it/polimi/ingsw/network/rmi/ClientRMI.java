@@ -1,5 +1,6 @@
 package it.polimi.ingsw.network.rmi;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
 import it.polimi.ingsw.model.game.DTO.EventResolvedDTO;
@@ -134,4 +135,6 @@ public interface ClientRMI extends Remote{
      */
     void ping()
             throws RemoteException;
+
+    void onLeaderboard(List<MatchResult> ranking, int position) throws RemoteException;
 }

@@ -1,5 +1,6 @@
 package it.polimi.ingsw.leaderboard;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -17,4 +18,4 @@ public record MatchResult(
         int finalScore,
         int playerCount,
         LocalDateTime timestamp
-) {}
+) implements Serializable {}

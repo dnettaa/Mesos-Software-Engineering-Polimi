@@ -57,13 +57,6 @@ public interface VirtualServer{
     void takeExtraCard(String nickname, String cardID);
 
     /**
-     * Requests the leaderboard for the current match player count.
-     *
-     * @param nickname nickname of the requesting player
-     */
-    void requestLeaderboard(String nickname);
-
-    /**
      * Requests a voluntary disconnection from the server.
      */
     void disconnect();

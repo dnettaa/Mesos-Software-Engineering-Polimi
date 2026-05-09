@@ -2,6 +2,8 @@ package it.polimi.ingsw.view;
 
 import java.util.List;
 import java.util.Map;
+
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
 
@@ -58,4 +60,9 @@ public interface View {
 
     void showEventResolved(String eventCardID, String eventType,
                            Map<String, Integer> ppDelta, Map<String, Integer> foodDelta);
+
+    /**
+     * Displays the leaderboard received from the server.
+     */
+    void showLeaderboard(List<MatchResult> ranking, int position);
 }

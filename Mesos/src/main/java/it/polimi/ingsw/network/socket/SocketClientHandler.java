@@ -1,5 +1,6 @@
 package it.polimi.ingsw.network.socket;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.game.DTO.*;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
@@ -271,5 +272,17 @@ public class SocketClientHandler implements VirtualView, Runnable {
      */
     private void enqueue(ServerMessage msg) {
         outbox.add(msg);
+    }
+
+    /**
+     * Notifies the client with the current leaderboard.
+     * Wraps the ranking data into a {@link LeaderboardMessage} and enqueues it.
+     *
+     * @param ranking the list of match results sorted by score
+     * @param position the position of the player in the ranking
+     */
+    @Override
+    public void onLeaderboard(List<MatchResult> ranking, int position){
+        enqueue(new LeaderboardMessage(ranking, position));
     }
 }

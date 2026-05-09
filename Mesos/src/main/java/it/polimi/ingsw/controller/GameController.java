@@ -39,12 +39,14 @@
         public GameController() {
             this.views = new HashMap<>();
 
+            MatchResultRepository repo = new InMemoryMatchResultRepository();
+            /*
             MatchResultRepository repo = new SqlMatchResultRepository(
                     "jdbc:postgresql://localhost:5432/mesos",
                     "postgres",
                     "postgres123"
             );
-
+             */
             this.rankingService = new RankingService(repo);
         }
 
@@ -133,22 +135,6 @@
          */
         public synchronized void takeExtraCard(String nickname, String cardID) {
             currentPhase.takeExtraCard(nickname, cardID);
-        }
-
-        /**
-         * Sends the leaderboard and the player's position to the requesting client.
-         *
-         * @param nickname the nickname of the requesting player
-         */
-        public synchronized void showLeaderboard(String nickname) {
-
-            List<MatchResult> ranking = rankingService.getRanking(playerCount);
-            int position = rankingService.getPlayerPosition(nickname, playerCount);
-
-            VirtualView view = views.get(nickname);
-            if (view != null && view.isConnected()) {
-                view.onLeaderboard(ranking, position);
-            }
         }
 
         // GESTIONE DELLE VIEW
@@ -330,8 +316,8 @@
 
         /**
          * Invoked when the game ends.
-         * Stores the final results in the leaderboard system and
-         * forwards the GameEnded DTO to all connected views.
+         * Stores results, computes the leaderboard, and notifies all clients
+         * with both final game data and ranking information.
          *
          * @param dto contains final scores and ranking
          */
@@ -340,9 +326,16 @@
 
             rankingService.recordGame(dto, playerCount);
 
+            List<MatchResult> ranking = rankingService.getRanking(playerCount);
+
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) {
+
+                    String nick = view.getNickname();
+                    int position = rankingService.getPlayerPosition(nick, playerCount);
+
                     view.onGameEnded(dto);
+                    view.onLeaderboard(ranking, position);
                 }
             }
         }
