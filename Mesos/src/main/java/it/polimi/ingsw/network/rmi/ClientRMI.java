@@ -136,5 +136,14 @@ public interface ClientRMI extends Remote{
     void ping()
             throws RemoteException;
 
-    void onLeaderboard(List<MatchResult> ranking, int position) throws RemoteException;
+    /**
+     * Remotely notifies the client with the global leaderboard.
+     *
+     * @param ranking  ordered list of match results
+     * @param position position of the client player
+     * @throws RemoteException if the remote invocation fails
+     */
+
+    void onLeaderboard(List<MatchResult> ranking, int position)
+            throws RemoteException;
 }

@@ -368,6 +368,13 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
         // Empty by design: a successful remote invocation is enough to prove reachability.
     }
 
+    /**
+     * Receives the leaderboard from the server and forwards it to the view.
+     *
+     * @param ranking  ordered list of match results
+     * @param position position of the client player
+     * @throws RemoteException if the remote invocation fails
+     */
     @Override
     public void onLeaderboard(List<MatchResult> ranking, int position) throws RemoteException {
         view.showLeaderboard(ranking, position);

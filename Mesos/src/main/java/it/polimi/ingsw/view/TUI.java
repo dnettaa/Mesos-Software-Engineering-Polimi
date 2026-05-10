@@ -409,6 +409,12 @@ public class TUI implements View {
         }
     }
 
+    /**
+     * Displays the global leaderboard received from the server.
+     *
+     * @param ranking ordered list of match results
+     * @param position position of the client player
+     */
     @Override
     public void showLeaderboard(List<MatchResult> ranking, int position) {
         this.leaderboard = ranking;
@@ -417,6 +423,10 @@ public class TUI implements View {
         renderLeaderboard();
     }
 
+    /**
+     * Renders the global leaderboard on the console.
+     * Shows ranking positions, scores, dates and highlights the local player.
+     */
     private void renderLeaderboard() {
 
         if (leaderboard == null || leaderboard.isEmpty()) {

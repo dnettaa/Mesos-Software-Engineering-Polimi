@@ -389,11 +389,16 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             enqueue(() -> clientStub.onGameEnded(dto));
         }
 
+        /**
+         * Forwards the leaderboard to the remote client asynchronously.
+         *
+         * @param ranking  ordered list of match results
+         * @param position position of the client player
+         */
         @Override
         public void onLeaderboard(List<MatchResult> ranking, int position){
             enqueue(() -> clientStub.onLeaderboard(ranking, position));
         }
-
 
         /**
          * Marks this client as disconnected and notifies the controller.
