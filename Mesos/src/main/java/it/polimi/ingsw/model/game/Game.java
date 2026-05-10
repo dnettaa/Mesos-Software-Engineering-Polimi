@@ -32,7 +32,7 @@ public class Game implements GameActions{
     private List<Player> placementOrder;
     private int currentPlayerIndex;
     private List<OfferSlot> resolutionOrder;
-    private final List<GameListener> listeners = new ArrayList<>();
+    private transient List<GameListener> listeners = new ArrayList<>();
 
     public Game(int gameID, List<Player> players, Board board, int currentRound, Phase phase,
                 GameState state, List<Player> placementOrder, int currentPlayerIndex, List<OfferSlot> resolutionOrder)
@@ -364,7 +364,7 @@ public class Game implements GameActions{
      *
      * @return a GameStateSnapshot representing the current state of the game
      */
-    private GameStateSnapshot buildSnapshot() {
+    public GameStateSnapshot buildSnapshot() {
         // placement order
         List<String> placementNicknames = placementOrder.stream()
                 .map(Player::getNickname)
@@ -420,7 +420,10 @@ public class Game implements GameActions{
      */
     @Override
     public void addListener(GameListener listener) {
-        listeners.add(listener);
+        if (this.listeners == null) {
+            this.listeners = new ArrayList<>();
+        }
+        this.listeners.add(listener);
     }
 
     /**
