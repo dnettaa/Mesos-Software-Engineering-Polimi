@@ -1,5 +1,7 @@
 package it.polimi.ingsw.leaderboard;
 
+import it.polimi.ingsw.config.ConfigLoader;
+import it.polimi.ingsw.config.DBConfiguration;
 import it.polimi.ingsw.model.game.DTO.GameEndedDTO;
 
 import java.util.List;
@@ -9,9 +11,26 @@ public class TestClassLeaderboard {
 
     public static void main(String[] args) {
 
-        RankingService service = new RankingService(new InMemoryMatchResultRepository());
+        // DATABASE CONFIGURATION
+        DBConfiguration config = ConfigLoader.load();
 
-        // ── PARTITA 1 ─────────────────────────────────────────
+        RankingService service;
+
+        if (config != null) {
+            service = new RankingService(
+                    new SqlMatchResultRepository(
+                            config.dbUrl,
+                            config.dbUser,
+                            config.dbPassword
+                    )
+            );
+            System.out.println(" Using SQL DB");
+        } else {
+            service = new RankingService(new InMemoryMatchResultRepository());
+            System.out.println("! Using InMemory DB");
+        }
+
+        // PARTITA 1
         Map<String, Integer> finalPP1 = Map.of(
                 "Roberto", 43,
                 "Paolo", -19
@@ -30,7 +49,7 @@ public class TestClassLeaderboard {
 
         service.recordGame(dto1, 2);
 
-        // ── PARTITA 2 (simulata, stessi player ma score diversi) ───────────────
+        // PARTITA 2
         Map<String, Integer> finalPP2 = Map.of(
                 "Roberto", 30,
                 "Paolo", 50
@@ -49,7 +68,7 @@ public class TestClassLeaderboard {
 
         service.recordGame(dto2, 2);
 
-        // ── PARTITA 3 (simulata, stessi player ma score diversi) ───────────────
+        // PARTITA 3
         Map<String, Integer> finalPP3 = Map.of(
                 "Riccardo", 100,
                 "Giuseppe", -12
@@ -68,7 +87,7 @@ public class TestClassLeaderboard {
 
         service.recordGame(dto3, 2);
 
-        // ── STAMP LEADERBOARD ───────────────────────────────
+        // STAMP
         List<MatchResult> ranking = service.getRanking(2);
 
         System.out.println("\n=== LEADERBOARD (2 players) ===");

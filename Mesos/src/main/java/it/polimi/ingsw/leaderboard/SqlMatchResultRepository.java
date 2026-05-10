@@ -37,6 +37,19 @@ public class SqlMatchResultRepository implements MatchResultRepository {
     }
 
     /**
+     * Checks if the database connection is available.
+     *
+     * @return true if the connection is valid, false otherwise
+     */
+    public boolean testConnection() {
+        try (Connection conn = getConnection()) {
+            return conn.isValid(2); // timeout 2 seconds
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    /**
      * Saves a match result into the database.
      *
      * @param result the match result to store

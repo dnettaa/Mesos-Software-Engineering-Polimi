@@ -5,7 +5,10 @@
     import it.polimi.ingsw.network.VirtualView;
     import it.polimi.ingsw.model.game.GameListener;
     import it.polimi.ingsw.model.game.DTO.*;
+
     import it.polimi.ingsw.leaderboard.*;
+    import it.polimi.ingsw.config.DBConfiguration;
+    import it.polimi.ingsw.config.ConfigLoader;
 
     import java.util.HashMap;
     import java.util.List;
@@ -33,20 +36,37 @@
 
         /**
          * Constructs a new GameController.
-         * Initializes the view map and sets up the leaderboard service
-         * using a SQL-based repository connected to a PostgreSQL database.
+         * Initializes the view map and configures the leaderboard service.
+         * If a valid database connection is available, a SQL repository is used;
+         * otherwise, it falls back to an in-memory implementation.
          */
         public GameController() {
             this.views = new HashMap<>();
 
-            MatchResultRepository repo = new InMemoryMatchResultRepository();
-            /*
-            MatchResultRepository repo = new SqlMatchResultRepository(
-                    "jdbc:postgresql://localhost:5432/mesos",
-                    "postgres",
-                    "postgres123"
-            );
-             */
+            MatchResultRepository repo;
+
+            DBConfiguration config = ConfigLoader.load();
+
+            if (config != null) {
+                SqlMatchResultRepository sqlRepo = new SqlMatchResultRepository(
+                        config.dbUrl,
+                        config.dbUser,
+                        config.dbPassword
+                );
+
+                if (sqlRepo.testConnection()) {
+                    repo = sqlRepo;
+                    System.out.println("Using SQL database");
+                } else {
+                    repo = new InMemoryMatchResultRepository();
+                    System.out.println("! DB unreachable → using InMemory database");
+                }
+
+            } else {
+                repo = new InMemoryMatchResultRepository();
+                System.out.println("! Using InMemory database");
+            }
+
             this.rankingService = new RankingService(repo);
         }
 
