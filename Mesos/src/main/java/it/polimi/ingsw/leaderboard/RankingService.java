@@ -41,10 +41,7 @@ public class RankingService {
 
         for(String nickname : dto.finalPPByPlayer().keySet()) {
 
-            int finalPP = dto.finalPPByPlayer().get(nickname);
-            int bonus = dto.endGameBonusByPlayer().getOrDefault(nickname, 0);
-
-            int finalScore = finalPP + bonus;
+            int finalScore = dto.finalPPByPlayer().get(nickname);
 
             MatchResult result = new MatchResult(nickname, finalScore, playerCount, now);
 
