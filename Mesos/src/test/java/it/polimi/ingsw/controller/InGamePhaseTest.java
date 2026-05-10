@@ -210,6 +210,11 @@ class InGamePhaseTest{
         }
 
         @Override
+        public GameStateSnapshot buildSnapshot() {
+            return null;
+        }
+
+        @Override
         public void startGame(){
             //do nothing
         }
