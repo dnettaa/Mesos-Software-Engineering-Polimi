@@ -144,7 +144,7 @@
 
 .list-view .list-cell:selected {
     -fx-background-color: rgba(139, 92, 42, 0.4);
-
+}
     /* ========================= GAME SCREEN ========================= */
 
     .game-top-bar {
