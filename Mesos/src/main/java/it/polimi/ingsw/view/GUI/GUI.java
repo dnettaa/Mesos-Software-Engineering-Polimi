@@ -474,9 +474,8 @@ public class GUI extends Application implements View {
             scalablePane.setScaleX(scale);
             scalablePane.setScaleY(scale);
 
-            scalablePane.setManaged(false);
-            scalablePane.setLayoutX((windowWidth - 1280) / 2);
-            scalablePane.setLayoutY((windowHeight - 800) / 2);
+            scalablePane.setManaged(true);
+            StackPane.setAlignment(scalablePane, javafx.geometry.Pos.CENTER);
         }
     }
     // ── Getters / Setters ─────────────────────────────────────────────────────
