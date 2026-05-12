@@ -27,13 +27,13 @@ public class GUI extends Application implements View {
     private static GUI instance;
 
     private VirtualServer virtualServer;
-    private ClientModel clientModel;
+    private ClientModel clientModel = new ClientModel();
     private Stage primaryStage;
     private String nickname;
 
     private GUILobbyController lobbyController;
-    // private GUIGameController gameController;
-    // private GUIEndGameController endGameController;
+    private GUIGameController gameController;
+    private GUIEndGameController endGameController;
 
     // ── JavaFX entry point ────────────────────────────────────────────────────
 
@@ -151,19 +151,93 @@ public class GUI extends Application implements View {
     }
 
     /**
-     * Loads and displays the in-game screen.
-     * To be uncommented once {@code GUIGameController} is implemented.
+     * Loads and displays the main game screen.
+     * This method:
+     * - load the FXML;
+     * - attach the CSS;
+     * - store the controller;
+     * - pass this GUI instance to the controller;
+     * - configure background/content scaling.
      */
     public void showGameScreen() {
-        // TODO: implement when GUIGameController is ready
+        Platform.runLater(() -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/GameScreen.fxml"));
+                Scene scene = new Scene(loader.load());
+                scene.getStylesheets().add(getClass().getResource("/fxml/style.css").toExternalForm());
+
+                this.gameController = loader.getController();
+                this.gameController.setGUI(this);
+
+                primaryStage.setScene(scene);
+                primaryStage.show();
+
+                scene.widthProperty().addListener((obs, oldVal, newVal) -> {
+                    ImageView bg = (ImageView) scene.lookup("#backgroundImage");
+                    if (bg != null) bg.setFitWidth(newVal.doubleValue());
+                    updateScale(scene);
+                });
+
+                scene.heightProperty().addListener((obs, oldVal, newVal) -> {
+                    ImageView bg = (ImageView) scene.lookup("#backgroundImage");
+                    if (bg != null) bg.setFitHeight(newVal.doubleValue());
+                    updateScale(scene);
+                });
+
+                updateScale(scene);
+
+                /*
+                 * The controller is now ready, so we immediately draw the latest state.
+                 * This is important because the server may have already sent the first snapshot.
+                 */
+                this.gameController.render();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     /**
-     * Loads and displays the end-game screen with final scores and ranking.
-     * To be uncommented once {@code GUIEndGameController} is implemented.
+     * Loads and displays the final ranking screen.
+     * It is shown when the ClientModel enters the EndGame phase.
      */
     public void showEndGameScreen() {
-        // TODO: implement when GUIEndGameController is ready
+        Platform.runLater(() -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/EndGameScreen.fxml"));
+                Scene scene = new Scene(loader.load());
+                scene.getStylesheets().add(getClass().getResource("/fxml/style.css").toExternalForm());
+
+                this.endGameController = loader.getController();
+                this.endGameController.setGUI(this);
+
+                primaryStage.setScene(scene);
+                primaryStage.show();
+
+                scene.widthProperty().addListener((obs, oldVal, newVal) -> {
+                    ImageView bg = (ImageView) scene.lookup("#backgroundImage");
+                    if (bg != null) bg.setFitWidth(newVal.doubleValue());
+                    updateScale(scene);
+                });
+
+                scene.heightProperty().addListener((obs, oldVal, newVal) -> {
+                    ImageView bg = (ImageView) scene.lookup("#backgroundImage");
+                    if (bg != null) bg.setFitHeight(newVal.doubleValue());
+                    updateScale(scene);
+                });
+
+                updateScale(scene);
+
+                /*
+                 * Draw the final ranking as soon as the screen is loaded.
+                 */
+                this.endGameController.render();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     // ── View interface ────────────────────────────────────────────────────────
@@ -205,7 +279,20 @@ public class GUI extends Application implements View {
     @Override
     public void setClientModel(ClientModel model) {
         this.clientModel = model;
-        // if (gameController == null) showGameScreen();
+        /*
+         * A new full model usually means that the game has just started.
+         * We switch from the lobby to the game screen, unless the model already says
+         * that the game is over.
+         */
+        Platform.runLater(() -> {
+            if (isEndGamePhase()) {
+                showEndGameScreen();
+            } else if (gameController == null) {
+                showGameScreen();
+            } else {
+                gameController.render();
+            }
+        });
     }
 
     /**
@@ -214,7 +301,32 @@ public class GUI extends Application implements View {
      */
     @Override
     public void render() {
-        // TODO: implement when GUIGameController is ready
+        Platform.runLater(() -> {
+            if (clientModel == null) {
+                return;
+            }
+
+            /*
+             * If the server says that the game is finished, we move to the final screen.
+             */
+            if (isEndGamePhase()) {
+                if (endGameController == null) {
+                    showEndGameScreen();
+                } else {
+                    endGameController.render();
+                }
+                return;
+            }
+
+            /*
+             * Otherwise we render the normal game screen.
+             */
+            if (gameController == null) {
+                showGameScreen();
+            } else {
+                gameController.render();
+            }
+        });
     }
 
     /**
@@ -273,7 +385,13 @@ public class GUI extends Application implements View {
     @Override
     public void showGameError(String description) {
         Platform.runLater(() -> {
-            if (lobbyController != null) {
+            /*
+             * During the game, errors must be shown on the game screen.
+             * If the game screen is not ready yet, we fallback to the lobby controller.
+             */
+            if (gameController != null) {
+                gameController.showError(description);
+            } else if (lobbyController != null) {
                 lobbyController.showError(description);
             }
         });
@@ -291,7 +409,15 @@ public class GUI extends Application implements View {
     public void showEventResolved(String eventCardID, String eventType,
                                   Map<String, Integer> ppDelta,
                                   Map<String, Integer> foodDelta) {
-        // TODO: implement when GUIGameController is ready
+        Platform.runLater(() -> {
+            /*
+             * Events are part of the game log, so we forward them to the game controller.
+             * The model update is handled elsewhere by ClientModel.applyEventResolved().
+             */
+            if (gameController != null) {
+                gameController.showEventResolved(eventCardID, eventType, ppDelta, foodDelta);
+            }
+        });
     }
 
     /**
@@ -314,6 +440,15 @@ public class GUI extends Application implements View {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /**
+     * Checks whether the current local model represents the final game phase.
+     *
+     * @return true if the model is in the end-game phase
+     */
+    private boolean isEndGamePhase() {
+        return clientModel != null && "EndGame".equals(clientModel.getCurrentPhaseName());
+    }
 
     /**
      * Scales the content pane proportionally to fit the current window size,
