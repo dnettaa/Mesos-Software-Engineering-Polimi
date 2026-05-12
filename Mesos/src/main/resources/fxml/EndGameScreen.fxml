@@ -11,7 +11,7 @@
 
     <!--
         Full-screen background.
-        Same structure as Luca's screens: GUI.java resizes this ImageView.
+        GUI.java resizes this ImageView.
     -->
     <ImageView fx:id="backgroundImage" preserveRatio="false">
         <image>
