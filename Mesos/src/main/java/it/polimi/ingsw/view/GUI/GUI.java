@@ -190,7 +190,7 @@ public class GUI extends Application implements View {
                  * The controller is now ready, so we immediately draw the latest state.
                  * This is important because the server may have already sent the first snapshot.
                  */
-                this.gameController.render();
+                this.gameController.render(this.clientModel);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -290,7 +290,7 @@ public class GUI extends Application implements View {
             } else if (gameController == null) {
                 showGameScreen();
             } else {
-                gameController.render();
+                gameController.render(this.clientModel);
             }
         });
     }
@@ -324,7 +324,7 @@ public class GUI extends Application implements View {
             if (gameController == null) {
                 showGameScreen();
             } else {
-                gameController.render();
+                gameController.render(this.clientModel);
             }
         });
     }
