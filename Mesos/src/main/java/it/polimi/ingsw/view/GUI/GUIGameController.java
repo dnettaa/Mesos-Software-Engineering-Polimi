@@ -795,7 +795,7 @@ public class GUIGameController {
      * @param ppDelta     prestige point changes per player
      * @param foodDelta   food changes per player
      */
-    public void showEvent(String eventCardID, String eventType,
+    public void showEventResolved(String eventCardID, String eventType,
                           Map<String, Integer> ppDelta,
                           Map<String, Integer> foodDelta) {
         StringBuilder sb = new StringBuilder();
