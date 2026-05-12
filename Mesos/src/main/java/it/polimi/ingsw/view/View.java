@@ -13,49 +13,76 @@ public interface View {
 
     /**
      * Notifies the user of a successful lobby join.
+     *
+     * @param nickname the confirmed nickname assigned by the server
+     * @param color    the assigned totem color
      */
     void showJoinSuccess(String nickname, TotemColor color);
 
     /**
      * Updates the user with the current status of the lobby.
+     *
+     * @param players        ordered list of connected player nicknames
+     * @param colorsByPlayer map from nickname to assigned totem color
+     * @param expected       total number of players required to start
      */
     void showLobbyUpdate(List<String> players, Map<String, TotemColor> colorsByPlayer, int expected);
 
     /**
      * Notifies the user of a disconnection from the server.
+     *
+     * @param reason human-readable disconnection reason
      */
     void notifyDisconnection(String reason);
 
     /**
-     * Binds the view to the network layer (VirtualServer).
+     * Binds the view to the network layer.
+     *
+     * @param vs the {@link VirtualServer} to use for outgoing messages
      */
     void setVirtualServer(VirtualServer vs);
 
     /**
-     * Restituisce la replica locale dello stato del gioco.
+     * Returns the local replica of the game state.
+     *
+     * @return the current {@link ClientModel}
      */
     ClientModel getClientModel();
 
     /**
-     * Imposta il ClientModel per questa vista.
+     * Sets the client model for this view.
+     *
+     * @param model the new {@link ClientModel} received from the server
      */
     void setClientModel(ClientModel model);
 
     /**
-     * Legge lo stato dal ClientModel e ridisegna l'interfaccia.
+     * Reads the current state from the client model and redraws the interface.
      */
     void render();
 
     /**
-     * Gestisce gli errori durante la fase pre-partita (Lobby e Login).
+     * Handles errors occurring during the pre-game phases (lobby and login).
+     *
+     * @param description human-readable error description
      */
     void showLoginError(String description);
 
     /**
-     * Gestisce gli errori durante il gioco (mosse non valide, turno sbagliato).
+     * Handles errors occurring during gameplay (invalid moves, wrong turn, etc.).
+     *
+     * @param description human-readable error description
      */
     void showGameError(String description);
 
+    /**
+     * Notifies the view that an event card has been resolved.
+     *
+     * @param eventCardID the ID of the resolved event card
+     * @param eventType   the type of the event
+     * @param ppDelta     prestige point changes per player (positive or negative)
+     * @param foodDelta   food changes per player (positive or negative)
+     */
     void showEventResolved(String eventCardID, String eventType,
                            Map<String, Integer> ppDelta, Map<String, Integer> foodDelta);
 }
