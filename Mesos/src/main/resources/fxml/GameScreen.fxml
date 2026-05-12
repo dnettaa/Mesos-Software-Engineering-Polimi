@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="it.polimi.ingsw.view.GUI.GUIGameController"
+           prefWidth="1280" prefHeight="800">
+
+    <!--
+        Full-screen background.
+        GUI.java resizes this ImageView when the window changes size.
+    -->
+    <ImageView fx:id="backgroundImage" preserveRatio="false">
+        <image>
+            <Image url="/GUI-resources/images/wallpaper.png"/>
+        </image>
+    </ImageView>
+
+    <!--
+        Fixed-size root pane.
+        GUI.java scales this pane proportionally through updateScale(scene).
+        This keeps the whole game board visually stable on different window sizes.
+    -->
+    <BorderPane fx:id="scalablePane"
+                prefWidth="1280" prefHeight="800"
+                maxWidth="1280" maxHeight="800"
+                style="-fx-padding: 18;">
+
+        <!-- ========================= TOP BAR ========================= -->
+        <top>
+            <HBox alignment="CENTER_LEFT" spacing="18"
+                  styleClass="game-top-bar">
+
+                <!-- Logo on the top-left, consistent with the welcome screen assets. -->
+                <ImageView fitWidth="145" preserveRatio="true">
+                    <image>
+                        <Image url="/GUI-resources/images/logo.png"/>
+                    </image>
+                </ImageView>
+
+                <!-- Main game information. The controller updates these labels in render(). -->
+                <VBox spacing="4">
+                    <Label fx:id="roundLabel"
+                           text="Round -"
+                           styleClass="game-title-label"/>
+
+                    <HBox spacing="18">
+                        <Label fx:id="eraLabel"
+                               text="Era -"
+                               styleClass="game-info-label"/>
+
+                        <Label fx:id="phaseLabel"
+                               text="Phase -"
+                               styleClass="game-info-label"/>
+
+                        <Label fx:id="activePlayerLabel"
+                               text="Turn -"
+                               styleClass="game-info-label"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Spacer: pushes the local player label to the right. -->
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <VBox alignment="CENTER_RIGHT" spacing="3">
+                    <Label text="You are"
+                           styleClass="game-small-label"/>
+
+                    <Label fx:id="nicknameLabel"
+                           text="-"
+                           styleClass="game-player-name-label"/>
+                </VBox>
+
+            </HBox>
+        </top>
+
+        <!-- ========================= CENTER BOARD ========================= -->
+        <center>
+            <VBox spacing="12"
+                  alignment="TOP_CENTER"
+                  style="-fx-padding: 12 0 12 0;">
+
+                <!--
+                    Upper row: cards available above the offer track.
+                    GUIGameController will fill this HBox dynamically with ImageView nodes.
+                -->
+                <VBox spacing="5" alignment="CENTER">
+                    <Label text="UPPER ROW"
+                           styleClass="game-section-title"/>
+
+                    <ScrollPane hbarPolicy="AS_NEEDED"
+                                vbarPolicy="NEVER"
+                                fitToHeight="true"
+                                fitToWidth="false"
+                                prefHeight="150"
+                                maxHeight="150"
+                                styleClass="game-transparent-scroll">
+                        <HBox fx:id="upperRowBox"
+                              spacing="10"
+                              alignment="CENTER_LEFT"
+                              style="-fx-padding: 6;"/>
+                    </ScrollPane>
+                </VBox>
+
+                <!--
+                    Offer track.
+                    The controller will insert offer tiles A-G and eventually totems.
+                -->
+                <VBox spacing="5" alignment="CENTER">
+                    <Label text="OFFER TRACK"
+                           styleClass="game-section-title"/>
+
+                    <HBox fx:id="offerTrackBox"
+                          spacing="8"
+                          alignment="CENTER"
+                          prefHeight="110"
+                          styleClass="game-board-panel"/>
+                </VBox>
+
+                <!--
+                    Lower row: cards available below the offer track.
+                    Also filled dynamically by the controller.
+                -->
+                <VBox spacing="5" alignment="CENTER">
+                    <Label text="LOWER ROW"
+                           styleClass="game-section-title"/>
+
+                    <ScrollPane hbarPolicy="AS_NEEDED"
+                                vbarPolicy="NEVER"
+                                fitToHeight="true"
+                                fitToWidth="false"
+                                prefHeight="150"
+                                maxHeight="150"
+                                styleClass="game-transparent-scroll">
+                        <HBox fx:id="lowerRowBox"
+                              spacing="10"
+                              alignment="CENTER_LEFT"
+                              style="-fx-padding: 6;"/>
+                    </ScrollPane>
+                </VBox>
+
+                <!--
+                    Action area.
+                    This is where the controller tells the user what to do and shows buttons.
+                -->
+                <VBox spacing="8"
+                      alignment="CENTER"
+                      styleClass="game-action-panel">
+
+                    <Label fx:id="messageLabel"
+                           text="Waiting for game state..."
+                           wrapText="true"
+                           textAlignment="CENTER"
+                           styleClass="game-message-label"/>
+
+                    <HBox spacing="12" alignment="CENTER">
+                        <Button fx:id="confirmActionButton"
+                                text="Confirm"
+                                onAction="#onConfirmAction"
+                                visible="false"
+                                managed="false"
+                                prefWidth="160"/>
+
+                        <Button fx:id="clearSelectionButton"
+                                text="Clear selection"
+                                onAction="#onClearSelection"
+                                visible="false"
+                                managed="false"
+                                prefWidth="160"/>
+                    </HBox>
+
+                    <Label fx:id="errorLabel"
+                           visible="false"
+                           managed="false"
+                           wrapText="true"
+                           textAlignment="CENTER"
+                           styleClass="game-error-label"/>
+                </VBox>
+
+            </VBox>
+        </center>
+
+        <!-- ========================= RIGHT SIDE ========================= -->
+        <right>
+            <VBox spacing="10"
+                  prefWidth="300"
+                  maxWidth="300"
+                  style="-fx-padding: 12 0 12 12;">
+
+                <!-- Turn order panel. -->
+                <VBox spacing="6"
+                      styleClass="game-side-panel">
+                    <Label text="TURN ORDER"
+                           styleClass="game-section-title"/>
+
+                    <HBox fx:id="turnOrderBox"
+                          spacing="8"
+                          alignment="CENTER_LEFT"
+                          style="-fx-padding: 4;"/>
+                </VBox>
+
+                <!--
+                    Players panel.
+                    Every player must be visible, because the requirements say that each client
+                    must show not only the local player situation, but also the opponents.
+                -->
+                <VBox spacing="6"
+                      VBox.vgrow="ALWAYS"
+                      styleClass="game-side-panel">
+                    <Label text="PLAYERS"
+                           styleClass="game-section-title"/>
+
+                    <ScrollPane fitToWidth="true"
+                                hbarPolicy="NEVER"
+                                vbarPolicy="AS_NEEDED"
+                                VBox.vgrow="ALWAYS"
+                                styleClass="game-transparent-scroll">
+                        <VBox fx:id="playersBox"
+                              spacing="8"
+                              style="-fx-padding: 4;"/>
+                    </ScrollPane>
+                </VBox>
+
+                <!-- Event log / last event panel. -->
+                <VBox spacing="6"
+                      prefHeight="140"
+                      styleClass="game-side-panel">
+                    <Label text="EVENT LOG"
+                           styleClass="game-section-title"/>
+
+                    <TextArea fx:id="eventLogArea"
+                              editable="false"
+                              wrapText="true"
+                              prefHeight="100"
+                              styleClass="game-log-area"/>
+                </VBox>
+
+            </VBox>
+        </right>
+
+    </BorderPane>
+</StackPane>
