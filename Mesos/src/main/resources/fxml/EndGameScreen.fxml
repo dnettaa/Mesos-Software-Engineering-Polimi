@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="it.polimi.ingsw.view.GUI.GUIEndGameController"
+           prefWidth="1280" prefHeight="800">
+
+    <!--
+        Full-screen background.
+        Same structure as Luca's screens: GUI.java resizes this ImageView.
+    -->
+    <ImageView fx:id="backgroundImage" preserveRatio="false">
+        <image>
+            <Image url="/GUI-resources/images/wallpaper.png"/>
+        </image>
+    </ImageView>
+
+    <!--
+        Scalable fixed-size content.
+        GUI.java expects this node to be a StackPane with id scalablePane.
+    -->
+    <StackPane fx:id="scalablePane"
+               prefWidth="1280" prefHeight="800"
+               maxWidth="1280" maxHeight="800">
+
+        <VBox alignment="CENTER"
+              spacing="22"
+              maxWidth="900"
+              styleClass="endgame-main-panel">
+
+            <ImageView fitWidth="230" preserveRatio="true">
+                <image>
+                    <Image url="/GUI-resources/images/logo.png"/>
+                </image>
+            </ImageView>
+
+            <Label text="GAME OVER"
+                   styleClass="endgame-title-label"/>
+
+            <Label fx:id="winnerLabel"
+                   text="Winner: -"
+                   wrapText="true"
+                   textAlignment="CENTER"
+                   styleClass="endgame-winner-label"/>
+
+            <!--
+                Ranking table.
+                The controller fills this table from ClientModel.ranking,
+                ClientModel.finalPP and ClientModel.endGameBonus.
+            -->
+            <TableView fx:id="rankingTable"
+                       prefWidth="760"
+                       prefHeight="330"
+                       columnResizePolicy="CONSTRAINED_RESIZE_POLICY"
+                       styleClass="endgame-table">
+
+                <columns>
+                    <TableColumn fx:id="positionColumn"
+                                 text="#"
+                                 prefWidth="80"/>
+
+                    <TableColumn fx:id="playerColumn"
+                                 text="Player"
+                                 prefWidth="310"/>
+
+                    <TableColumn fx:id="basePointsColumn"
+                                 text="Final PP"
+                                 prefWidth="170"/>
+
+                    <TableColumn fx:id="bonusColumn"
+                                 text="End bonus"
+                                 prefWidth="170"/>
+                </columns>
+            </TableView>
+
+            <Label fx:id="localResultLabel"
+                   text=""
+                   wrapText="true"
+                   textAlignment="CENTER"
+                   styleClass="endgame-local-result-label"/>
+
+            <HBox alignment="CENTER" spacing="14">
+                <Button text="Exit"
+                        prefWidth="180"
+                        onAction="#onExit"/>
+            </HBox>
+
+        </VBox>
+    </StackPane>
+</StackPane>
