@@ -24,10 +24,13 @@
         GUI.java scales this pane proportionally through updateScale(scene).
         This keeps the whole game board visually stable on different window sizes.
     -->
-    <BorderPane fx:id="scalablePane"
-                prefWidth="1280" prefHeight="800"
-                maxWidth="1280" maxHeight="800"
-                style="-fx-padding: 18;">
+    <StackPane fx:id="scalablePane"
+               prefWidth="1280" prefHeight="800"
+               maxWidth="1280" maxHeight="800">
+
+        <BorderPane prefWidth="1280" prefHeight="800"
+                    maxWidth="1280" maxHeight="800"
+                    style="-fx-padding: 18;">
 
         <!-- ========================= TOP BAR ========================= -->
         <top>
@@ -241,5 +244,8 @@
             </VBox>
         </right>
 
-    </BorderPane>
+        </BorderPane>
+
+    </StackPane>
+
 </StackPane>
