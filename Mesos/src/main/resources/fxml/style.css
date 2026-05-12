@@ -144,4 +144,130 @@
 
 .list-view .list-cell:selected {
     -fx-background-color: rgba(139, 92, 42, 0.4);
+
+    /* ========================= GAME SCREEN ========================= */
+
+    .game-top-bar {
+        -fx-background-color: rgba(255, 245, 220, 0.88);
+        -fx-background-radius: 14;
+        -fx-padding: 10 16 10 16;
+        -fx-border-color: #5b3211;
+        -fx-border-radius: 14;
+        -fx-border-width: 2;
+    }
+
+    .game-title-label {
+        -fx-font-size: 26px;
+        -fx-font-weight: bold;
+        -fx-text-fill: #3b1e00;
+    }
+
+    .game-info-label {
+        -fx-font-size: 15px;
+        -fx-font-weight: bold;
+        -fx-text-fill: #4a2a0a;
+    }
+
+    .game-small-label {
+        -fx-font-size: 12px;
+        -fx-text-fill: #4a2a0a;
+    }
+
+    .game-player-name-label {
+        -fx-font-size: 20px;
+        -fx-font-weight: bold;
+        -fx-text-fill: #3b1e00;
+    }
+
+    .game-section-title {
+        -fx-font-size: 13px;
+        -fx-font-weight: bold;
+        -fx-text-fill: #3b1e00;
+    }
+
+    .game-board-panel {
+        -fx-background-color: rgba(255, 245, 220, 0.76);
+        -fx-background-radius: 14;
+        -fx-padding: 8;
+        -fx-border-color: #5b3211;
+        -fx-border-radius: 14;
+        -fx-border-width: 2;
+    }
+
+    .game-action-panel {
+        -fx-background-color: rgba(255, 245, 220, 0.90);
+        -fx-background-radius: 14;
+        -fx-padding: 10;
+        -fx-border-color: #5b3211;
+        -fx-border-radius: 14;
+        -fx-border-width: 2;
+    }
+
+    .game-side-panel {
+        -fx-background-color: rgba(255, 245, 220, 0.86);
+        -fx-background-radius: 14;
+        -fx-padding: 10;
+        -fx-border-color: #5b3211;
+        -fx-border-radius: 14;
+        -fx-border-width: 2;
+    }
+
+    .game-message-label {
+        -fx-font-size: 15px;
+        -fx-font-weight: bold;
+        -fx-text-fill: #3b1e00;
+    }
+
+    .game-error-label {
+        -fx-font-size: 13px;
+        -fx-font-weight: bold;
+        -fx-text-fill: #9a0000;
+    }
+
+    .game-log-area {
+        -fx-font-size: 11px;
+        -fx-control-inner-background: rgba(255, 255, 255, 0.75);
+    }
+
+    .game-transparent-scroll {
+        -fx-background-color: transparent;
+        -fx-background: transparent;
+    }
+
+    .game-transparent-scroll > .viewport {
+        -fx-background-color: transparent;
+    }
+
+    /* ========================= END GAME SCREEN ========================= */
+
+    .endgame-main-panel {
+        -fx-background-color: rgba(255, 245, 220, 0.92);
+        -fx-background-radius: 22;
+        -fx-padding: 34;
+        -fx-border-color: #5b3211;
+        -fx-border-radius: 22;
+        -fx-border-width: 3;
+    }
+
+    .endgame-title-label {
+        -fx-font-size: 42px;
+        -fx-font-weight: bold;
+        -fx-text-fill: #3b1e00;
+    }
+
+    .endgame-winner-label {
+        -fx-font-size: 26px;
+        -fx-font-weight: bold;
+        -fx-text-fill: #6b3400;
+    }
+
+    .endgame-local-result-label {
+        -fx-font-size: 17px;
+        -fx-font-weight: bold;
+        -fx-text-fill: #3b1e00;
+    }
+
+    .endgame-table {
+        -fx-font-size: 15px;
+    }
 }
