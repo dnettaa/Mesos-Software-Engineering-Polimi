@@ -85,6 +85,26 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         controller.joinLobby(nickname, color, connection);
     }
 
+    @Override
+    public void reconnect(
+            String nickname,
+            TotemColor color,
+            ClientRMI client
+    ) throws RemoteException{
+
+        RMIClientConnection connection =
+                registerConnection(
+                        nickname,
+                        client
+                );
+
+        controller.reconnectPlayer(
+                nickname,
+                color,
+                connection
+        );
+    }
+
     /**
      * Handles a remote request to place a totem.
      *

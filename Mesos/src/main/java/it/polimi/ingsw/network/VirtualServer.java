@@ -60,4 +60,9 @@ public interface VirtualServer{
      * Requests a voluntary disconnection from the server.
      */
     void disconnect();
+
+    void reconnect(
+            String nickname,
+            TotemColor color
+    );
 }

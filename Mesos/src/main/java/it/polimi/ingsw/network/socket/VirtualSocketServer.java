@@ -27,6 +27,10 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     private final View view;
     private boolean running;
     private String nickname;
+    private String host;
+    private int port;
+    private TotemColor savedColor;
+    private boolean wasInGame;
 
     /**
      * Creates a new VirtualSocketServer for the given view.
@@ -48,6 +52,9 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
      * @throws RuntimeException if the connection cannot be established
      */
     public void connect(String host, int port){
+        this.host = host;
+        this.port = port;
+
         try{
             this.socket = new Socket(host, port);
             this.out = new ObjectOutputStream(socket.getOutputStream());
@@ -71,14 +78,107 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         try {
             while (running) {
                 ServerMessage msg = (ServerMessage) in.readObject();
+
+                /*
+                 * Game officially started:
+                 * recovery data becomes valid
+                 */
+                if(msg instanceof GameStartedMessage){
+                    wasInGame = true;
+                }
+
                 msg.apply(view);
             }
         } catch (IOException | ClassNotFoundException e) {
             if (running) {
-                view.notifyDisconnection("Connection lost: " + e.getMessage());
-                disconnect();
+                handleServerCrash();
             }
         }
+    }
+
+    private void handleServerCrash(){
+
+        running = false;
+
+        view.notifyDisconnection(
+                "Server offline. Waiting for recovery..."
+        );
+
+        startReconnectLoop();
+    }
+
+    private void startReconnectLoop(){
+
+        Thread reconnectThread = new Thread(() -> {
+
+            while (!running) {
+
+                try {
+
+                    Thread.sleep(3000);
+
+                    reconnect();
+
+                } catch (Exception ignored) {
+
+                }
+            }
+
+        }, "Reconnect-Loop");
+
+        reconnectThread.start();
+    }
+
+    private void reconnect(){
+
+        try {
+
+            this.socket = new Socket(host, port);
+
+            this.out =
+                    new ObjectOutputStream(
+                            socket.getOutputStream()
+                    );
+
+            this.out.flush();
+
+            this.in =
+                    new ObjectInputStream(
+                            socket.getInputStream()
+                    );
+
+            this.running = true;
+
+            Thread readerThread =
+                    new Thread(
+                            this,
+                            "VirtualSocketServer-Reader"
+                    );
+
+            readerThread.start();
+
+            view.notifyDisconnection(
+                    "Server reconnected. Recovering game..."
+            );
+
+            /*
+             * Automatic recovery request
+             */
+            if (wasInGame) {
+                reconnectToSavedGame();
+            }
+
+        } catch (IOException ignored) {
+
+        }
+    }
+
+    private void reconnectToSavedGame(){
+
+        write(new ReconnectMessage(
+                nickname,
+                savedColor
+        ));
     }
 
     // --- VirtualServer: client-to-server commands ---
@@ -94,6 +194,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     @Override
     public void createLobby(String nickname, TotemColor color, int expectedPlayers){
         this.nickname = nickname;
+        this.savedColor = color;
         write(new CreateLobbyMessage(nickname, color, expectedPlayers));
     }
 
@@ -107,6 +208,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     @Override
     public void joinLobby(String nickname, TotemColor color){
         this.nickname = nickname;
+        this.savedColor = color;
         write(new JoinLobbyMessage(nickname, color));
     }
 
@@ -173,8 +275,24 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             out.flush();
             out.reset();
         }catch(IOException e){
-            view.notifyDisconnection("Send failed: " + e.getMessage());
-            disconnect();
+            if(running){
+                handleServerCrash();
+            }
         }
+    }
+
+    @Override
+    public void reconnect(
+            String nickname,
+            TotemColor color
+    ){
+
+        this.nickname = nickname;
+        this.savedColor = color;
+
+        write(new ReconnectMessage(
+                nickname,
+                color
+        ));
     }
 }

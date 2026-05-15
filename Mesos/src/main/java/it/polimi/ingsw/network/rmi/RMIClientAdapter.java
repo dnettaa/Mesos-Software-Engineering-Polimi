@@ -43,6 +43,10 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     private ServerRMI serverStub;
     private String nickname;
     private boolean connected;
+    private String host;
+    private int port;
+    private TotemColor savedColor;
+    private boolean wasInGame;
     private static final Set<String> LOGIN_ERROR_CODES = Set.of(
             "NICKNAME_TAKEN",
             "COLOR_TAKEN",
@@ -84,6 +88,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      * @param port the port where the RMI registry is listening
      */
     public void connect(String host, int port) throws Exception{
+        this.host = host;
+        this.port = port;
         try{
             Registry registry = LocateRegistry.getRegistry(host, port);
             serverStub = (ServerRMI) registry.lookup(SERVER_NAME);
@@ -103,6 +109,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void createLobby(String nickname, TotemColor color, int expectedPlayers){
+        this.nickname = nickname;
+        this.savedColor = color;
         if(!isReady()){
             return;
         }
@@ -286,8 +294,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onGameStarted(GameStateSnapshot snapshot) throws RemoteException{
+        wasInGame = true;
         applyAndRender(() -> view.getClientModel().applyGameStarted(snapshot));
-
     }
 
     /**
@@ -354,6 +362,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onGameEnded(GameEndedDTO dto) throws RemoteException{
+        wasInGame = false;
         applyAndRender(() -> view.getClientModel().applyGameEnded(dto));
     }
 
@@ -389,6 +398,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     private void handleRemoteFailure(String message){
         connected = false;
         view.notifyDisconnection(message);
+        startReconnectLoop();
     }
 
     /**
@@ -398,5 +408,92 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     public String getNickname(){
         return nickname;
+    }
+
+    @Override
+    public void reconnect(
+            String nickname,
+            TotemColor color
+    ){
+
+        if(!isReady()){
+            return;
+        }
+
+        this.nickname = nickname;
+        this.savedColor = color;
+
+        try{
+
+            serverStub.reconnect(
+                    nickname,
+                    color,
+                    this
+            );
+
+        } catch(RemoteException e){
+
+            handleRemoteFailure(
+                    "Connection with the RMI server lost during recovery."
+            );
+        }
+    }
+
+    private void startReconnectLoop(){
+
+        Thread reconnectThread = new Thread(() -> {
+
+            while(!connected){
+
+                try{
+
+                    Thread.sleep(3000);
+
+                    reconnectToServer();
+
+                }catch(Exception ignored){
+
+                }
+            }
+
+        }, "RMI-Reconnect-Loop");
+
+        reconnectThread.start();
+    }
+
+    private void reconnectToServer(){
+
+        try{
+
+            Registry registry =
+                    LocateRegistry.getRegistry(
+                            host,
+                            port
+                    );
+
+            serverStub =
+                    (ServerRMI) registry.lookup(
+                            SERVER_NAME
+                    );
+
+            connected = true;
+
+            view.notifyDisconnection(
+                    "Server reconnected. Recovering game..."
+            );
+
+            if(wasInGame){
+
+                reconnect(
+                        nickname,
+                        savedColor
+                );
+
+                wasInGame = false;
+            }
+
+        }catch(Exception ignored){
+
+        }
     }
 }

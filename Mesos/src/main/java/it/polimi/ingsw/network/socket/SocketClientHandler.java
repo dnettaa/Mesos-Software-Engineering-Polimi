@@ -65,6 +65,7 @@ public class SocketClientHandler implements VirtualView, Runnable {
     @Override
     public void run(){
         Thread writerThread = new Thread(this::writerLoop);
+        writerThread.setDaemon(true);
         writerThread.start();
 
         while(connected){
@@ -234,7 +235,9 @@ public class SocketClientHandler implements VirtualView, Runnable {
         }catch(IOException e){
             System.err.println("Failed to close socket: " + e.getMessage());
         }
-        controller.onDisconnect(nickname);
+        if(nickname != null){
+            controller.onDisconnect(nickname);
+        }
     }
 
     /**
@@ -247,7 +250,6 @@ public class SocketClientHandler implements VirtualView, Runnable {
         return connected;
     }
 
-
     /**
      * Writer loop that runs on a dedicated thread.
      * Takes messages from the outbox and serializes them to the socket output stream.
@@ -258,6 +260,8 @@ public class SocketClientHandler implements VirtualView, Runnable {
             try {
                 ServerMessage message = outbox.take();
                 out.writeObject(message);
+                out.flush();
+                out.reset();
             } catch (InterruptedException | IOException e) {
                 if (connected) disconnect();
             }

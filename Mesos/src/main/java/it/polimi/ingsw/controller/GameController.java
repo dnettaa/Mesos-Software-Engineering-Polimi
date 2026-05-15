@@ -68,6 +68,30 @@
         }
 
         /**
+         * Handles a player's reconnection request
+         * during server recovery.
+         * Delegates the reconnect logic to the
+         * current controller phase.
+         *
+         * @param nickname the player's nickname
+         * @param color the player's original totem color
+         * @param view the reconnecting virtual view
+         */
+        public synchronized void reconnectPlayer(
+                String nickname,
+                TotemColor color,
+                VirtualView view
+        ) {
+
+            currentPhase.reconnect(
+                    this,
+                    nickname,
+                    color,
+                    view
+            );
+        }
+
+        /**
          * Handles the disconnection of a player.
          * Delegates the logic to the current phase.
          *

@@ -295,7 +295,7 @@ public class GUI extends Application implements View {
     }
 
     /**
-     * Notifies the user of a disconnection, shows an error dialog and exits the application.
+     * Notifies the user of a disconnection without terminating the application.
      *
      * @param reason human-readable disconnection reason
      */
@@ -309,7 +309,6 @@ public class GUI extends Application implements View {
             alert.setHeaderText("Connection lost");
             alert.setContentText(reason);
             alert.showAndWait();
-            Platform.exit();
         });
     }
 

@@ -343,14 +343,13 @@ public class TUI implements View {
     }
 
     /**
-     * Notifies the user that the connection to the server has been lost and terminates the client.
+     * Notifies the user that the connection to the server has been lost.
      *
      * @param reason A string detailing why the disconnection occurred.
      */
     @Override
     public void notifyDisconnection(String reason) {
         System.out.println("\n[DISCONNECTED] " + reason);
-        System.exit(0);
     }
 
     /**
