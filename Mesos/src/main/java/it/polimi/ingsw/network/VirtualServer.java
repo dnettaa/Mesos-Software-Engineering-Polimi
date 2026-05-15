@@ -61,8 +61,11 @@ public interface VirtualServer{
      */
     void disconnect();
 
-    void reconnect(
-            String nickname,
-            TotemColor color
-    );
+    /**
+     * Requests to reconnect to an existing game session.
+     *
+     * @param nickname nickname of the reconnecting player
+     * @param color    chosen totem color
+     */
+    void reconnect(String nickname, TotemColor color);
 }

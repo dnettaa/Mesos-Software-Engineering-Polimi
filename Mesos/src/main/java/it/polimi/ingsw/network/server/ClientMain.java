@@ -29,7 +29,7 @@ public class ClientMain {
      * @param args command-line arguments (not used)
      * @throws IllegalArgumentException if the user enters an invalid choice
      */
-    public static void main(String args[]) throws RemoteException {
+    public static void main(String[] args) throws RemoteException {
 
         Scanner scanner = new Scanner(System.in);
 

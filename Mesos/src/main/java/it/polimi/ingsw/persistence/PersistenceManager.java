@@ -10,19 +10,18 @@ import it.polimi.ingsw.model.game.phase.Phase;
 import java.io.*;
 
 /**
- * Utility class responsible for managing the persistence of the game state.
- * It serializes and deserializes the {@link Game} instance using JSON.
- * To prevent data corruption in case of crashes during write operations,
- * it uses a double-file strategy (A/B).
- * Strategy:
- * - Always write to the "temp" file first
- * - If successful, replace the main file atomically
- * - On load, try main file first, then fallback to temp
+ * Utility class responsible for managing game persistence.
+ * The game state is serialized into JSON using Gson.
+ * To reduce the risk of save corruption during crashes,
+ * the game is first written to a temporary file and then
+ * atomically promoted to the main save file.
+ *
+ * @author Andrea Markvukaj
  */
 public class PersistenceManager {
 
-    private static final String SAVE_FILE_A = "mesos_save_A.json";
-    private static final String SAVE_FILE_B = "mesos_save_B.json";
+    private static final String SAVE_FILE = "mesos_save.json";
+    private static final String TEMP_FILE = "mesos_save.tmp";
 
     private static final Gson gson = new GsonBuilder()
             .registerTypeHierarchyAdapter(Card.class, new InterfaceAdapter<>())
@@ -31,95 +30,119 @@ public class PersistenceManager {
             .create();
 
     /**
-     * Saves the current game state using a double-file strategy.
+     * Private constructor for utility class.
      */
-    public static void saveGame(GameActions game) {
-        File fileA = new File(SAVE_FILE_A);
-        File fileB = new File(SAVE_FILE_B);
-
-        String target;
-
-        if (!fileA.exists()) {
-            target = SAVE_FILE_A;
-        } else if (!fileB.exists()) {
-            target = SAVE_FILE_B;
-        } else {
-            target = (fileA.lastModified() <= fileB.lastModified())
-                    ? SAVE_FILE_A
-                    : SAVE_FILE_B;
-        }
-
-        File tempFile = new File(target + ".tmp");
-        File finalFile = new File(target);
-
-        try (Writer writer = new FileWriter(tempFile)) {
-            gson.toJson(game, writer);
-        } catch (IOException e) {
-            System.err.println("[PERSISTENCE] Errore scrittura temp: " + e.getMessage());
-            return;
-        }
-
-        if (finalFile.exists() && !finalFile.delete()) {
-            System.err.println("[PERSISTENCE] Impossibile eliminare file vecchio");
-            return;
-        }
-
-        if (!tempFile.renameTo(finalFile)) {
-            System.err.println("[PERSISTENCE] Rename fallita");
-            return;
-        }
-
-        System.out.println("[PERSISTENCE] Salvataggio completato su " + target);
+    private PersistenceManager() {
     }
 
     /**
-     * Loads the game state trying both files (A then B).
+     * Saves the current game state.
+     * <p>
+     * The game is first serialized into a temporary file.
+     * If the operation succeeds, the temporary file replaces
+     * the main save file.
+     *
+     * @param game the game instance to serialize
+     */
+    public static void saveGame(GameActions game) {
+
+        File tempFile = new File(TEMP_FILE);
+        File saveFile = new File(SAVE_FILE);
+
+        try (Writer writer = new FileWriter(tempFile)) {
+            gson.toJson(game, writer);
+
+        } catch (IOException e) {
+            System.err.println("[PERSISTENCE] Error writing temp save: " + e.getMessage());
+            return;
+        }
+
+        if (saveFile.exists() && !saveFile.delete()) {
+            System.err.println("[PERSISTENCE] Unable to delete old save file");
+            return;
+        }
+
+        if (!tempFile.renameTo(saveFile)) {
+            System.err.println("[PERSISTENCE] Failed to promote temp save");
+            return;
+        }
+
+        System.out.println("[PERSISTENCE] Game saved successfully");
+    }
+
+    /**
+     * Loads the latest valid game state.
+     * <p>
+     * The method first attempts to load the main save file.
+     * If loading fails, it falls back to the temporary file.
+     *
+     * @return the loaded game instance, or {@code null} if no valid save exists
      */
     public static GameActions loadGame() {
-        GameActions game = tryLoad(SAVE_FILE_A);
+
+        GameActions game = tryLoad(SAVE_FILE);
 
         if (game != null) {
-            System.out.println("[PERSISTENCE] Caricato da A");
+            System.out.println("[PERSISTENCE] Loaded main save");
             return game;
         }
 
-        game = tryLoad(SAVE_FILE_B);
+        game = tryLoad(TEMP_FILE);
 
         if (game != null) {
-            System.out.println("[PERSISTENCE] Caricato da B");
+            System.out.println("[PERSISTENCE] Loaded fallback save");
             return game;
         }
 
-        System.out.println("[PERSISTENCE] Nessun salvataggio valido trovato");
+        System.out.println("[PERSISTENCE] No valid save found");
         return null;
     }
 
     /**
-     * Attempts to load a game from a specific file.
+     * Attempts to load a game state from a specific file.
+     *
+     * @param path path of the save file
+     * @return the loaded game instance, or {@code null} if loading fails
      */
     private static GameActions tryLoad(String path) {
+
         File file = new File(path);
-        if (!file.exists()) return null;
+
+        if (!file.exists()) {
+            return null;
+        }
 
         try (Reader reader = new FileReader(file)) {
             return gson.fromJson(reader, Game.class);
+
         } catch (Exception e) {
-            System.err.println("[PERSISTENCE] File corrotto: " + path);
+            System.err.println("[PERSISTENCE] Corrupted save file: " + path);
             return null;
         }
     }
 
     /**
-     * Deletes both save files.
+     * Deletes all save files.
      */
     public static void deleteSave() {
-        deleteFile(SAVE_FILE_A);
-        deleteFile(SAVE_FILE_B);
-        System.out.println("[PERSISTENCE] Salvataggi rimossi");
+
+        deleteFile(SAVE_FILE);
+        deleteFile(TEMP_FILE);
+
+        System.out.println("[PERSISTENCE] Save files removed");
     }
 
+    /**
+     * Deletes a save file if it exists.
+     *
+     * @param path path of the file to delete
+     */
     private static void deleteFile(String path) {
+
         File file = new File(path);
-        if (file.exists()) file.delete();
+
+        if (file.exists() && !file.delete()) {
+            System.err.println("[PERSISTENCE] Unable to delete " + path);
+        }
     }
 }

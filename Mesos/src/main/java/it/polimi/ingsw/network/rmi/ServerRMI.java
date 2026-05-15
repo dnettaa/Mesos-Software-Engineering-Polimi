@@ -93,9 +93,6 @@ public interface ServerRMI extends Remote{
      * @param client remote callback object
      * @throws RemoteException if remote invocation fails
      */
-    void reconnect(
-            String nickname,
-            TotemColor color,
-            ClientRMI client
-    ) throws RemoteException;
+    void reconnect(String nickname, TotemColor color, ClientRMI client)
+            throws RemoteException;
 }

@@ -74,15 +74,7 @@ public interface ControllerPhase {
      * @param color the player's original totem color
      * @param view the reconnecting virtual view
      */
-    default void reconnect(
-            GameController controller,
-            String nickname,
-            TotemColor color,
-            VirtualView view
-    ) {
-
-        throw new IllegalStateException(
-                "Reconnect not allowed in current phase"
-        );
+    default void reconnect(GameController controller, String nickname, TotemColor color, VirtualView view) {
+        throw new IllegalStateException("Reconnect not allowed in current phase");
     }
 }

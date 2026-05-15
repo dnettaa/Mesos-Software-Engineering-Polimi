@@ -1,7 +1,6 @@
 package it.polimi.ingsw.network.rmi;
 
 import it.polimi.ingsw.controller.GameController;
-import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
 import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
@@ -85,24 +84,19 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         controller.joinLobby(nickname, color, connection);
     }
 
+    /**
+     * Handles a remote request to reconnect to an existing game session.
+     *
+     * @param nickname nickname of the reconnecting player
+     * @param color    chosen totem color
+     * @param client   remote callback object of the client
+     * @throws RemoteException if the remote invocation fails
+     */
     @Override
-    public void reconnect(
-            String nickname,
-            TotemColor color,
-            ClientRMI client
-    ) throws RemoteException{
-
-        RMIClientConnection connection =
-                registerConnection(
-                        nickname,
-                        client
-                );
-
-        controller.reconnectPlayer(
-                nickname,
-                color,
-                connection
-        );
+    public void reconnect(String nickname, TotemColor color, ClientRMI client)
+            throws RemoteException {
+        RMIClientConnection connection = registerConnection(nickname, client);
+        controller.reconnectPlayer(nickname, color, connection);
     }
 
     /**
@@ -231,6 +225,9 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             this.writerThread.start();
         }
 
+        /**
+         * Processes queued remote callbacks for this client.
+         */
         private void writerLoop() {
             while (connected) {
                 try {
@@ -249,6 +246,11 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             }
         }
 
+        /**
+         * Adds a remote callback to the outgoing queue.
+         *
+         * @param call callback to enqueue
+         */
         private void enqueue(RemoteCallback call) {
             if (connected) outbox.offer(call);
         }

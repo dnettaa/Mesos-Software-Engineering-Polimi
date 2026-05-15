@@ -56,6 +56,12 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     );
     private final ExecutorService renderExecutor = Executors.newSingleThreadExecutor();
 
+    /**
+     * Applies a DTO update to the local client model
+     * and triggers a view re-render asynchronously.
+     *
+     * @param applyDTO action that applies the DTO update
+     */
     private void applyAndRender(Runnable applyDTO) {
         renderExecutor.submit(() -> {
             applyDTO.run();
@@ -410,11 +416,14 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
         return nickname;
     }
 
+    /**
+     * Requests to reconnect to an existing game session.
+     *
+     * @param nickname nickname of the reconnecting player
+     * @param color    chosen totem color
+     */
     @Override
-    public void reconnect(
-            String nickname,
-            TotemColor color
-    ){
+    public void reconnect(String nickname, TotemColor color) {
 
         if(!isReady()){
             return;
@@ -424,76 +433,54 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
         this.savedColor = color;
 
         try{
-
-            serverStub.reconnect(
-                    nickname,
-                    color,
-                    this
-            );
-
+            serverStub.reconnect(nickname, color, this);
         } catch(RemoteException e){
-
-            handleRemoteFailure(
-                    "Connection with the RMI server lost during recovery."
-            );
+            handleRemoteFailure("Connection with the RMI server lost during recovery.");
         }
     }
 
+    /**
+     * Starts a background loop that periodically
+     * attempts to reconnect to the RMI server.
+     */
     private void startReconnectLoop(){
 
         Thread reconnectThread = new Thread(() -> {
 
             while(!connected){
-
                 try{
-
                     Thread.sleep(3000);
-
                     reconnectToServer();
 
-                }catch(Exception ignored){
-
-                }
+                }catch(Exception ignored){}
             }
-
         }, "RMI-Reconnect-Loop");
 
         reconnectThread.start();
     }
 
+    /**
+     * Attempts to restore the connection to the RMI server.
+     * If successful, the client automatically requests
+     * recovery of the previous game session.
+     */
     private void reconnectToServer(){
 
         try{
 
-            Registry registry =
-                    LocateRegistry.getRegistry(
-                            host,
-                            port
-                    );
+            Registry registry = LocateRegistry.getRegistry(host, port);
 
-            serverStub =
-                    (ServerRMI) registry.lookup(
-                            SERVER_NAME
-                    );
+            serverStub = (ServerRMI) registry.lookup(SERVER_NAME);
 
             connected = true;
 
-            view.notifyDisconnection(
-                    "Server reconnected. Recovering game..."
-            );
+            view.notifyDisconnection("Server reconnected. Recovering game...");
 
             if(wasInGame){
-
-                reconnect(
-                        nickname,
-                        savedColor
-                );
-
+                reconnect(nickname, savedColor);
                 wasInGame = false;
             }
 
-        }catch(Exception ignored){
-
-        }
+        }catch(Exception ignored){}
     }
 }

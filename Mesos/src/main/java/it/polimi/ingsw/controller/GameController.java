@@ -68,27 +68,15 @@
         }
 
         /**
-         * Handles a player's reconnection request
-         * during server recovery.
-         * Delegates the reconnect logic to the
-         * current controller phase.
+         * Handles a player's reconnection request during server recovery.
+         * Delegates the reconnect logic to the current controller phase.
          *
          * @param nickname the player's nickname
          * @param color the player's original totem color
          * @param view the reconnecting virtual view
          */
-        public synchronized void reconnectPlayer(
-                String nickname,
-                TotemColor color,
-                VirtualView view
-        ) {
-
-            currentPhase.reconnect(
-                    this,
-                    nickname,
-                    color,
-                    view
-            );
+        public synchronized void reconnectPlayer(String nickname, TotemColor color, VirtualView view) {
+            currentPhase.reconnect(this, nickname, color, view);
         }
 
         /**
@@ -227,7 +215,6 @@
             return currentPhase;
         }
 
-
         /**
          * Invoked when the game starts.
          * Forwards the initial game snapshot to all connected views.
@@ -242,6 +229,11 @@
             }
         }
 
+        /**
+         * Handles a totem placement update from the model.
+         *
+         * @param dto DTO containing the placement information
+         */
         @Override
         public void onTotemPlaced(TotemPlacedDTO dto) {
             PersistenceManager.saveGame(this.game);
@@ -250,6 +242,11 @@
             }
         }
 
+        /**
+         * Handles a card selection update from the model.
+         *
+         * @param dto DTO containing the taken-card information
+         */
         @Override
         public void onCardsTaken(CardsTakenDTO dto) {
             PersistenceManager.saveGame(this.game);
@@ -258,6 +255,11 @@
             }
         }
 
+        /**
+         * Handles an extra-card selection update from the model.
+         *
+         * @param dto DTO containing the extra-card information
+         */
         @Override
         public void onExtraCardTaken(ExtraCardTakenDTO dto) {
             PersistenceManager.saveGame(this.game);
@@ -266,6 +268,11 @@
             }
         }
 
+        /**
+         * Handles an event resolution update from the model.
+         *
+         * @param dto DTO containing the event resolution information
+         */
         @Override
         public void onEventResolved(EventResolvedDTO dto) {
             PersistenceManager.saveGame(this.game);
@@ -274,6 +281,11 @@
             }
         }
 
+        /**
+         * Handles a round-end update from the model.
+         *
+         * @param dto DTO containing the round-end information
+         */
         @Override
         public void onRoundEnded(RoundEndedDTO dto) {
             PersistenceManager.saveGame(this.game);
@@ -282,6 +294,11 @@
             }
         }
 
+        /**
+         * Handles a game-end update from the model.
+         *
+         * @param dto DTO containing the final game results
+         */
         @Override
         public void onGameEnded(GameEndedDTO dto) {
             PersistenceManager.deleteSave();

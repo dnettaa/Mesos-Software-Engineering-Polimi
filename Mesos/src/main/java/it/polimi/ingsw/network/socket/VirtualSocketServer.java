@@ -96,6 +96,11 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         }
     }
 
+    /**
+     * Handles an unexpected server disconnection.
+     * Stops the current connection and starts
+     * the automatic recovery loop.
+     */
     private void handleServerCrash(){
 
         running = false;
@@ -107,6 +112,10 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         startReconnectLoop();
     }
 
+    /**
+     * Starts a background loop that periodically
+     * attempts to reconnect to the server.
+     */
     private void startReconnectLoop(){
 
         Thread reconnectThread = new Thread(() -> {
@@ -129,6 +138,10 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         reconnectThread.start();
     }
 
+    /**
+     * Attempts to restore the socket connection
+     * to the server and restart the reader thread.
+     */
     private void reconnect(){
 
         try {
@@ -173,12 +186,13 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         }
     }
 
+    /**
+     * Sends an automatic reconnect request
+     * using the previously saved player data.
+     */
     private void reconnectToSavedGame(){
 
-        write(new ReconnectMessage(
-                nickname,
-                savedColor
-        ));
+        write(new ReconnectMessage(nickname, savedColor));
     }
 
     // --- VirtualServer: client-to-server commands ---
@@ -254,7 +268,10 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
      */
     @Override
     public void disconnect(){
+
         running = false;
+        wasInGame = false;
+
         try{
             socket.close();
         } catch (IOException e) {
@@ -281,18 +298,18 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         }
     }
 
+    /**
+     * Sends a reconnect request to the server.
+     *
+     * @param nickname nickname of the reconnecting player
+     * @param color    chosen totem color
+     */
     @Override
-    public void reconnect(
-            String nickname,
-            TotemColor color
-    ){
+    public void reconnect(String nickname, TotemColor color) {
 
         this.nickname = nickname;
         this.savedColor = color;
 
-        write(new ReconnectMessage(
-                nickname,
-                color
-        ));
+        write(new ReconnectMessage(nickname, color));
     }
 }

@@ -18,6 +18,8 @@ import java.util.Set;
  * Only players belonging to the saved match are allowed
  * to reconnect, and they must use the same nickname
  * and totem color originally associated with them.
+ *
+ * @author Andrea Markvukaj
  */
 public class RecoveryPhase implements ControllerPhase {
 
@@ -42,46 +44,34 @@ public class RecoveryPhase implements ControllerPhase {
         this.controller = controller;
         this.game = game;
 
-        this.reconnectedPlayers =
-                new HashSet<>();
+        this.reconnectedPlayers = new HashSet<>();
 
-        GameStateSnapshot snapshot =
-                game.buildSnapshot();
+        GameStateSnapshot snapshot = game.buildSnapshot();
 
-        this.expectedTotal =
-                snapshot.players().size();
+        this.expectedTotal = snapshot.players().size();
     }
 
     /**
      * Handles a reconnect request from a previously
      * connected player.
      * Validates:
-     *     <li>nickname belongs to original match</li>
-     *     <li>totem color matches original player</li>
-     *     <li>player is not already reconnected</li>
+     *     nickname belongs to original match
+     *     totem color matches original player
+     *     is not already reconnected
      * Once validated:
-     *     <li>the new view is registered</li>
-     *     <li>the full snapshot is resent</li>
-     *     <li>the game resumes when all players return</li>
-     * </ul>
+     *     the new view is registered
+     *     the full snapshot is resent
+     *     the game resumes when all players return
      */
     @Override
-    public synchronized void reconnect(
-            GameController controller,
-            String nickname,
-            TotemColor color,
-            VirtualView view
-    ) {
+    public synchronized void reconnect(GameController controller, String nickname, TotemColor color, VirtualView view) {
 
-        GameStateSnapshot snapshot =
-                game.buildSnapshot();
+        GameStateSnapshot snapshot = game.buildSnapshot();
 
         PlayerData playerData =
                 snapshot.players()
                         .stream()
-                        .filter(p ->
-                                p.nickname()
-                                        .equals(nickname))
+                        .filter(p -> p.nickname().equals(nickname))
                         .findFirst()
                         .orElse(null);
 
@@ -89,12 +79,7 @@ public class RecoveryPhase implements ControllerPhase {
          * Reject unknown players
          */
         if(playerData == null){
-
-            view.onError(
-                    "RECOVERY_MODE",
-                    "Unknown player for recovery."
-            );
-
+            view.onError("RECOVERY_MODE", "Unknown player for recovery.");
             return;
         }
 
@@ -102,12 +87,7 @@ public class RecoveryPhase implements ControllerPhase {
          * Validate original color
          */
         if(playerData.totemColor() != color){
-
-            view.onError(
-                    "RECOVERY_MODE",
-                    "Invalid recovery color."
-            );
-
+            view.onError("RECOVERY_MODE", "Invalid recovery color.");
             return;
         }
 
@@ -115,11 +95,7 @@ public class RecoveryPhase implements ControllerPhase {
          * Prevent duplicate reconnect
          */
         if(reconnectedPlayers.contains(nickname)){
-
-            view.onError(
-                    "RECOVERY_MODE",
-                    "Player already reconnected."
-            );
+            view.onError("RECOVERY_MODE", "Player already reconnected.");
 
             return;
         }
@@ -127,21 +103,12 @@ public class RecoveryPhase implements ControllerPhase {
         /*
          * Register restored view
          */
-        controller.registerView(
-                nickname,
-                view
-        );
+        controller.registerView(nickname, view);
 
         reconnectedPlayers.add(nickname);
 
-        System.out.println(
-                "[RECOVERY] Player reconnected: "
-                        + nickname
-                        + " ("
-                        + reconnectedPlayers.size()
-                        + "/"
-                        + expectedTotal
-                        + ")"
+        System.out.println("[RECOVERY] Player reconnected: " + nickname + " (" + reconnectedPlayers.size() + "/"
+                + expectedTotal + ")"
         );
 
         /*
@@ -152,19 +119,11 @@ public class RecoveryPhase implements ControllerPhase {
         /*
          * Resume game once everybody is back
          */
-        if(reconnectedPlayers.size()
-                == expectedTotal){
+        if(reconnectedPlayers.size() == expectedTotal){
 
-            System.out.println(
-                    "[RECOVERY] All players reconnected. Resuming game."
-            );
+            System.out.println("[RECOVERY] All players reconnected. Resuming game.");
 
-            controller.transitionTo(
-                    new InGamePhase(
-                            controller,
-                            game
-                    )
-            );
+            controller.transitionTo(new InGamePhase(controller, game));
         }
     }
 
@@ -173,34 +132,17 @@ public class RecoveryPhase implements ControllerPhase {
      * while the server is restoring a match.
      */
     @Override
-    public void createLobby(
-            String nickname,
-            TotemColor color,
-            VirtualView view
-    ) {
-
-        view.onError(
-                "RECOVERY_MODE",
-                "Cannot create a new lobby while "
-                        + "a saved match is being restored."
-        );
+    public void createLobby(String nickname, TotemColor color, VirtualView view) {
+        view.onError("RECOVERY_MODE", "Cannot create a new lobby while "
+                + "a saved match is being restored.");
     }
 
     /**
      * Rejects normal lobby joins during recovery.
      */
     @Override
-    public void joinLobby(
-            String nickname,
-            TotemColor color,
-            VirtualView view
-    ) {
-
-        view.onError(
-                "RECOVERY_MODE",
-                "Server is currently restoring "
-                        + "a saved game."
-        );
+    public void joinLobby(String nickname, TotemColor color, VirtualView view) {
+        view.onError("RECOVERY_MODE", "Server is currently restoring " + "a saved game.");
     }
 
     /**
@@ -218,27 +160,17 @@ public class RecoveryPhase implements ControllerPhase {
      * Disabled during recovery.
      */
     @Override
-    public void placeTotem(
-            String nickname,
-            char slotID
-    ) {}
+    public void placeTotem(String nickname, char slotID) {}
 
     /**
      * Disabled during recovery.
      */
     @Override
-    public void takeCards(
-            String nickname,
-            java.util.List<String> upperIDs,
-            java.util.List<String> lowerIDs
-    ) {}
+    public void takeCards(String nickname, java.util.List<String> upperIDs, java.util.List<String> lowerIDs) {}
 
     /**
      * Disabled during recovery.
      */
     @Override
-    public void takeExtraCard(
-            String nickname,
-            String cardID
-    ) {}
+    public void takeExtraCard(String nickname, String cardID) {}
 }
