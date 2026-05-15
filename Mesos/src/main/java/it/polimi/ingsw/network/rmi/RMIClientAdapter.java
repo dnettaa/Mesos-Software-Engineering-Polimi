@@ -83,14 +83,14 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      * @param host the host where the RMI registry is running
      * @param port the port where the RMI registry is listening
      */
-    public void connect(String host, int port){
+    public void connect(String host, int port) throws Exception{
         try{
             Registry registry = LocateRegistry.getRegistry(host, port);
             serverStub = (ServerRMI) registry.lookup(SERVER_NAME);
             connected = true;
         } catch(Exception e){
             connected = false;
-            view.notifyDisconnection("Unable to connect to RMI server: " + e.getMessage());
+            throw new Exception("Unable to connect to RMI server: " + e.getMessage(), e);
         }
     }
 
@@ -258,7 +258,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onError(String code, String description) throws RemoteException {
-        if (LOGIN_ERROR_CODES.contains(code)) {
+        String normalized = code == null ? "" : code.trim().toUpperCase();
+        if (LOGIN_ERROR_CODES.contains(normalized)) {
             view.showLoginError(description);
         } else {
             view.showGameError(description);

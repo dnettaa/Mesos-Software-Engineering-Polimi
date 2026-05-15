@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="it.polimi.ingsw.view.GUI.GUILobbyController"
+           prefWidth="1280" prefHeight="800">
+
+    <!-- Full-screen background image, scaled by GUI.java listeners -->
+    <ImageView fx:id="backgroundImage" preserveRatio="false">
+        <image><Image url="/GUI-resources/images/wallpaper.png"/></image>
+    </ImageView>
+
+    <!-- Fixed-resolution pane scaled proportionally by GUI.java -->
+    <StackPane fx:id="scalablePane" prefWidth="1280" prefHeight="800"
+               maxWidth="1280" maxHeight="800">
+
+        <!-- Background frame image -->
+        <ImageView preserveRatio="true" fitWidth="1150">
+            <image><Image url="/GUI-resources/images/input_screen.png"/></image>
+        </ImageView>
+
+        <!-- Main content area, positioned inside the frame -->
+        <HBox fx:id="mainContentBox" alignment="CENTER"
+              maxWidth="880" maxHeight="480" translateY="25"
+              style="-fx-padding: 10 30 10 30;">
+
+            <!-- Phase 1: input form, visible at startup -->
+            <VBox fx:id="inputColumn" spacing="8" alignment="CENTER_LEFT" prefWidth="320">
+
+                <Label text="JOIN THE TRIBE"
+                       style="-fx-font-size: 24; -fx-font-weight: bold;"/>
+
+                <VBox spacing="2">
+                    <Label text="Nickname:" style="-fx-font-size: 15; -fx-font-weight: bold;"/>
+                    <TextField fx:id="nicknameField" promptText="Enter your name" prefWidth="260"/>
+                </VBox>
+
+                <VBox spacing="2">
+                    <Label text="Totem Color:" style="-fx-font-size: 15; -fx-font-weight: bold;"/>
+                    <ComboBox fx:id="colorComboBox" prefWidth="260"/>
+                </VBox>
+
+                <HBox spacing="20" alignment="CENTER_LEFT">
+                    <RadioButton fx:id="createRadio" text="Create"/>
+                    <RadioButton fx:id="joinRadio" text="Join"/>
+                </HBox>
+
+                <!-- Hidden when "Join" is selected -->
+                <VBox fx:id="playersSpinnerBox" spacing="2">
+                    <Label text="Number of players:" style="-fx-font-size: 15; -fx-font-weight: bold;"/>
+                    <Spinner fx:id="playersSpinner" min="2" max="5" initialValue="2"
+                             prefWidth="120" prefHeight="42"/>
+                </VBox>
+
+                <VBox>
+                    <Button fx:id="confirmButton" text="Confirm" onAction="#onConfirm" prefWidth="260"/>
+                </VBox>
+
+                <Label fx:id="errorLabel" visible="false"
+                       style="-fx-text-fill: #8b0000; -fx-font-weight: bold; -fx-font-size: 14;"/>
+
+            </VBox>
+
+            <!-- Phase 2: waiting room, hidden until switchToWaitingMode() is called -->
+            <VBox fx:id="lobbyListColumn" spacing="8" alignment="TOP_CENTER" prefWidth="600"
+                  visible="false" managed="false">
+
+                <VBox style="-fx-padding: 5 0 0 0;" alignment="CENTER">
+                    <Label fx:id="statusLabel" text="Players: 0/?"
+                           style="-fx-font-size: 22; -fx-font-weight: bold;"/>
+                    <Label text="Warriors waiting in camp:"
+                           style="-fx-font-size: 14; -fx-font-style: italic; -fx-text-fill: #5c3a21;"/>
+                </VBox>
+
+                <ListView fx:id="lobbyList" prefHeight="260" prefWidth="450"/>
+
+            </VBox>
+
+        </HBox>
+    </StackPane>
+</StackPane>

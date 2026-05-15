@@ -1,0 +1,147 @@
+/* ── Base ──────────────────────────────────────────── */
+.root {
+    -fx-font-family: "Georgia", serif;
+    -fx-background-color: #0d0d1a;
+}
+
+/* ── Text fields ───────────────────────────────────── */
+.text-field {
+    -fx-background-color: #f5f5dc;
+    -fx-text-fill: #3b1e00;
+    -fx-prompt-text-fill: #8b5c2a;
+    -fx-border-color: #8b5c2a;
+    -fx-border-width: 3 5 4 2;
+    -fx-border-radius: 15 5 12 8;
+    -fx-background-radius: 15 5 12 8;
+    -fx-padding: 8 15;
+    -fx-font-size: 16px;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.2), 10, 0, 2, 2);
+}
+
+.text-field:focused {
+    -fx-border-color: #c88b4b;
+    -fx-background-color: #ffffff;
+}
+
+/* ── Buttons ───────────────────────────────────────── */
+.button {
+    -fx-background-color: linear-gradient(to bottom, #5a5a5a, #333333);
+    -fx-text-fill: #f5deb3;
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-border-color: #222222;
+    -fx-border-width: 2;
+    -fx-border-radius: 5 15 8 20;
+    -fx-background-radius: 5 15 8 20;
+    -fx-cursor: hand;
+    -fx-padding: 10 30;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 10, 0, 4, 4);
+}
+
+.button:hover {
+    -fx-background-color: linear-gradient(to bottom, #777777, #444444);
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 12, 0, 0, 0);
+}
+
+.button:pressed {
+    -fx-translate-y: 3;
+    -fx-effect: innershadow(gaussian, black, 10, 0, 0, 0);
+}
+
+/* ── Radio buttons ─────────────────────────────────── */
+.radio-button {
+    -fx-text-fill: #3b1e00;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
+
+.radio-button .radio {
+    -fx-background-color: #d1ccc0;
+    -fx-border-color: #8b5c2a;
+    -fx-border-radius: 50%;
+    -fx-background-radius: 50%;
+    -fx-padding: 5;
+}
+
+.radio-button:selected .dot {
+    -fx-background-color: #3b1e00;
+    -fx-background-radius: 50%;
+}
+
+/* ── Labels ────────────────────────────────────────── */
+.label {
+    -fx-text-fill: #3b1e00;
+}
+
+/* ── ComboBox and Spinner ──────────────────────────── */
+.combo-box, .spinner {
+    -fx-background-color: #f5f5dc;
+    -fx-border-color: #8b5c2a;
+    -fx-border-width: 3 5 4 2;
+    -fx-border-radius: 10 5 12 8;
+    -fx-background-radius: 10 5 12 8;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.2), 10, 0, 2, 2);
+}
+
+.combo-box .arrow-button,
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: #d1ccc0;
+    -fx-background-radius: 0 5 8 0;
+    -fx-border-color: transparent transparent transparent #8b5c2a;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #3b1e00;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* Remove double border from the Spinner's inner text field */
+.spinner .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-radius: 0;
+    -fx-effect: none;
+    -fx-text-fill: #3b1e00;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 10 10;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #f5f5dc;
+    -fx-border-color: #8b5c2a;
+    -fx-border-width: 2;
+}
+
+/* ── ListView ──────────────────────────────────────── */
+.list-view {
+    -fx-background-color: #d1ccc0;
+    -fx-border-color: #5c3a21;
+    -fx-border-width: 4 6 5 3;
+    -fx-border-radius: 12 8 15 10;
+    -fx-background-radius: 12 8 15 10;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.3), 15, 0, 3, 3);
+}
+
+.list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #3b1e00;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 15;
+    /* Thin separator between rows */
+    -fx-border-color: transparent transparent rgba(139, 92, 42, 0.3) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.list-view .list-cell:empty {
+    -fx-border-color: transparent;
+}
+
+.list-view .list-cell:selected {
+    -fx-background-color: rgba(139, 92, 42, 0.4);
+}
