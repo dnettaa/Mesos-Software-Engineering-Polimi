@@ -5,6 +5,7 @@ import it.polimi.ingsw.controller.RecoveryPhase;
 import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.network.rmi.RMIServerAdapter;
 import it.polimi.ingsw.network.socket.SocketServer;
+import it.polimi.ingsw.persistence.PersistenceManager;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -23,10 +24,12 @@ public class ServerMain {
 
         if (savedGame != null) {
             controller.setGame(savedGame);
-            System.out.println("!!! ATTENZIONE: Il server è in modalità RIPRISTINO !!!");
-            System.out.println("In attesa che i vecchi giocatori si ricolleghino con i loro Nickname...");
+
+            System.out.println("=== MODALITÀ RECOVERY ===");
+            System.out.println("In attesa riconnessione giocatori...");
+
             controller.transitionTo(new RecoveryPhase(controller, savedGame));
-            System.out.println("!!! MODALITÀ RECOVERY ATTIVA !!!");
+
         } else {
             System.out.println("Nessun salvataggio trovato. Avvio server normale.");
         }

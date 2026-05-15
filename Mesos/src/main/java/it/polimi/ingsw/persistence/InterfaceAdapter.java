@@ -1,4 +1,4 @@
-package it.polimi.ingsw.network.server;
+package it.polimi.ingsw.persistence;
 
 import com.google.gson.*;
 import java.lang.reflect.Type;

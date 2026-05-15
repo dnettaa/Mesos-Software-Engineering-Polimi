@@ -5,6 +5,7 @@
     import it.polimi.ingsw.network.VirtualView;
     import it.polimi.ingsw.model.game.GameListener;
     import it.polimi.ingsw.model.game.DTO.*;
+    import it.polimi.ingsw.persistence.PersistenceManager;
 
     import java.util.HashMap;
     import java.util.Map;
@@ -211,7 +212,7 @@
          */
         @Override
         public void onGameStarted(GameStateSnapshot snap) {
-            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) view.onGameStarted(snap);
             }
@@ -219,7 +220,7 @@
 
         @Override
         public void onTotemPlaced(TotemPlacedDTO dto) {
-            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) view.onTotemPlaced(dto);
             }
@@ -227,7 +228,7 @@
 
         @Override
         public void onCardsTaken(CardsTakenDTO dto) {
-            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) view.onCardsTaken(dto);
             }
@@ -235,7 +236,7 @@
 
         @Override
         public void onExtraCardTaken(ExtraCardTakenDTO dto) {
-            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) view.onExtraCardTaken(dto);
             }
@@ -243,7 +244,7 @@
 
         @Override
         public void onEventResolved(EventResolvedDTO dto) {
-            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) view.onEventResolved(dto);
             }
@@ -251,7 +252,7 @@
 
         @Override
         public void onRoundEnded(RoundEndedDTO dto) {
-            it.polimi.ingsw.network.server.PersistenceManager.saveGame(this.game);
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) view.onRoundEnded(dto);
             }
@@ -259,11 +260,9 @@
 
         @Override
         public void onGameEnded(GameEndedDTO dto) {
-            it.polimi.ingsw.network.server.PersistenceManager.deleteSave();
+            PersistenceManager.deleteSave();
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) view.onGameEnded(dto);
             }
         }
-
-
     }
