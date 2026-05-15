@@ -9,84 +9,83 @@
            fx:controller="it.polimi.ingsw.view.GUI.GUIEndGameController"
            prefWidth="1280" prefHeight="800">
 
-    <!--
-        Full-screen background.
-        GUI.java resizes this ImageView.
-    -->
+    <!-- Full-screen background stretched by GUI.java -->
     <ImageView fx:id="backgroundImage" preserveRatio="false">
         <image>
             <Image url="/GUI-resources/images/wallpaper.png"/>
         </image>
     </ImageView>
 
-    <!--
-        Scalable fixed-size content.
-        GUI.java expects this node to be a StackPane with id scalablePane.
-    -->
+    <!-- Atmospheric dark overlay -->
+    <StackPane style="-fx-background-color: rgba(0,0,0,0.54);"/>
+
+    <!-- Fixed-size content pane scaled by GUI.java -->
     <StackPane fx:id="scalablePane"
                prefWidth="1280" prefHeight="800"
                maxWidth="1280" maxHeight="800">
 
-        <VBox alignment="CENTER"
-              spacing="22"
-              maxWidth="900"
-              styleClass="endgame-main-panel">
+        <VBox alignment="TOP_CENTER" spacing="0">
 
-            <ImageView fitWidth="230" preserveRatio="true">
-                <image>
-                    <Image url="/GUI-resources/images/logo.png"/>
-                </image>
-            </ImageView>
+            <!-- ══════════  STONE TABLET TITLE  ══════════ -->
+            <VBox alignment="CENTER" spacing="3"
+                  style="-fx-padding: 22 80 16 80;
+                         -fx-background-color: rgba(22,10,4,0.82);
+                         -fx-border-color: #c8860a rgba(200,134,10,0.4) rgba(200,134,10,0.4) #c8860a;
+                         -fx-border-width: 0 0 3 0;">
 
-            <Label text="GAME OVER"
-                   styleClass="endgame-title-label"/>
+                <Label text="⸻  MESOS  ⸻"
+                       style="-fx-font-size: 12px; -fx-font-family: Georgia; -fx-font-weight: bold;
+                              -fx-text-fill: #c8860a; -fx-letter-spacing: 4;"/>
 
-            <Label fx:id="winnerLabel"
-                   text="Winner: -"
-                   wrapText="true"
-                   textAlignment="CENTER"
-                   styleClass="endgame-winner-label"/>
+                <Label text="GAME OVER"
+                       style="-fx-font-size: 76px; -fx-font-family: Georgia; -fx-font-weight: bold;
+                              -fx-text-fill: #fde8b0;
+                              -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.95), 14, 0, 2, 5);"/>
 
-            <!--
-                Ranking table.
-                The controller fills this table from ClientModel.ranking,
-                ClientModel.finalPP and ClientModel.endGameBonus.
-            -->
-            <TableView fx:id="rankingTable"
-                       prefWidth="760"
-                       prefHeight="330"
-                       columnResizePolicy="CONSTRAINED_RESIZE_POLICY"
-                       styleClass="endgame-table">
+                <Label text="The chronicles of Mesopotamia have been written."
+                       style="-fx-font-size: 13px; -fx-font-family: Georgia; -fx-font-style: italic;
+                              -fx-text-fill: #a08040;"/>
+            </VBox>
 
-                <columns>
-                    <TableColumn fx:id="positionColumn"
-                                 text="#"
-                                 prefWidth="80"/>
+            <!-- ══════════  PODIUM  ══════════ -->
+            <!-- Controller builds columns dynamically inside podiumBox -->
+            <HBox fx:id="podiumBox"
+                  alignment="BOTTOM_CENTER"
+                  spacing="16"
+                  VBox.vgrow="ALWAYS"
+                  style="-fx-padding: 0 80 0 80;"/>
 
-                    <TableColumn fx:id="playerColumn"
-                                 text="Player"
-                                 prefWidth="310"/>
+            <!-- ══════════  4th+ PLAYERS  ══════════ -->
+            <HBox fx:id="othersBox"
+                  alignment="CENTER"
+                  spacing="10"
+                  VBox.vgrow="NEVER"
+                  style="-fx-padding: 10 0 4 0;"/>
 
-                    <TableColumn fx:id="basePointsColumn"
-                                 text="Final PP"
-                                 prefWidth="170"/>
-
-                    <TableColumn fx:id="bonusColumn"
-                                 text="End bonus"
-                                 prefWidth="170"/>
-                </columns>
-            </TableView>
-
+            <!-- ══════════  LOCAL RESULT  ══════════ -->
             <Label fx:id="localResultLabel"
                    text=""
                    wrapText="true"
                    textAlignment="CENTER"
-                   styleClass="endgame-local-result-label"/>
+                   VBox.vgrow="NEVER"
+                   style="-fx-font-size: 15px; -fx-font-family: Georgia; -fx-font-weight: bold;
+                          -fx-text-fill: #fde8b0;
+                          -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.85), 6, 0, 1, 2);
+                          -fx-padding: 4 0 0 0;"/>
 
-            <HBox alignment="CENTER" spacing="14">
-                <Button text="Exit"
-                        prefWidth="180"
-                        onAction="#onExit"/>
+            <!-- ══════════  EXIT BUTTON  ══════════ -->
+            <HBox alignment="CENTER" VBox.vgrow="NEVER"
+                  style="-fx-padding: 14 0 20 0;">
+                <Button text="⬡  Return to the sands"
+                        prefWidth="260"
+                        onAction="#onExit"
+                        style="-fx-background-color: linear-gradient(to bottom, #7a4a1a, #3a1e06);
+                               -fx-text-fill: #fde8b0; -fx-font-weight: bold; -fx-font-size: 15px;
+                               -fx-font-family: Georgia;
+                               -fx-border-color: #c8860a; -fx-border-width: 2;
+                               -fx-border-radius: 8; -fx-background-radius: 8;
+                               -fx-cursor: hand; -fx-padding: 11 28;
+                               -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.65), 12, 0, 0, 3);"/>
             </HBox>
 
         </VBox>
