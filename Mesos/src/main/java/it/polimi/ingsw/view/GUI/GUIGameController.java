@@ -130,6 +130,12 @@ public class GUIGameController {
     private final Queue<PendingEvent> eventQueue = new LinkedList<>();
     private boolean eventAnimating = false;
 
+    /**
+     * Set by {@link #scheduleEndGame()} when the model has reached EndGame phase.
+     * The final-scoring overlay is shown only after the event queue is fully drained.
+     */
+    private boolean endGamePending = false;
+
     /** Character types shown in the stats panel, in display order. */
     private static final List<String> CHAR_TYPES =
             List.of("HUNTER", "SHAMAN", "BUILDER", "INVENTOR", "ARTIST", "GATHERER");
@@ -510,6 +516,8 @@ public class GUIGameController {
         int gatherers    = byType.getOrDefault("GATHERER", List.of()).size();
         int fullSets     = computeFullSets(byType);
         int buildings    = me.buildingID() != null ? me.buildingID().size() : 0;
+        int builderDisc  = byType.getOrDefault("BUILDER", List.of()).stream()
+                .mapToInt(CardCatalog::getBuilderDiscount).sum();
 
         // Quick stats chips
         HBox chipRow = new HBox(5);
@@ -517,8 +525,9 @@ public class GUIGameController {
         chipRow.setPadding(new Insets(0, 0, 6, 0));
         chipRow.getChildren().add(makeStatChip(totalCards + " cards"));
         chipRow.getChildren().add(makeStatChip(distinctTypes + "/6 types"));
-        if (fullSets > 0)  chipRow.getChildren().add(makeStatChip(fullSets + " sets"));
-        if (gatherers > 0) chipRow.getChildren().add(makeStatChip("🌿 -" + (gatherers * 3)));
+        if (fullSets > 0)    chipRow.getChildren().add(makeStatChip(fullSets + " sets"));
+        if (gatherers > 0)   chipRow.getChildren().add(makeStatChip("🌿 -" + (gatherers * 3) + "🍖"));
+        if (builderDisc > 0) chipRow.getChildren().add(makeStatChip("⚒ -" + builderDisc + "🍖"));
         myTribeBox.getChildren().add(chipRow);
 
         // Per-type rows: label column on the left, stacked card images on the right
@@ -1354,10 +1363,26 @@ public class GUIGameController {
         if (!eventAnimating) drainEventQueue();
     }
 
+    /**
+     * Called by {@link GUI} when the model has entered EndGame phase.
+     * If the event queue is already empty the final-scoring overlay is shown immediately;
+     * otherwise it is deferred until the last popup is dismissed by the user.
+     */
+    public void scheduleEndGame() {
+        endGamePending = true;
+        if (!eventAnimating && eventQueue.isEmpty()) {
+            showFinalScoringOverlay();
+        }
+    }
+
     /** Pulls the next pending event from the queue and plays its card-fly animation. */
     private void drainEventQueue() {
         if (eventQueue.isEmpty()) {
             eventAnimating = false;
+            if (endGamePending) {
+                endGamePending = false;
+                showFinalScoringOverlay();
+            }
             return;
         }
         eventAnimating = true;
@@ -1566,6 +1591,143 @@ public class GUIGameController {
         };
         closeX.setOnAction(e -> doClose.run());
         continueBtn.setOnAction(e -> doClose.run());
+    }
+
+    /**
+     * Shows a full-screen overlay with the final PP breakdown (base + end-game bonus → total)
+     * after all event popups have been dismissed.  The "View Rankings" button navigates to
+     * the EndGame screen.
+     */
+    private void showFinalScoringOverlay() {
+        if (scalablePane == null) { gui.showEndGameScreen(); return; }
+
+        ClientModel model = gui.getClientModel();
+        List<String>         ranking = model.getRanking()      != null ? model.getRanking()      : List.of();
+        Map<String, Integer> finalPP = model.getFinalPP()      != null ? model.getFinalPP()      : Map.of();
+        Map<String, Integer> bonus   = model.getEndGameBonus() != null ? model.getEndGameBonus() : Map.of();
+        String myNick = gui.getNickname();
+
+        // ── Dark backdrop ─────────────────────────────────────────────────────
+        StackPane overlay = new StackPane();
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.68);");
+        overlay.prefWidthProperty().bind(scalablePane.widthProperty());
+        overlay.prefHeightProperty().bind(scalablePane.heightProperty());
+        overlay.setOpacity(0);
+
+        // ── Content panel ─────────────────────────────────────────────────────
+        VBox content = new VBox(10);
+        content.setPadding(new Insets(24, 30, 24, 30));
+        content.setMaxWidth(520);
+        content.setStyle("""
+                -fx-background-color: rgba(245,235,210,0.99);
+                -fx-background-radius: 16;
+                -fx-border-color: #7a4a1a;
+                -fx-border-width: 3;
+                -fx-border-radius: 16;
+                -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.70), 32, 0, 0, 6);
+                """);
+
+        // Header
+        Label title = new Label("⭐  FINAL TALLY  ⭐");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-font-family: Georgia;" +
+                       " -fx-text-fill: #2d1800;");
+        title.setAlignment(Pos.CENTER);
+        title.setMaxWidth(Double.MAX_VALUE);
+        Label sub = new Label("End-game building bonuses have been applied.");
+        sub.setStyle("-fx-font-size: 11px; -fx-font-style: italic; -fx-text-fill: #7a5030;");
+        sub.setAlignment(Pos.CENTER);
+        sub.setMaxWidth(Double.MAX_VALUE);
+        content.getChildren().addAll(title, sub, new Separator());
+
+        // Column header
+        HBox hdr = new HBox(10);
+        hdr.setAlignment(Pos.CENTER_LEFT);
+        hdr.setPadding(new Insets(0, 6, 0, 6));
+        String hs = "-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #7a4a1a;";
+        Label hName  = new Label("PLAYER");   hName.setStyle(hs);  HBox.setHgrow(hName, Priority.ALWAYS);
+        Label hBase  = new Label("BASE");     hBase.setStyle(hs);
+        Label hPlus  = new Label("+");        hPlus.setStyle(hs);
+        Label hBonus = new Label("BONUS");    hBonus.setStyle(hs);
+        Label hEq    = new Label("=");        hEq.setStyle(hs);
+        Label hTotal = new Label("TOTAL");    hTotal.setStyle(hs);
+        hdr.getChildren().addAll(hName, hBase, hPlus, hBonus, hEq, hTotal);
+        content.getChildren().add(hdr);
+        content.getChildren().add(new Separator());
+
+        // One row per player (ranking order = sorted by total descending)
+        for (int i = 0; i < ranking.size(); i++) {
+            String nick   = ranking.get(i);
+            int total     = finalPP.getOrDefault(nick, 0);
+            int bon       = bonus.getOrDefault(nick, 0);
+            int base      = total - bon;
+            boolean isMe  = nick.equals(myNick);
+
+            HBox row = new HBox(10);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setPadding(new Insets(5, 8, 5, 8));
+            if (isMe) row.setStyle(
+                "-fx-background-color: rgba(160,100,20,0.12); " +
+                "-fx-background-radius: 8;");
+
+            String medal = switch (i) {
+                case 0 -> "👑 "; case 1 -> "🥈 "; case 2 -> "🥉 ";
+                default -> "#" + (i + 1) + " ";
+            };
+            Label nameLbl  = new Label(medal + nick);
+            nameLbl.setStyle("-fx-font-size: " + (isMe ? 14 : 13) + "px;" +
+                             " -fx-font-weight: " + (isMe ? "bold" : "normal") + ";" +
+                             " -fx-text-fill: #3b1e00;");
+            HBox.setHgrow(nameLbl, Priority.ALWAYS);
+
+            Label baseLbl  = new Label(String.valueOf(base));
+            baseLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #5c3a21;");
+            Label plusLbl  = new Label("+");
+            plusLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #888;");
+            Label bonLbl   = new Label(String.valueOf(bon));
+            bonLbl.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #c87828;");
+            Label eqLbl    = new Label("=");
+            eqLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #888;");
+            Label totalLbl = new Label(total + " ⭐");
+            totalLbl.setStyle("-fx-font-size: " + (isMe ? 16 : 13) + "px;" +
+                              " -fx-font-weight: bold; -fx-text-fill: #2d5a1a;");
+
+            row.getChildren().addAll(nameLbl, baseLbl, plusLbl, bonLbl, eqLbl, totalLbl);
+            content.getChildren().add(row);
+        }
+
+        content.getChildren().add(new Separator());
+
+        // Proceed button
+        Button proceedBtn = new Button("View Rankings  →");
+        proceedBtn.setStyle("""
+                -fx-background-color: linear-gradient(to bottom, #7a4a1a, #4a2a08);
+                -fx-text-fill: #fde8b0; -fx-font-weight: bold; -fx-font-size: 14px;
+                -fx-border-color: #2d1800; -fx-border-radius: 8; -fx-background-radius: 8;
+                -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 9 28;
+                -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 6, 0, 1, 2);
+                """);
+        HBox btnRow = new HBox();
+        btnRow.setAlignment(Pos.CENTER_RIGHT);
+        btnRow.getChildren().add(proceedBtn);
+        content.getChildren().add(btnRow);
+
+        overlay.getChildren().add(content);
+        scalablePane.getChildren().add(overlay);
+
+        // Animate in
+        makeFade(overlay, 0, 1, 300).play();
+        content.setOpacity(0); content.setScaleX(0.85); content.setScaleY(0.85);
+        new ParallelTransition(makeFade(content, 0, 1, 380), makeScale(content, 0.85, 1.0, 380)).play();
+
+        proceedBtn.setOnAction(e -> {
+            FadeTransition ft = new FadeTransition(Duration.millis(220), overlay);
+            ft.setToValue(0);
+            ft.setOnFinished(ev -> {
+                scalablePane.getChildren().remove(overlay);
+                gui.showEndGameScreen();
+            });
+            ft.play();
+        });
     }
 
     private String formatEventType(String type) {

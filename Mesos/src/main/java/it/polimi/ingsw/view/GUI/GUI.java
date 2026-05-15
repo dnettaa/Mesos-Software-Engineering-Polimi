@@ -286,7 +286,11 @@ public class GUI extends Application implements View {
          */
         Platform.runLater(() -> {
             if (isEndGamePhase()) {
-                showEndGameScreen();
+                if (gameController != null) {
+                    gameController.scheduleEndGame();
+                } else {
+                    showEndGameScreen();
+                }
             } else if (gameController == null) {
                 showGameScreen();
             } else {
@@ -306,21 +310,20 @@ public class GUI extends Application implements View {
                 return;
             }
 
-            /*
-             * If the server says that the game is finished, we move to the final screen.
-             */
             if (isEndGamePhase()) {
-                if (endGameController == null) {
-                    showEndGameScreen();
-                } else {
+                if (endGameController != null) {
+                    // EndGame screen already visible — just re-render it.
                     endGameController.render();
+                } else if (gameController != null) {
+                    // Game screen is still up: let the game controller drain its event queue
+                    // and show the final-scoring overlay before switching screens.
+                    gameController.scheduleEndGame();
+                } else {
+                    showEndGameScreen();
                 }
                 return;
             }
 
-            /*
-             * Otherwise we render the normal game screen.
-             */
             if (gameController == null) {
                 showGameScreen();
             } else {

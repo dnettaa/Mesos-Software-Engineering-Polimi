@@ -21,6 +21,9 @@ public class CardCatalog {
     /** Maps card ID → raw type string as found in the JSON (e.g. "HUNTER", "BUILDER"). */
     private static final Map<String, String> types = new HashMap<>();
 
+    /** Maps builder card ID → food discount value (0 for non-builder cards). */
+    private static final Map<String, Integer> builderDiscounts = new HashMap<>();
+
     // Static block to preload all card definitions as soon as the class is loaded into memory.
     static {
         loadJson("/JSON/characters.json");
@@ -45,6 +48,9 @@ public class CardCatalog {
                 descriptions.put(id, desc);
                 if(obj.has("type")){
                     types.put(id, obj.get("type").getAsString());
+                }
+                if (obj.has("builderDiscount")) {
+                    builderDiscounts.put(id, obj.get("builderDiscount").getAsInt());
                 }
             }
         } catch (Exception e) {
@@ -158,5 +164,16 @@ public class CardCatalog {
      */
     public static String getType(String cardID) {
         return types.getOrDefault(cardID, "UNKNOWN");
+    }
+
+    /**
+     * Returns the food discount granted by a builder card when purchasing a building.
+     * Returns 0 for non-builder cards or unknown IDs.
+     *
+     * @param cardID the card identifier
+     * @return food discount value (≥ 0)
+     */
+    public static int getBuilderDiscount(String cardID) {
+        return builderDiscounts.getOrDefault(cardID, 0);
     }
 }

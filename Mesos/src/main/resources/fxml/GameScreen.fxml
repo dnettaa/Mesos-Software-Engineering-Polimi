@@ -134,8 +134,8 @@
                       prefWidth="300" maxWidth="300"
                       style="-fx-padding: 0 0 0 10;">
 
-                    <!-- Local player tribe and resources -->
-                    <VBox spacing="6" VBox.vgrow="ALWAYS" styleClass="game-side-panel">
+                    <!-- Local player tribe and resources — fixed height so PLAYERS is always visible -->
+                    <VBox spacing="6" prefHeight="390" maxHeight="390" styleClass="game-side-panel">
                         <Label text="MY TRIBE"
                                styleClass="game-section-title"/>
 
