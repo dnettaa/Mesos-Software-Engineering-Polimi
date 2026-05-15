@@ -26,6 +26,6 @@ public class EventResolvedMessage extends ServerMessage {
     @Override
     public void apply(View view) {
         view.getClientModel().applyEventResolved(dto);
-        view.render();
+        view.showEventResolved(dto.eventCardID(), dto.eventType(), dto.ppDeltaByPlayer(), dto.foodDeltaByPlayer());
     }
 }
