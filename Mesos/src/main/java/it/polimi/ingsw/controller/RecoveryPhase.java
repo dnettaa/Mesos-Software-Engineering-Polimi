@@ -5,6 +5,7 @@ import it.polimi.ingsw.model.game.DTO.PlayerData;
 import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
+import it.polimi.ingsw.persistence.PersistenceManager;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,14 +37,10 @@ public class RecoveryPhase implements ControllerPhase {
      * @param controller the main game controller
      * @param game the restored game instance
      */
-    public RecoveryPhase(
-            GameController controller,
-            GameActions game
-    ) {
+    public RecoveryPhase(GameController controller, GameActions game) {
 
         this.controller = controller;
         this.game = game;
-
         this.reconnectedPlayers = new HashSet<>();
 
         GameStateSnapshot snapshot = game.buildSnapshot();
@@ -51,81 +48,62 @@ public class RecoveryPhase implements ControllerPhase {
         this.expectedTotal = snapshot.players().size();
     }
 
-    /**
-     * Handles a reconnect request from a previously
-     * connected player.
-     * Validates:
-     *     nickname belongs to original match
-     *     totem color matches original player
-     *     is not already reconnected
-     * Once validated:
-     *     the new view is registered
-     *     the full snapshot is resent
-     *     the game resumes when all players return
-     */
     @Override
     public synchronized void reconnect(GameController controller, String nickname, TotemColor color, VirtualView view) {
+        acceptRecovery(controller, nickname, color, view);
+    }
 
+    @Override
+    public synchronized void acceptRecovery(GameController controller, String nickname, TotemColor color, VirtualView view) {
         GameStateSnapshot snapshot = game.buildSnapshot();
 
-        PlayerData playerData =
-                snapshot.players()
-                        .stream()
-                        .filter(p -> p.nickname().equals(nickname))
-                        .findFirst()
-                        .orElse(null);
+        PlayerData playerData = snapshot.players()
+                .stream()
+                .filter(p -> p.nickname().equals(nickname))
+                .findFirst()
+                .orElse(null);
 
-        /*
-         * Reject unknown players
-         */
-        if(playerData == null){
+        if (playerData == null) {
             view.onError("RECOVERY_MODE", "Unknown player for recovery.");
             return;
         }
 
-        /*
-         * Validate original color
-         */
-        if(playerData.totemColor() != color){
+        if (playerData.totemColor() != color) {
             view.onError("RECOVERY_MODE", "Invalid recovery color.");
             return;
         }
 
-        /*
-         * Prevent duplicate reconnect
-         */
-        if(reconnectedPlayers.contains(nickname)){
+        if (reconnectedPlayers.contains(nickname)) {
             view.onError("RECOVERY_MODE", "Player already reconnected.");
-
             return;
         }
 
-        /*
-         * Register restored view
-         */
         controller.registerView(nickname, view);
-
         reconnectedPlayers.add(nickname);
 
-        System.out.println("[RECOVERY] Player reconnected: " + nickname + " (" + reconnectedPlayers.size() + "/"
-                + expectedTotal + ")"
-        );
+        System.out.println("[RECOVERY] Player reconnected: " + nickname + " ("
+                + reconnectedPlayers.size() + "/" + expectedTotal + ")");
 
-        /*
-         * Restore full client state
-         */
         view.onGameStarted(snapshot);
 
-        /*
-         * Resume game once everybody is back
-         */
-        if(reconnectedPlayers.size() == expectedTotal){
-
+        if (reconnectedPlayers.size() == expectedTotal) {
             System.out.println("[RECOVERY] All players reconnected. Resuming game.");
-
             controller.transitionTo(new InGamePhase(controller, game));
         }
     }
+
+    @Override
+    public synchronized void declineRecovery(GameController controller, VirtualView view) {
+        PersistenceManager.deleteSave();
+        controller.reset();
+
+        if(view != null && view.isConnected()) {
+            view.onDisconnection("Recovery Cancelled. You can create or join a new lobby.");
+        }
+
+        System.out.println("[RECOVERY] Recovery declined. Saved game discarded.");
+    }
+
 
     /**
      * Rejects any attempt to create a new lobby

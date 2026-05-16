@@ -77,4 +77,12 @@ public interface ControllerPhase {
     default void reconnect(GameController controller, String nickname, TotemColor color, VirtualView view) {
         throw new IllegalStateException("Reconnect not allowed in current phase");
     }
+
+    default void acceptRecovery(GameController controller, String nickname, TotemColor color, VirtualView view) {
+        throw new IllegalStateException("Recovery accept not allowed in current phase");
+    }
+
+    default void declineRecovery(GameController controller, VirtualView view) {
+        throw new IllegalStateException("Recovery decline not allowed in current phase");
+    }
 }

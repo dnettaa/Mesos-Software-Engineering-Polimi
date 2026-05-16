@@ -79,6 +79,20 @@
             currentPhase.reconnect(this, nickname, color, view);
         }
 
+        public synchronized void acceptRecovery(String nickname, TotemColor color, VirtualView view) {
+            currentPhase.acceptRecovery(this, nickname, color, view);
+        }
+
+        public synchronized void declineRecovery(VirtualView view) {
+            currentPhase.declineRecovery(this, view);
+        }
+
+        public synchronized void reset() {
+            this.game = null;
+            this.currentPhase = null;
+            this.views.clear();
+        }
+
         /**
          * Handles the disconnection of a player.
          * Delegates the logic to the current phase.
