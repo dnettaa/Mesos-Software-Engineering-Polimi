@@ -402,4 +402,18 @@ public class TUI implements View {
             System.out.printf("  %-12s → PP: %s  Food: %s%n", player, ppStr, foodStr);
         }
     }
+
+    @Override
+    public boolean askRecoveryChoice() {
+        while (true) {
+
+            System.out.print("Recover previous game? (y/n): ");
+            String input = scanner.nextLine().trim().toLowerCase();
+
+            if (input.equals("y") || input.equals("yes")) return true;
+            if (input.equals("n") || input.equals("no")) return false;
+
+            System.out.println("Please answer y or n.");
+        }
+    }
 }

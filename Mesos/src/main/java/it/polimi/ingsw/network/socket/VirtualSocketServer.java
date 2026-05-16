@@ -148,42 +148,38 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
 
             this.socket = new Socket(host, port);
 
-            this.out =
-                    new ObjectOutputStream(
-                            socket.getOutputStream()
-                    );
-
+            this.out = new ObjectOutputStream(socket.getOutputStream());
             this.out.flush();
 
-            this.in =
-                    new ObjectInputStream(
-                            socket.getInputStream()
-                    );
+            this.in = new ObjectInputStream(socket.getInputStream());
 
             this.running = true;
 
-            Thread readerThread =
-                    new Thread(
-                            this,
-                            "VirtualSocketServer-Reader"
-                    );
-
+            Thread readerThread = new Thread(this, "VirtualSocketServer-Reader");
             readerThread.start();
 
-            view.notifyDisconnection(
-                    "Server reconnected. Recovering game..."
-            );
+            view.notifyDisconnection("Server reconnected. Recovering game...");
 
             /*
              * Automatic recovery request
              */
             if (wasInGame) {
-                reconnectToSavedGame();
+                if (view.askRecoveryChoice()) {
+                    reconnectToSavedGame();
+                } else {
+                    declineRecovery();
+                }
             }
 
         } catch (IOException ignored) {
 
         }
+    }
+
+    private void declineRecovery() {
+
+        write(new DeclineRecoveryMessage());
+        wasInGame = false;
     }
 
     /**

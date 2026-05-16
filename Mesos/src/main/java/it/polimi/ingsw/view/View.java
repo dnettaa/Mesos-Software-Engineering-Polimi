@@ -58,4 +58,6 @@ public interface View {
 
     void showEventResolved(String eventCardID, String eventType,
                            Map<String, Integer> ppDelta, Map<String, Integer> foodDelta);
+
+    boolean askRecoveryChoice();
 }

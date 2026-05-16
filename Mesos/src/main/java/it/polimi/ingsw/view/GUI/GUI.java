@@ -362,4 +362,9 @@ public class GUI extends Application implements View {
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
+
+    @Override
+    public boolean askRecoveryChoice() {
+        return true; //to be implemented.
+    }
 }

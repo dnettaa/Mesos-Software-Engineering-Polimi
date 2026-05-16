@@ -44,15 +44,7 @@ public class ReconnectMessage extends ClientMessage {
      * @param sender the reconnecting client view
      */
     @Override
-    public void execute(
-            GameController controller,
-            VirtualView sender
-    ) {
-
-        controller.reconnectPlayer(
-                getNickname(),
-                color,
-                sender
-        );
+    public void execute(GameController controller, VirtualView sender) {
+        controller.acceptRecovery(getNickname(), color, sender);
     }
 }
