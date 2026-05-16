@@ -352,6 +352,13 @@ public class TUI implements View {
         System.out.println("\n[DISCONNECTED] " + reason);
     }
 
+    @Override
+    public void showRecoveryCancelled(String reason) {
+
+        System.out.println("\n[RECOVERY] " + reason);
+        run();
+    }
+
     /**
      * Displays setup or networking errors that occur before the game starts
      * (e.g., Lobby full, Name already taken) and restarts the setup wizard.

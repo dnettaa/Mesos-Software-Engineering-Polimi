@@ -7,7 +7,9 @@ import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
 import it.polimi.ingsw.persistence.PersistenceManager;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -84,21 +86,35 @@ public class RecoveryPhase implements ControllerPhase {
         System.out.println("[RECOVERY] Player reconnected: " + nickname + " ("
                 + reconnectedPlayers.size() + "/" + expectedTotal + ")");
 
-        view.onGameStarted(snapshot);
-
         if (reconnectedPlayers.size() == expectedTotal) {
             System.out.println("[RECOVERY] All players reconnected. Resuming game.");
+
             controller.transitionTo(new InGamePhase(controller, game));
+
+            GameStateSnapshot resumedSnapshot = game.buildSnapshot();
+            for(VirtualView targetView : controller.getViews().values()) {
+                if(targetView.isConnected()) {
+                    targetView.onGameStarted(resumedSnapshot);
+                }
+            }
         }
     }
 
     @Override
     public synchronized void declineRecovery(GameController controller, VirtualView view) {
+        List<VirtualView> viewsToNotify = new ArrayList<>(controller.getViews().values());
+
+        if(view != null && !viewsToNotify.contains(view)) {
+            viewsToNotify.add(view);
+        }
+
         PersistenceManager.deleteSave();
         controller.reset();
 
-        if(view != null && view.isConnected()) {
-            view.onDisconnection("Recovery Cancelled. You can create or join a new lobby.");
+        for(VirtualView targetView : viewsToNotify) {
+            if(targetView != null && targetView.isConnected()) {
+                targetView.onRecoveryCancelled("Recovery cancelled. You can create or join a new lobby.");
+            }
         }
 
         System.out.println("[RECOVERY] Recovery declined. Saved game discarded.");

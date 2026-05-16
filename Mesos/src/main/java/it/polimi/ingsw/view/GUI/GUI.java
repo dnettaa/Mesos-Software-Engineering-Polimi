@@ -320,6 +320,19 @@ public class GUI extends Application implements View {
      *
      * @param scene the scene whose scalable pane should be resized
      */
+    @Override
+    public void showRecoveryCancelled(String reason) {
+        Platform.runLater(() -> {
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.INFORMATION
+            );
+            alert.setTitle("Recovery cancelled");
+            alert.setHeaderText("Saved game discarded");
+            alert.setContentText(reason);
+            alert.showAndWait();
+        });
+    }
+
     private void updateScale(Scene scene) {
         StackPane scalablePane = (StackPane) scene.lookup("#scalablePane");
         ImageView bg = (ImageView) scene.lookup("#backgroundImage");

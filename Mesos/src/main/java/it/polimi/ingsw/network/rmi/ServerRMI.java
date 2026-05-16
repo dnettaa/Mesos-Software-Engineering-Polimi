@@ -95,4 +95,13 @@ public interface ServerRMI extends Remote{
      */
     void reconnect(String nickname, TotemColor color, ClientRMI client)
             throws RemoteException;
+
+    /**
+     * Remotely declines recovery of a previously saved match.
+     *
+     * @param client remote callback object
+     * @throws RemoteException if remote invocation fails
+     */
+    void declineRecovery(ClientRMI client)
+            throws RemoteException;
 }

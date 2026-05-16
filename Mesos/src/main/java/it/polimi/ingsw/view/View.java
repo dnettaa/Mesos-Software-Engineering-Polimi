@@ -27,6 +27,11 @@ public interface View {
     void notifyDisconnection(String reason);
 
     /**
+     * Notifies the user that recovery was cancelled and the initial menu can be shown again.
+     */
+    void showRecoveryCancelled(String reason);
+
+    /**
      * Binds the view to the network layer (VirtualServer).
      */
     void setVirtualServer(VirtualServer vs);

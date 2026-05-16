@@ -96,7 +96,19 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
     public void reconnect(String nickname, TotemColor color, ClientRMI client)
             throws RemoteException {
         RMIClientConnection connection = registerConnection(nickname, client);
-        controller.reconnectPlayer(nickname, color, connection);
+        controller.acceptRecovery(nickname, color, connection);
+    }
+
+    /**
+     * Handles a remote request to discard recovery and start fresh.
+     *
+     * @param client remote callback object of the client refusing recovery
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void declineRecovery(ClientRMI client) throws RemoteException {
+        RMIClientConnection connection = new RMIClientConnection(client);
+        controller.declineRecovery(connection);
     }
 
     /**
@@ -337,6 +349,22 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         public void onDisconnection(String reason){
             enqueue(() -> clientStub.onDisconnection(reason));
             disconnect();
+        }
+
+        /**
+         * Notifies the remote client that recovery was canceled.
+         *
+         * @param reason reason shown to the user
+         */
+        @Override
+        public void onRecoveryCancelled(String reason) {
+            enqueue(() -> {
+                clientStub.onRecoveryCancelled(reason);
+                if(nickname != null) {
+                    connectionsByNickname.remove(nickname, this);
+                }
+                disconnect();
+            });
         }
 
         /**

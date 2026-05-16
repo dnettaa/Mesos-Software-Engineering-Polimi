@@ -65,6 +65,15 @@ public interface ClientRMI extends Remote{
             throws RemoteException;
 
     /**
+     * Remotely notifies the client that recovery was canceled without closing the connection.
+     *
+     * @param reason reason shown to the user
+     * @throws RemoteException if the remote invocation fails
+     */
+    void onRecoveryCancelled(String reason)
+            throws RemoteException;
+
+    /**
      * Remotely notifies the client that the game has started.
      *
      * @param snapshot initial game state snapshot

@@ -127,6 +127,17 @@ public class SocketClientHandler implements VirtualView, Runnable {
     }
 
     /**
+     * Notifies the client that recovery was canceled without
+     * closing the socket
+     *
+     * @param reason the reason shown to the user
+     */
+    @Override
+    public void onRecoveryCancelled(String reason) {
+        enqueue(new RecoveryCancelledMessage(reason));
+    }
+
+    /**
      * Notifies the client that the game has started.
      * Wraps the initial game state snapshot into a {@link GameStartedMessage} and enqueues it.
      *

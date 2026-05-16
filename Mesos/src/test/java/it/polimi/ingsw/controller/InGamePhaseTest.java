@@ -240,6 +240,7 @@ class InGamePhaseTest{
         @Override public void onLobbyUpdate(List<String> players, Map<String, TotemColor> colorsByPlayer, int expected) {}
         @Override public void onError(String code, String description) { this.lastErrorDescription = description; }
         @Override public void onDisconnection(String reason) {}
+        @Override public void onRecoveryCancelled(String reason) {}
         @Override public void onGameStarted(GameStateSnapshot snapshot) {}
         @Override public void onTotemPlaced(TotemPlacedDTO dto) { this.lastTotemPlaced = dto; }
         @Override public void onCardsTaken(CardsTakenDTO dto) { this.lastCardsTaken = dto; }

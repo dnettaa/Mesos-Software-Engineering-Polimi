@@ -81,6 +81,13 @@ public interface VirtualView{
     void onDisconnection(String reason);
 
     /**
+     * Notifies the client that recovery was canceled without closing the connection.
+     *
+     * @param reason reason shown to the user
+     */
+    void onRecoveryCancelled(String reason);
+
+    /**
      * Notifies the client that the game has started.
      *
      * @param snapshot initial game state snapshot

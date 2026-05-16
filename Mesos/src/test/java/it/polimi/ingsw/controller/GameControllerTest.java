@@ -136,6 +136,10 @@ class GameControllerTest{
             connected = false;
             sentMessages.clear();
         }
+
+        @Override
+        public void onRecoveryCancelled(String reason) {
+        }
     }
 
     /**

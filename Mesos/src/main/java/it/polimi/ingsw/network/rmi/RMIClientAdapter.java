@@ -138,11 +138,12 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void joinLobby(String nickname, TotemColor color){
+        this.nickname = nickname;
+        this.savedColor = color;
+
         if(!isReady()){
             return;
         }
-
-        this.nickname = nickname;
 
         try{
             serverStub.joinLobby(nickname, color, this);
@@ -293,6 +294,18 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     }
 
     /**
+     * Notifies the local view that recovery was cancelled without closing the RMI connection.
+     *
+     * @param reason reason shown to the user
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onRecoveryCancelled(String reason) throws RemoteException {
+        wasInGame = false;
+        view.showRecoveryCancelled(reason);
+    }
+
+    /**
      * Applies the initial game snapshot to the local client model and renders the view.
      *
      * @param snapshot initial game state snapshot
@@ -440,6 +453,21 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     }
 
     /**
+     * Requests the server to discard the saved game during recovery.
+     */
+    private void declineRecovery() {
+        if(!isReady()){
+            return;
+        }
+        try{
+            serverStub.declineRecovery(this);
+            wasInGame = false;
+        } catch(RemoteException e){
+            handleRemoteFailure("Connection with the RMI server lost while declining recovery.");
+        }
+    }
+
+    /**
      * Starts a background loop that periodically
      * attempts to reconnect to the RMI server.
      */
@@ -451,7 +479,6 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
                 try{
                     Thread.sleep(3000);
                     reconnectToServer();
-
                 }catch(Exception ignored){}
             }
         }, "RMI-Reconnect-Loop");
@@ -477,7 +504,11 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
             view.notifyDisconnection("Server reconnected. Recovering game...");
 
             if(wasInGame){
-                reconnect(nickname, savedColor);
+                if(view.askRecoveryChoice()){
+                    reconnect(nickname, savedColor);
+                } else {
+                    declineRecovery();
+                }
                 wasInGame = false;
             }
 
