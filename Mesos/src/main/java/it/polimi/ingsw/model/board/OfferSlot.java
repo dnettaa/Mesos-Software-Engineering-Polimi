@@ -5,6 +5,8 @@ import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.player.Player;
 
+import java.util.Map;
+
 /**
  * Represents a single slot in the offer track.
  * Each slot defines how many cards can be selected from the upper and lower rows,
@@ -109,6 +111,22 @@ public class OfferSlot {
 
         occupant = null;
 
+    }
+
+    /**
+     * Replaces a deserialized occupant with the canonical player instance.
+     * Used after loading a saved game from persistence.
+     *
+     * @param playersByNickname canonical players indexed by nickname
+     */
+    public void rebindPlayerReferences(Map<String, Player> playersByNickname) {
+        if (occupant != null) {
+            Player canonical = playersByNickname.get(occupant.getNickname());
+            if (canonical == null) {
+                throw new IllegalStateException("Unknown player in offer slot: " + occupant.getNickname());
+            }
+            occupant = canonical;
+        }
     }
 
     /**

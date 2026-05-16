@@ -7,6 +7,7 @@ import it.polimi.ingsw.model.game.DTO.RoundEndedDTO;
 import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.model.player.Player;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the main board of the game.
@@ -333,5 +334,16 @@ public class Board {
      */
     public List<OfferSlotData> buildOfferSlotsData(){
         return offerTrack.buildOfferSlotsData();
+    }
+
+    /**
+     * Replaces deserialized player references with canonical player instances.
+     * Used after loading a saved game from persistence.
+     *
+     * @param playersByNickname canonical players indexed by nickname
+     */
+    public void rebindPlayerReferences(Map<String, Player> playersByNickname) {
+        offerTrack.rebindPlayerReferences(playersByNickname);
+        turnOrderTrack.rebindPlayerReferences(playersByNickname);
     }
 }

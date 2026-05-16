@@ -113,7 +113,9 @@ public class PersistenceManager {
         }
 
         try (Reader reader = new FileReader(file)) {
-            return gson.fromJson(reader, Game.class);
+            Game game = gson.fromJson(reader, Game.class);
+            game.restoreReferencesAfterLoad();
+            return game;
 
         } catch (Exception e) {
             System.err.println("[PERSISTENCE] Corrupted save file: " + path);
