@@ -367,6 +367,11 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             });
         }
 
+        @Override
+        public void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
+            enqueue(() -> clientStub.onRecoveryUpdate(reconnectedPlayers, missingPlayers));
+        }
+
         /**
          * Notifies the remote client that the game has started.
          *

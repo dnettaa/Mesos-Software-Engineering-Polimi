@@ -65,4 +65,6 @@ public interface View {
                            Map<String, Integer> ppDelta, Map<String, Integer> foodDelta);
 
     boolean askRecoveryChoice();
+
+    void showRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers);
 }

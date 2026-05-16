@@ -137,6 +137,12 @@ public class SocketClientHandler implements VirtualView, Runnable {
         enqueue(new RecoveryCancelledMessage(reason));
     }
 
+
+    @Override
+    public void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
+        enqueue(new RecoveryUpdateMessage(reconnectedPlayers, missingPlayers));
+    }
+
     /**
      * Notifies the client that the game has started.
      * Wraps the initial game state snapshot into a {@link GameStartedMessage} and enqueues it.

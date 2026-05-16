@@ -423,4 +423,13 @@ public class TUI implements View {
             System.out.println("Please answer y or n.");
         }
     }
+
+    @Override
+    public void showRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
+        System.out.println("\n[RECOVERY] Accepted players: " + String.join(", ", reconnectedPlayers));
+
+        if (!missingPlayers.isEmpty()) {
+            System.out.println("[RECOVERY] Waiting for: " + String.join(", ", missingPlayers));
+        }
+    }
 }

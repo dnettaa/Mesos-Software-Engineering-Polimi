@@ -294,7 +294,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     }
 
     /**
-     * Notifies the local view that recovery was cancelled without closing the RMI connection.
+     * Notifies the local view that recovery was canceled without closing the RMI connection.
      *
      * @param reason reason shown to the user
      * @throws RemoteException if the remote invocation fails
@@ -303,6 +303,12 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     public void onRecoveryCancelled(String reason) throws RemoteException {
         wasInGame = false;
         view.showRecoveryCancelled(reason);
+    }
+
+    @Override
+    public void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers)
+            throws RemoteException {
+        view.showRecoveryUpdate(reconnectedPlayers, missingPlayers);
     }
 
     /**

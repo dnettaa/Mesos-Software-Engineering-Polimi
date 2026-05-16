@@ -73,6 +73,9 @@ public interface ClientRMI extends Remote{
     void onRecoveryCancelled(String reason)
             throws RemoteException;
 
+    void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers)
+            throws RemoteException;
+
     /**
      * Remotely notifies the client that the game has started.
      *

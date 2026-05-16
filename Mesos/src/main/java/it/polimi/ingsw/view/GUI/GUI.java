@@ -380,4 +380,9 @@ public class GUI extends Application implements View {
     public boolean askRecoveryChoice() {
         return true; //to be implemented.
     }
+
+    @Override
+    public void showRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
+        //to be implemented
+    }
 }

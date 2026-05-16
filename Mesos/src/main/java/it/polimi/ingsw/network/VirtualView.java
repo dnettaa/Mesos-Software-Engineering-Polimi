@@ -135,4 +135,6 @@ public interface VirtualView{
      * @param dto data describing the final game result
      */
     void onGameEnded(GameEndedDTO dto);
+
+    void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers);
 }

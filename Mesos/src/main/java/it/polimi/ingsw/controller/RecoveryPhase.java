@@ -83,8 +83,12 @@ public class RecoveryPhase implements ControllerPhase {
         controller.registerView(nickname, view);
         reconnectedPlayers.add(nickname);
 
-        System.out.println("[RECOVERY] Player reconnected: " + nickname + " ("
-                + reconnectedPlayers.size() + "/" + expectedTotal + ")");
+        System.out.println("[RECOVERY] Player reconnected: " + nickname + " (" + reconnectedPlayers.size()
+                + "/" + expectedTotal + ")");
+
+        if(reconnectedPlayers.size() < expectedTotal) {
+            notifyRecoveryUpdate();
+        }
 
         if (reconnectedPlayers.size() == expectedTotal) {
             System.out.println("[RECOVERY] All players reconnected. Resuming game.");
@@ -96,6 +100,30 @@ public class RecoveryPhase implements ControllerPhase {
                 if(targetView.isConnected()) {
                     targetView.onGameStarted(resumedSnapshot);
                 }
+            }
+        }
+    }
+
+    private void notifyRecoveryUpdate() {
+        GameStateSnapshot snapshot = game.buildSnapshot();
+
+        List<String> allPlayers = snapshot.players().stream()
+                .map(PlayerData::nickname)
+                .toList();
+
+        List<String> reconnected = allPlayers.stream()
+                .filter(reconnectedPlayers::contains)
+                .toList();
+
+        List<String> missing = allPlayers.stream()
+                .filter(p -> !reconnectedPlayers.contains(p))
+                .toList();
+
+        for (String reconnectedNickname : reconnectedPlayers) {
+            VirtualView targetView = controller.getViews().get(reconnectedNickname);
+
+            if (targetView != null && targetView.isConnected()) {
+                targetView.onRecoveryUpdate(reconnected, missing);
             }
         }
     }
