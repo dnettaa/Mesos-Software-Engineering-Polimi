@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Special controller phase used after a server crash.
@@ -26,12 +29,15 @@ import java.util.Set;
  */
 public class RecoveryPhase implements ControllerPhase {
 
+    private static final int TIMEOUT_SECONDS = 60;
+
     private final GameController controller;
     private final GameActions game;
 
     private final Set<String> reconnectedPlayers;
-
     private final int expectedTotal;
+    private boolean finished = false;
+    private final ScheduledExecutorService timeoutScheduler;
 
     /**
      * Creates a new recovery phase.
@@ -46,8 +52,22 @@ public class RecoveryPhase implements ControllerPhase {
         this.reconnectedPlayers = new HashSet<>();
 
         GameStateSnapshot snapshot = game.buildSnapshot();
-
         this.expectedTotal = snapshot.players().size();
+
+        timeoutScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "recovery-timeout");
+            t.setDaemon(true);
+            return t;
+        });
+        timeoutScheduler.schedule(this::onTimeout, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        System.out.println("[RECOVERY] Waiting for players to reconnect. Timeout: " + TIMEOUT_SECONDS + "s.");
+    }
+
+    private synchronized void onTimeout() {
+        if (!finished) {
+            System.out.println("[RECOVERY] Timeout expired. Discarding saved game.");
+            declineRecovery(controller, null);
+        }
     }
 
     @Override
@@ -91,6 +111,8 @@ public class RecoveryPhase implements ControllerPhase {
         }
 
         if (reconnectedPlayers.size() == expectedTotal) {
+            finished = true;
+            timeoutScheduler.shutdownNow();
             System.out.println("[RECOVERY] All players reconnected. Resuming game.");
 
             controller.transitionTo(new InGamePhase(controller, game));
@@ -130,6 +152,9 @@ public class RecoveryPhase implements ControllerPhase {
 
     @Override
     public synchronized void declineRecovery(GameController controller, VirtualView view) {
+        if (finished) return;
+        finished = true;
+        timeoutScheduler.shutdownNow();
         List<VirtualView> viewsToNotify = new ArrayList<>(controller.getViews().values());
 
         if(view != null && !viewsToNotify.contains(view)) {

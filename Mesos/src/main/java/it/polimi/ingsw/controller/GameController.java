@@ -80,11 +80,15 @@
         }
 
         public synchronized void acceptRecovery(String nickname, TotemColor color, VirtualView view) {
-            currentPhase.acceptRecovery(this, nickname, color, view);
+            if (currentPhase != null) {
+                currentPhase.acceptRecovery(this, nickname, color, view);
+            }
         }
 
         public synchronized void declineRecovery(VirtualView view) {
-            currentPhase.declineRecovery(this, view);
+            if (currentPhase != null) {
+                currentPhase.declineRecovery(this, view);
+            }
         }
 
         public synchronized void reset() {

@@ -5,6 +5,7 @@ import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
+import it.polimi.ingsw.persistence.PersistenceManager;
 
 import java.util.List;
 
@@ -102,6 +103,7 @@ public class InGamePhase implements ControllerPhase {
      */
     @Override
     public void onDisconnect(String nickname) {
+        PersistenceManager.deleteSave();
         controller.closeAll();
     }
 

@@ -47,6 +47,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     private int port;
     private TotemColor savedColor;
     private boolean wasInGame;
+    private Thread heartbeatThread;
     private static final Set<String> LOGIN_ERROR_CODES = Set.of(
             "NICKNAME_TAKEN",
             "COLOR_TAKEN",
@@ -100,6 +101,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
             Registry registry = LocateRegistry.getRegistry(host, port);
             serverStub = (ServerRMI) registry.lookup(SERVER_NAME);
             connected = true;
+            startHeartbeat();
         } catch(Exception e){
             connected = false;
             throw new Exception("Unable to connect to RMI server: " + e.getMessage(), e);
@@ -216,6 +218,9 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     @Override
     public void disconnect(){
         renderExecutor.shutdown();
+        if (heartbeatThread != null) {
+            heartbeatThread.interrupt();
+        }
         if(!connected){
             return;
         }
@@ -474,6 +479,31 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     }
 
     /**
+     * Starts a background thread that pings the server every 3 seconds.
+     * If the ping fails, triggers the reconnect flow.
+     */
+    private void startHeartbeat() {
+        heartbeatThread = new Thread(() -> {
+            while (connected) {
+                try {
+                    Thread.sleep(3000);
+                    if (connected) serverStub.ping();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                } catch (RemoteException e) {
+                    if (connected) {
+                        handleRemoteFailure("Connection with the RMI server lost.");
+                    }
+                    return;
+                }
+            }
+        }, "RMI-Heartbeat");
+        heartbeatThread.setDaemon(true);
+        heartbeatThread.start();
+    }
+
+    /**
      * Starts a background loop that periodically
      * attempts to reconnect to the RMI server.
      */
@@ -506,8 +536,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
             serverStub = (ServerRMI) registry.lookup(SERVER_NAME);
 
             connected = true;
-
-            view.notifyDisconnection("Server reconnected. Recovering game...");
+            startHeartbeat();
 
             if(wasInGame){
                 if(view.askRecoveryChoice()){
@@ -516,6 +545,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
                     declineRecovery();
                 }
                 wasInGame = false;
+            } else {
+                view.showRecoveryCancelled("Reconnected to server. Please rejoin the lobby.");
             }
 
         }catch(Exception ignored){}

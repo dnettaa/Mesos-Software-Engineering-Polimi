@@ -158,17 +158,14 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             Thread readerThread = new Thread(this, "VirtualSocketServer-Reader");
             readerThread.start();
 
-            view.notifyDisconnection("Server reconnected. Recovering game...");
-
-            /*
-             * Automatic recovery request
-             */
             if (wasInGame) {
                 if (view.askRecoveryChoice()) {
                     reconnectToSavedGame();
                 } else {
                     declineRecovery();
                 }
+            } else {
+                view.showRecoveryCancelled("Reconnected to server. Please rejoin the lobby.");
             }
 
         } catch (IOException ignored) {
