@@ -42,7 +42,10 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     private final View view;
     private ServerRMI serverStub;
     private String nickname;
-    private boolean connected;
+    private volatile boolean connected;
+    private volatile boolean disconnectionNotified;
+    private volatile boolean reconnectLoopRunning;
+    private volatile boolean recovering;
     private String host;
     private int port;
     private TotemColor savedColor;
@@ -101,6 +104,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
             Registry registry = LocateRegistry.getRegistry(host, port);
             serverStub = (ServerRMI) registry.lookup(SERVER_NAME);
             connected = true;
+            disconnectionNotified = false;
             startHeartbeat();
         } catch(Exception e){
             connected = false;
@@ -295,6 +299,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     @Override
     public void onDisconnection(String reason) throws RemoteException{
         connected = false;
+        recovering = false;
+        disconnectionNotified = true;
         view.notifyDisconnection(reason);
     }
 
@@ -413,11 +419,16 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     private boolean isReady(){
         if(!connected || serverStub == null){
-            view.notifyDisconnection("RMI client is not connected to the server.");
+            notifyServerOffline();
             return false;
         }
 
         return true;
+    }
+
+    @Override
+    public boolean isConnected() {
+        return connected && !recovering && serverStub != null;
     }
 
     /**
@@ -427,8 +438,16 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     private void handleRemoteFailure(String message){
         connected = false;
-        view.notifyDisconnection(message);
+        recovering = true;
+        notifyServerOffline();
         startReconnectLoop();
+    }
+
+    private void notifyServerOffline() {
+        if (!disconnectionNotified) {
+            disconnectionNotified = true;
+            view.notifyDisconnection("Server offline. Waiting for recovery...");
+        }
     }
 
     /**
@@ -508,14 +527,22 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      * attempts to reconnect to the RMI server.
      */
     private void startReconnectLoop(){
+        if (reconnectLoopRunning) {
+            return;
+        }
+        reconnectLoopRunning = true;
 
         Thread reconnectThread = new Thread(() -> {
 
-            while(!connected){
-                try{
-                    Thread.sleep(3000);
-                    reconnectToServer();
-                }catch(Exception ignored){}
+            try {
+                while(!connected){
+                    try{
+                        Thread.sleep(3000);
+                        reconnectToServer();
+                    }catch(Exception ignored){}
+                }
+            } finally {
+                reconnectLoopRunning = false;
             }
         }, "RMI-Reconnect-Loop");
 
@@ -536,6 +563,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
             serverStub = (ServerRMI) registry.lookup(SERVER_NAME);
 
             connected = true;
+            disconnectionNotified = false;
             startHeartbeat();
 
             if(wasInGame){
@@ -545,8 +573,10 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
                     declineRecovery();
                 }
                 wasInGame = false;
+                recovering = false;
             } else {
                 view.showRecoveryCancelled("Reconnected to server. Please rejoin the lobby.");
+                recovering = false;
             }
 
         }catch(Exception ignored){}

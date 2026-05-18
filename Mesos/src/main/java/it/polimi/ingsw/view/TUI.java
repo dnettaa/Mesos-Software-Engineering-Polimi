@@ -242,17 +242,14 @@ public class TUI implements View {
         System.out.println(BOLD + "  LOBBY MENU:" + RESET);
         System.out.println(CYAN + "  1)" + RESET + " Create a new Lobby");
         System.out.println(CYAN + "  2)" + RESET + " Join an existing Lobby");
-        System.out.print(BOLD + "  > " + RESET);
-        int lobbyChoice = Integer.parseInt(scanner.nextLine().trim());
+        int lobbyChoice = Integer.parseInt(readPromptLine(BOLD + "  > " + RESET).trim());
 
-        System.out.print(BOLD + "\n  Nickname: " + RESET);
-        this.nickname = scanner.nextLine().trim();
+        this.nickname = readPromptLine(BOLD + "\n  Nickname: " + RESET).trim();
 
         System.out.println("\n  Available colors: " + BRIGHT_YELLOW + Arrays.toString(TotemColor.values()) + RESET);
         TotemColor chosenColor = null;
         while (chosenColor == null) {
-            System.out.print(BOLD + "  Totem Color: " + RESET);
-            String colorInput = scanner.nextLine().trim().toUpperCase();
+            String colorInput = readPromptLine(BOLD + "  Totem Color: " + RESET).trim().toUpperCase();
             try {
                 chosenColor = TotemColor.valueOf(colorInput);
             } catch (IllegalArgumentException e) {
@@ -261,8 +258,7 @@ public class TUI implements View {
         }
 
         if (lobbyChoice == 1) {
-            System.out.print(BOLD + "  Number of players (2-5): " + RESET);
-            int players = Integer.parseInt(scanner.nextLine().trim());
+            int players = Integer.parseInt(readPromptLine(BOLD + "  Number of players (2-5): " + RESET).trim());
             virtualServer.createLobby(nickname, chosenColor, players);
         } else {
             virtualServer.joinLobby(nickname, chosenColor);
@@ -307,8 +303,10 @@ public class TUI implements View {
     private void handleTurnInput(String phase) {
         switch (phase) {
             case "TotemPlacementPhase": {
-                System.out.print("Select Offer Slot (Enter a letter): ");
-                String input = scanner.nextLine().trim().toUpperCase();
+                String input = readPromptLine("Select Offer Slot (Enter a letter): ").trim().toUpperCase();
+                if (!isServerConnected()) {
+                    return;
+                }
                 if (!input.isEmpty()) {
                     virtualServer.placeTotem(nickname, input.charAt(0));
                 }
@@ -316,21 +314,27 @@ public class TUI implements View {
             }
 
             case "OfferResolutionPhase": {
-                System.out.print("Enter IDs to take from UPPER Row (space separated, or enter to skip): ");
-                List<String> up = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().toUpperCase().split("\\s+")));
+                List<String> up = new ArrayList<>(Arrays.asList(readPromptLine("Enter IDs to take from UPPER Row (space separated, or enter to skip): ").trim().toUpperCase().split("\\s+")));
                 up.removeIf(String::isEmpty);
+                if (!isServerConnected()) {
+                    return;
+                }
 
-                System.out.print("Enter IDs to take from LOWER Row (space separated, or enter to skip): ");
-                List<String> down = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().toUpperCase().split("\\s+")));
+                List<String> down = new ArrayList<>(Arrays.asList(readPromptLine("Enter IDs to take from LOWER Row (space separated, or enter to skip): ").trim().toUpperCase().split("\\s+")));
                 down.removeIf(String::isEmpty);
+                if (!isServerConnected()) {
+                    return;
+                }
 
                 virtualServer.takeCards(nickname, up, down);
                 break;
             }
 
             case "ExtraCardPhase": {
-                System.out.print("Select Extra Card ID: ");
-                String extra = scanner.nextLine().trim().toUpperCase();
+                String extra = readPromptLine("Select Extra Card ID: ").trim().toUpperCase();
+                if (!isServerConnected()) {
+                    return;
+                }
                 virtualServer.takeExtraCard(nickname, extra);
                 break;
             }
@@ -414,8 +418,7 @@ public class TUI implements View {
     public boolean askRecoveryChoice() {
         while (true) {
 
-            System.out.print("Recover previous game? (y/n): ");
-            String input = scanner.nextLine().trim().toLowerCase();
+            String input = readPromptLine("Recover previous game? (y/n): ").trim().toLowerCase();
 
             if (input.equals("y") || input.equals("yes")) return true;
             if (input.equals("n") || input.equals("no")) return false;
@@ -431,5 +434,14 @@ public class TUI implements View {
         if (!missingPlayers.isEmpty()) {
             System.out.println("[RECOVERY] Waiting for: " + String.join(", ", missingPlayers));
         }
+    }
+
+    private synchronized String readPromptLine(String prompt) {
+        System.out.print(prompt);
+        return scanner.nextLine();
+    }
+
+    private boolean isServerConnected() {
+        return virtualServer == null || virtualServer.isConnected();
     }
 }

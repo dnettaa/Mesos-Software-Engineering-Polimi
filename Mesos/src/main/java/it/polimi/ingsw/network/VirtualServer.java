@@ -62,6 +62,14 @@ public interface VirtualServer{
     void disconnect();
 
     /**
+     * Checks whether the client-side network adapter currently considers
+     * the server connection available.
+     *
+     * @return {@code true} if the adapter can send requests to the server
+     */
+    boolean isConnected();
+
+    /**
      * Requests to reconnect to an existing game session.
      *
      * @param nickname nickname of the reconnecting player

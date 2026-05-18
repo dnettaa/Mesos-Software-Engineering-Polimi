@@ -25,12 +25,13 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private final View view;
-    private boolean running;
+    private volatile boolean running;
     private String nickname;
     private String host;
     private int port;
     private TotemColor savedColor;
     private boolean wasInGame;
+    private volatile boolean recovering;
 
     /**
      * Creates a new VirtualSocketServer for the given view.
@@ -104,6 +105,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     private void handleServerCrash(){
 
         running = false;
+        recovering = true;
 
         view.notifyDisconnection(
                 "Server offline. Waiting for recovery..."
@@ -164,8 +166,10 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
                 } else {
                     declineRecovery();
                 }
+                recovering = false;
             } else {
                 view.showRecoveryCancelled("Reconnected to server. Please rejoin the lobby.");
+                recovering = false;
             }
 
         } catch (IOException ignored) {
@@ -264,6 +268,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
 
         running = false;
         wasInGame = false;
+        recovering = false;
 
         try{
             socket.close();
@@ -271,6 +276,11 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             System.err.println("Failed to close socket: " + e.getMessage());
         }
         view.notifyDisconnection("Disconnected from server");
+    }
+
+    @Override
+    public boolean isConnected() {
+        return running && !recovering && socket != null && socket.isConnected() && !socket.isClosed();
     }
 
     /**
