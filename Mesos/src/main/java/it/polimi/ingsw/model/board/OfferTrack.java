@@ -6,6 +6,7 @@ import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.player.Player;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the offer track of the game.
@@ -103,6 +104,18 @@ public class OfferTrack {
     public void reset(){
         for(OfferSlot slot : slots){
             slot.remove();
+        }
+    }
+
+    /**
+     * Replaces deserialized player references with canonical player instances.
+     * Used after loading a saved game from persistence.
+     *
+     * @param playersByNickname canonical players indexed by nickname
+     */
+    public void rebindPlayerReferences(Map<String, Player> playersByNickname) {
+        for (OfferSlot slot : slots) {
+            slot.rebindPlayerReferences(playersByNickname);
         }
     }
 

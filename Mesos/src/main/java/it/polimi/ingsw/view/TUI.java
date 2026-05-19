@@ -1,5 +1,6 @@
 package it.polimi.ingsw.view;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.game.DTO.OfferSlotData;
 import it.polimi.ingsw.model.game.DTO.PlayerData;
 import it.polimi.ingsw.network.VirtualServer;
@@ -37,6 +38,10 @@ public class TUI implements View {
 
     /** Scanner used to read standard input from the user. */
     private final Scanner scanner;
+
+    private List<MatchResult> leaderboard;
+
+    private int myPosition;
 
     // =========================================================
     // ANSI COLORS
@@ -124,7 +129,7 @@ public class TUI implements View {
                 int endBonus = bonus.getOrDefault(player, 0);
                 int base = total - endBonus;
                 String medal = i == 0 ? BRIGHT_YELLOW + "🥇" : i == 1 ? WHITE + "🥈" : YELLOW + "🥉";
-                String col   = i == 0 ? BRIGHT_YELLOW : i == 1 ? WHITE : YELLOW;
+                String col = i == 0 ? BRIGHT_YELLOW : i == 1 ? WHITE : YELLOW;
                 System.out.printf("  %s %d.  " + col + "%-14s" + RESET + "  %5d    %5d    " + BOLD + "%5d" + RESET + "%n",
                         medal, i + 1, player, base, endBonus, total);
             }
@@ -242,17 +247,14 @@ public class TUI implements View {
         System.out.println(BOLD + "  LOBBY MENU:" + RESET);
         System.out.println(CYAN + "  1)" + RESET + " Create a new Lobby");
         System.out.println(CYAN + "  2)" + RESET + " Join an existing Lobby");
-        System.out.print(BOLD + "  > " + RESET);
-        int lobbyChoice = Integer.parseInt(scanner.nextLine().trim());
+        int lobbyChoice = Integer.parseInt(readPromptLine(BOLD + "  > " + RESET).trim());
 
-        System.out.print(BOLD + "\n  Nickname: " + RESET);
-        this.nickname = scanner.nextLine().trim();
+        this.nickname = readPromptLine(BOLD + "\n  Nickname: " + RESET).trim();
 
         System.out.println("\n  Available colors: " + BRIGHT_YELLOW + Arrays.toString(TotemColor.values()) + RESET);
         TotemColor chosenColor = null;
         while (chosenColor == null) {
-            System.out.print(BOLD + "  Totem Color: " + RESET);
-            String colorInput = scanner.nextLine().trim().toUpperCase();
+            String colorInput = readPromptLine(BOLD + "  Totem Color: " + RESET).trim().toUpperCase();
             try {
                 chosenColor = TotemColor.valueOf(colorInput);
             } catch (IllegalArgumentException e) {
@@ -261,8 +263,7 @@ public class TUI implements View {
         }
 
         if (lobbyChoice == 1) {
-            System.out.print(BOLD + "  Number of players (2-5): " + RESET);
-            int players = Integer.parseInt(scanner.nextLine().trim());
+            int players = Integer.parseInt(readPromptLine(BOLD + "  Number of players (2-5): " + RESET).trim());
             virtualServer.createLobby(nickname, chosenColor, players);
         } else {
             virtualServer.joinLobby(nickname, chosenColor);
@@ -307,8 +308,10 @@ public class TUI implements View {
     private void handleTurnInput(String phase) {
         switch (phase) {
             case "TotemPlacementPhase": {
-                System.out.print("Select Offer Slot (Enter a letter): ");
-                String input = scanner.nextLine().trim().toUpperCase();
+                String input = readPromptLine("Select Offer Slot (Enter a letter): ").trim().toUpperCase();
+                if (!isServerConnected()) {
+                    return;
+                }
                 if (!input.isEmpty()) {
                     virtualServer.placeTotem(nickname, input.charAt(0));
                 }
@@ -316,21 +319,27 @@ public class TUI implements View {
             }
 
             case "OfferResolutionPhase": {
-                System.out.print("Enter IDs to take from UPPER Row (space separated, or enter to skip): ");
-                List<String> up = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().toUpperCase().split("\\s+")));
+                List<String> up = new ArrayList<>(Arrays.asList(readPromptLine("Enter IDs to take from UPPER Row (space separated, or enter to skip): ").trim().toUpperCase().split("\\s+")));
                 up.removeIf(String::isEmpty);
+                if (!isServerConnected()) {
+                    return;
+                }
 
-                System.out.print("Enter IDs to take from LOWER Row (space separated, or enter to skip): ");
-                List<String> down = new ArrayList<>(Arrays.asList(scanner.nextLine().trim().toUpperCase().split("\\s+")));
+                List<String> down = new ArrayList<>(Arrays.asList(readPromptLine("Enter IDs to take from LOWER Row (space separated, or enter to skip): ").trim().toUpperCase().split("\\s+")));
                 down.removeIf(String::isEmpty);
+                if (!isServerConnected()) {
+                    return;
+                }
 
                 virtualServer.takeCards(nickname, up, down);
                 break;
             }
 
             case "ExtraCardPhase": {
-                System.out.print("Select Extra Card ID: ");
-                String extra = scanner.nextLine().trim().toUpperCase();
+                String extra = readPromptLine("Select Extra Card ID: ").trim().toUpperCase();
+                if (!isServerConnected()) {
+                    return;
+                }
                 virtualServer.takeExtraCard(nickname, extra);
                 break;
             }
@@ -343,14 +352,20 @@ public class TUI implements View {
     }
 
     /**
-     * Notifies the user that the connection to the server has been lost and terminates the client.
+     * Notifies the user that the connection to the server has been lost.
      *
      * @param reason A string detailing why the disconnection occurred.
      */
     @Override
     public void notifyDisconnection(String reason) {
         System.out.println("\n[DISCONNECTED] " + reason);
-        System.exit(0);
+    }
+
+    @Override
+    public void showRecoveryCancelled(String reason) {
+
+        System.out.println("\n[RECOVERY] " + reason);
+        run();
     }
 
     /**
@@ -402,5 +417,90 @@ public class TUI implements View {
             String foodStr = food >= 0 ? "+" + food : String.valueOf(food);
             System.out.printf("  %-12s → PP: %s  Food: %s%n", player, ppStr, foodStr);
         }
+    }
+
+    /**
+     * Displays the global leaderboard received from the server.
+     *
+     * @param ranking ordered list of match results
+     * @param position position of the client player
+     */
+    @Override
+    public void showLeaderboard(List<MatchResult> ranking, int position) {
+        this.leaderboard = ranking;
+        this.myPosition = position;
+
+        renderLeaderboard();
+    }
+
+    /**
+     * Renders the global leaderboard on the console.
+     * Shows ranking positions, scores, dates and highlights the local player.
+     */
+    private void renderLeaderboard() {
+
+        if (leaderboard == null || leaderboard.isEmpty()) {
+            System.out.println("\nLoading leaderboard...");
+            return;
+        }
+        System.out.println("\n" + CYAN + BOLD + "  GLOBAL LEADERBOARD (" + leaderboard.get(0).playerCount() + " players)" + RESET);
+        System.out.println(CYAN + "  " + "─".repeat(50) + RESET);
+
+        System.out.println(BOLD + "  Pos  Player          Score    Date" + RESET);
+        System.out.println(WHITE + "  " + "─".repeat(50) + RESET);
+
+        for (int i = 0; i < leaderboard.size(); i++) {
+            MatchResult r = leaderboard.get(i);
+
+            String medal =
+                    i == 0 ? BRIGHT_YELLOW + "🥇" :
+                            i == 1 ? WHITE + "🥈" :
+                            i == 2 ? YELLOW + "🥉" : "  ";
+
+            String color = (i + 1 == myPosition) ? BRIGHT_GREEN : WHITE;
+
+            System.out.printf("  %s %2d.  " + color + "%-14s" + RESET +
+                            "  %5d    %s%n",
+                    medal,
+                    i + 1,
+                    r.nickname(),
+                    r.finalScore(),
+                    r.timestamp().toLocalDate()
+            );
+        }
+
+        System.out.println(WHITE + "  " + "─".repeat(50) + RESET);
+        System.out.println("\n" + BRIGHT_GREEN + "  ➤ Your position: " + myPosition + RESET);
+    }
+
+    @Override
+    public boolean askRecoveryChoice() {
+        while (true) {
+
+            String input = readPromptLine("Recover previous game? (y/n): ").trim().toLowerCase();
+
+            if (input.equals("y") || input.equals("yes")) return true;
+            if (input.equals("n") || input.equals("no")) return false;
+
+            System.out.println("Please answer y or n.");
+        }
+    }
+
+    @Override
+    public void showRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
+        System.out.println("\n[RECOVERY] Accepted players: " + String.join(", ", reconnectedPlayers));
+
+        if (!missingPlayers.isEmpty()) {
+            System.out.println("[RECOVERY] Waiting for: " + String.join(", ", missingPlayers));
+        }
+    }
+
+    private synchronized String readPromptLine(String prompt) {
+        System.out.print(prompt);
+        return scanner.nextLine();
+    }
+
+    private boolean isServerConnected() {
+        return virtualServer == null || virtualServer.isConnected();
     }
 }

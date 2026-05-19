@@ -122,6 +122,8 @@ public class LobbyPhase implements ControllerPhase {
         // game is started when lobby is completed
         if (playerSelections.size() == expectedPlayers) {
 
+            gameController.setPlayerCount(expectedPlayers);
+
             GameSetupService gameSetupService = new GameSetupService();
             GameActions game = gameSetupService.createNewGame(playerSelections, 0);
 

@@ -1,5 +1,6 @@
 package it.polimi.ingsw.network.rmi;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
 import it.polimi.ingsw.model.game.DTO.EventResolvedDTO;
@@ -62,6 +63,18 @@ public interface ClientRMI extends Remote{
      * @throws RemoteException if the remote invocation fails
      */
     void onDisconnection(String reason)
+            throws RemoteException;
+
+    /**
+     * Remotely notifies the client that recovery was canceled without closing the connection.
+     *
+     * @param reason reason shown to the user
+     * @throws RemoteException if the remote invocation fails
+     */
+    void onRecoveryCancelled(String reason)
+            throws RemoteException;
+
+    void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers)
             throws RemoteException;
 
     /**
@@ -133,5 +146,16 @@ public interface ClientRMI extends Remote{
      * @throws RemoteException if the remote invocation fails
      */
     void ping()
+            throws RemoteException;
+
+    /**
+     * Remotely notifies the client with the global leaderboard.
+     *
+     * @param ranking  ordered list of match results
+     * @param position position of the client player
+     * @throws RemoteException if the remote invocation fails
+     */
+
+    void onLeaderboard(List<MatchResult> ranking, int position)
             throws RemoteException;
 }

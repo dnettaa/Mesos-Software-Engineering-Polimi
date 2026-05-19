@@ -1,5 +1,6 @@
 package it.polimi.ingsw.view.GUI;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
 import it.polimi.ingsw.view.ClientModel;
@@ -499,5 +500,25 @@ public class GUI extends Application implements View {
      */
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    @Override
+    public void showLeaderboard(List<MatchResult> ranking, int position) {
+        //to be implemented
+    }
+
+    @Override
+    public boolean askRecoveryChoice() {
+        return true; //to be implemented.
+    }
+
+    @Override
+    public void showRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
+        //to be implemented
+    }
+
+    @Override
+    public void showRecoveryCancelled(String reason) {
+        //to be implemented
     }
 }

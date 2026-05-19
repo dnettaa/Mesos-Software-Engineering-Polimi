@@ -3,6 +3,7 @@ package it.polimi.ingsw.model.board;
 import it.polimi.ingsw.model.player.Player;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the turn order track of the game.
@@ -99,5 +100,22 @@ public class TurnOrderTrack {
      */
     public void clear(){
         order.clear();
+    }
+
+    /**
+     * Replaces deserialized player references with canonical player instances.
+     * Used after loading a saved game from persistence.
+     *
+     * @param playersByNickname canonical players indexed by nickname
+     */
+    public void rebindPlayerReferences(Map<String, Player> playersByNickname) {
+        for (int i = 0; i < order.size(); i++) {
+            Player player = order.get(i);
+            Player canonical = playersByNickname.get(player.getNickname());
+            if (canonical == null) {
+                throw new IllegalStateException("Unknown player in turn order track: " + player.getNickname());
+            }
+            order.set(i, canonical);
+        }
     }
 }

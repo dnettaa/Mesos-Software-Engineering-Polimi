@@ -1,5 +1,6 @@
 package it.polimi.ingsw.network.socket;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.game.DTO.*;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
@@ -65,6 +66,7 @@ public class SocketClientHandler implements VirtualView, Runnable {
     @Override
     public void run(){
         Thread writerThread = new Thread(this::writerLoop);
+        writerThread.setDaemon(true);
         writerThread.start();
 
         while(connected){
@@ -123,6 +125,23 @@ public class SocketClientHandler implements VirtualView, Runnable {
     @Override
     public void onDisconnection(String reason){
         enqueue(new DisconnectionMessage(reason));
+    }
+
+    /**
+     * Notifies the client that recovery was canceled without
+     * closing the socket
+     *
+     * @param reason the reason shown to the user
+     */
+    @Override
+    public void onRecoveryCancelled(String reason) {
+        enqueue(new RecoveryCancelledMessage(reason));
+    }
+
+
+    @Override
+    public void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
+        enqueue(new RecoveryUpdateMessage(reconnectedPlayers, missingPlayers));
     }
 
     /**
@@ -234,7 +253,9 @@ public class SocketClientHandler implements VirtualView, Runnable {
         }catch(IOException e){
             System.err.println("Failed to close socket: " + e.getMessage());
         }
-        controller.onDisconnect(nickname);
+        if(nickname != null){
+            controller.onDisconnect(nickname);
+        }
     }
 
     /**
@@ -247,7 +268,6 @@ public class SocketClientHandler implements VirtualView, Runnable {
         return connected;
     }
 
-
     /**
      * Writer loop that runs on a dedicated thread.
      * Takes messages from the outbox and serializes them to the socket output stream.
@@ -258,6 +278,8 @@ public class SocketClientHandler implements VirtualView, Runnable {
             try {
                 ServerMessage message = outbox.take();
                 out.writeObject(message);
+                out.flush();
+                out.reset();
             } catch (InterruptedException | IOException e) {
                 if (connected) disconnect();
             }
@@ -271,5 +293,17 @@ public class SocketClientHandler implements VirtualView, Runnable {
      */
     private void enqueue(ServerMessage msg) {
         outbox.add(msg);
+    }
+
+    /**
+     * Notifies the client with the current leaderboard.
+     * Wraps the ranking data into a {@link LeaderboardMessage} and enqueues it.
+     *
+     * @param ranking the list of match results sorted by score
+     * @param position the position of the player in the ranking
+     */
+    @Override
+    public void onLeaderboard(List<MatchResult> ranking, int position){
+        enqueue(new LeaderboardMessage(ranking, position));
     }
 }

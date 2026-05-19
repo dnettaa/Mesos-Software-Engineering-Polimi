@@ -48,7 +48,15 @@ public class ErrorMessage extends ServerMessage{
      */
     @Override
     public void apply(View view) {
-        ErrorCode codeEnum = ErrorCode.valueOf(this.errorCode);
+
+        ErrorCode codeEnum;
+
+        try {
+            codeEnum = ErrorCode.valueOf(this.errorCode);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            view.showGameError(this.description);
+            return;
+        }
 
         switch (codeEnum) {
             case NICKNAME_TAKEN:

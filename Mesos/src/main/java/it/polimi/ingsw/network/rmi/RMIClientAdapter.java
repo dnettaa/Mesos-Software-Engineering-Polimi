@@ -1,5 +1,6 @@
 package it.polimi.ingsw.network.rmi;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
 import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
@@ -34,7 +35,7 @@ import java.util.concurrent.Executors;
  * notification is represented by a specific remote method call.
  *
  * @author Diana
- */
+     */
 
 public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, VirtualServer{
 
@@ -42,7 +43,15 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     private final View view;
     private ServerRMI serverStub;
     private String nickname;
-    private boolean connected;
+    private volatile boolean connected;
+    private volatile boolean disconnectionNotified;
+    private volatile boolean reconnectLoopRunning;
+    private volatile boolean recovering;
+    private String host;
+    private int port;
+    private TotemColor savedColor;
+    private boolean wasInGame;
+    private Thread heartbeatThread;
     private static final Set<String> LOGIN_ERROR_CODES = Set.of(
             "NICKNAME_TAKEN",
             "COLOR_TAKEN",
@@ -52,6 +61,12 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     );
     private final ExecutorService renderExecutor = Executors.newSingleThreadExecutor();
 
+    /**
+     * Applies a DTO update to the local client model
+     * and triggers a view re-render asynchronously.
+     *
+     * @param applyDTO action that applies the DTO update
+     */
     private void applyAndRender(Runnable applyDTO) {
         renderExecutor.submit(() -> {
             applyDTO.run();
@@ -84,10 +99,14 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      * @param port the port where the RMI registry is listening
      */
     public void connect(String host, int port) throws Exception{
+        this.host = host;
+        this.port = port;
         try{
             Registry registry = LocateRegistry.getRegistry(host, port);
             serverStub = (ServerRMI) registry.lookup(SERVER_NAME);
             connected = true;
+            disconnectionNotified = false;
+            startHeartbeat();
         } catch(Exception e){
             connected = false;
             throw new Exception("Unable to connect to RMI server: " + e.getMessage(), e);
@@ -103,6 +122,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void createLobby(String nickname, TotemColor color, int expectedPlayers){
+        this.nickname = nickname;
+        this.savedColor = color;
         if(!isReady()){
             return;
         }
@@ -124,11 +145,12 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void joinLobby(String nickname, TotemColor color){
+        this.nickname = nickname;
+        this.savedColor = color;
+
         if(!isReady()){
             return;
         }
-
-        this.nickname = nickname;
 
         try{
             serverStub.joinLobby(nickname, color, this);
@@ -201,6 +223,9 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     @Override
     public void disconnect(){
         renderExecutor.shutdown();
+        if (heartbeatThread != null) {
+            heartbeatThread.interrupt();
+        }
         if(!connected){
             return;
         }
@@ -275,7 +300,27 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     @Override
     public void onDisconnection(String reason) throws RemoteException{
         connected = false;
+        recovering = false;
+        disconnectionNotified = true;
         view.notifyDisconnection(reason);
+    }
+
+    /**
+     * Notifies the local view that recovery was canceled without closing the RMI connection.
+     *
+     * @param reason reason shown to the user
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onRecoveryCancelled(String reason) throws RemoteException {
+        wasInGame = false;
+        view.showRecoveryCancelled(reason);
+    }
+
+    @Override
+    public void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers)
+            throws RemoteException {
+        view.showRecoveryUpdate(reconnectedPlayers, missingPlayers);
     }
 
     /**
@@ -286,8 +331,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onGameStarted(GameStateSnapshot snapshot) throws RemoteException{
+        wasInGame = true;
         applyAndRender(() -> view.getClientModel().applyGameStarted(snapshot));
-
     }
 
     /**
@@ -357,6 +402,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onGameEnded(GameEndedDTO dto) throws RemoteException{
+        wasInGame = false;
         applyAndRender(() -> view.getClientModel().applyGameEnded(dto));
     }
 
@@ -371,17 +417,34 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     }
 
     /**
+     * Receives the leaderboard from the server and forwards it to the view.
+     *
+     * @param ranking  ordered list of match results
+     * @param position position of the client player
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onLeaderboard(List<MatchResult> ranking, int position) throws RemoteException {
+        view.showLeaderboard(ranking, position);
+    }
+
+    /**
      * Checks whether the adapter can perform a remote call to the server.
      *
      * @return {@code true} if the server stub is available, {@code false} otherwise
      */
     private boolean isReady(){
         if(!connected || serverStub == null){
-            view.notifyDisconnection("RMI client is not connected to the server.");
+            notifyServerOffline();
             return false;
         }
 
         return true;
+    }
+
+    @Override
+    public boolean isConnected() {
+        return connected && !recovering && serverStub != null;
     }
 
     /**
@@ -391,7 +454,16 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     private void handleRemoteFailure(String message){
         connected = false;
-        view.notifyDisconnection(message);
+        recovering = true;
+        notifyServerOffline();
+        startReconnectLoop();
+    }
+
+    private void notifyServerOffline() {
+        if (!disconnectionNotified) {
+            disconnectionNotified = true;
+            view.notifyDisconnection("Server offline. Waiting for recovery...");
+        }
     }
 
     /**
@@ -401,5 +473,128 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     public String getNickname(){
         return nickname;
+    }
+
+    /**
+     * Requests to reconnect to an existing game session.
+     *
+     * @param nickname nickname of the reconnecting player
+     * @param color    chosen totem color
+     */
+    @Override
+    public void reconnect(String nickname, TotemColor color) {
+
+        if(!isReady()){
+            return;
+        }
+
+        this.nickname = nickname;
+        this.savedColor = color;
+
+        try{
+            serverStub.reconnect(nickname, color, this);
+        } catch(RemoteException e){
+            handleRemoteFailure("Connection with the RMI server lost during recovery.");
+        }
+    }
+
+    /**
+     * Requests the server to discard the saved game during recovery.
+     */
+    private void declineRecovery() {
+        if(!isReady()){
+            return;
+        }
+        try{
+            serverStub.declineRecovery(this);
+            wasInGame = false;
+        } catch(RemoteException e){
+            handleRemoteFailure("Connection with the RMI server lost while declining recovery.");
+        }
+    }
+
+    /**
+     * Starts a background thread that pings the server every 3 seconds.
+     * If the ping fails, triggers the reconnect flow.
+     */
+    private void startHeartbeat() {
+        heartbeatThread = new Thread(() -> {
+            while (connected) {
+                try {
+                    Thread.sleep(3000);
+                    if (connected) serverStub.ping();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                } catch (RemoteException e) {
+                    if (connected) {
+                        handleRemoteFailure("Connection with the RMI server lost.");
+                    }
+                    return;
+                }
+            }
+        }, "RMI-Heartbeat");
+        heartbeatThread.setDaemon(true);
+        heartbeatThread.start();
+    }
+
+    /**
+     * Starts a background loop that periodically
+     * attempts to reconnect to the RMI server.
+     */
+    private void startReconnectLoop(){
+        if (reconnectLoopRunning) {
+            return;
+        }
+        reconnectLoopRunning = true;
+
+        Thread reconnectThread = new Thread(() -> {
+
+            try {
+                while(!connected){
+                    try{
+                        Thread.sleep(3000);
+                        reconnectToServer();
+                    }catch(Exception ignored){}
+                }
+            } finally {
+                reconnectLoopRunning = false;
+            }
+        }, "RMI-Reconnect-Loop");
+
+        reconnectThread.start();
+    }
+
+    /**
+     * Attempts to restore the connection to the RMI server.
+     * If successful, the client automatically requests
+     * recovery of the previous game session.
+     */
+    private void reconnectToServer(){
+
+        try{
+
+            Registry registry = LocateRegistry.getRegistry(host, port);
+
+            serverStub = (ServerRMI) registry.lookup(SERVER_NAME);
+
+            connected = true;
+            disconnectionNotified = false;
+            startHeartbeat();
+
+            if(wasInGame){
+                if(view.askRecoveryChoice()){
+                    reconnect(nickname, savedColor);
+                } else {
+                    declineRecovery();
+                }
+                wasInGame = false;
+                recovering = false;
+            } else {
+                view.showRecoveryCancelled("Reconnected to server. Please rejoin the lobby.");
+                recovering = false;
+            }
+
+        }catch(Exception ignored){}
     }
 }

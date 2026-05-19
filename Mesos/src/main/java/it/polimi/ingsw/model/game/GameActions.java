@@ -1,5 +1,6 @@
 package it.polimi.ingsw.model.game;
 
+import it.polimi.ingsw.model.game.DTO.GameStateSnapshot;
 import java.util.List;
 
 /**
@@ -32,4 +33,7 @@ public interface GameActions {
     void addListener(GameListener listener);
 
     void removeListener(GameListener listener);
+
+    GameStateSnapshot buildSnapshot();
+
 }

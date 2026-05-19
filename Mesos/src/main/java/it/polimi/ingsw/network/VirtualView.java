@@ -1,5 +1,6 @@
 package it.polimi.ingsw.network;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
 import it.polimi.ingsw.model.game.DTO.EventResolvedDTO;
@@ -81,6 +82,13 @@ public interface VirtualView{
     void onDisconnection(String reason);
 
     /**
+     * Notifies the client that recovery was canceled without closing the connection.
+     *
+     * @param reason reason shown to the user
+     */
+    void onRecoveryCancelled(String reason);
+
+    /**
      * Notifies the client that the game has started.
      *
      * @param snapshot initial game state snapshot
@@ -128,4 +136,14 @@ public interface VirtualView{
      * @param dto data describing the final game result
      */
     void onGameEnded(GameEndedDTO dto);
+
+    void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers);
+
+    /**
+     * Notifies the client with the current leaderboard.
+     *
+     * @param ranking list of match results sorted by score
+     * @param position position of the requesting player
+     */
+    void onLeaderboard(List<MatchResult> ranking, int position);
 }

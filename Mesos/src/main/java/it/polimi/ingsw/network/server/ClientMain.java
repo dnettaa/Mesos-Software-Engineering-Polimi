@@ -29,7 +29,7 @@ public class ClientMain {
      * @param args command-line arguments (not used)
      * @throws IllegalArgumentException if the user enters an invalid choice
      */
-    public static void main(String args[]) throws RemoteException {
+    public static void main(String[] args) throws RemoteException {
 
         Scanner scanner = new Scanner(System.in);
 
@@ -51,7 +51,6 @@ public class ClientMain {
         System.out.println(CYAN + "          A prehistoric civilization game" + RESET);
         System.out.println(WHITE + "  " + "─".repeat(48) + RESET);
         System.out.println();
-
         System.out.println(BOLD + "  SELECT INTERFACE:" + RESET);
         System.out.println(CYAN + "  1)" + RESET + " TUI  —  Text User Interface");
         System.out.println(CYAN + "  2)" + RESET + " GUI  —  Graphic User Interface");

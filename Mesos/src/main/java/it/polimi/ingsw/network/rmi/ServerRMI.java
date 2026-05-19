@@ -83,4 +83,25 @@ public interface ServerRMI extends Remote{
      */
     void ping()
             throws RemoteException;
+
+    /**
+     * Remotely requests to reconnect to a
+     * previously saved match after a server crash.
+     *
+     * @param nickname original player nickname
+     * @param color original player totem color
+     * @param client remote callback object
+     * @throws RemoteException if remote invocation fails
+     */
+    void reconnect(String nickname, TotemColor color, ClientRMI client)
+            throws RemoteException;
+
+    /**
+     * Remotely declines recovery of a previously saved match.
+     *
+     * @param client remote callback object
+     * @throws RemoteException if remote invocation fails
+     */
+    void declineRecovery(ClientRMI client)
+            throws RemoteException;
 }

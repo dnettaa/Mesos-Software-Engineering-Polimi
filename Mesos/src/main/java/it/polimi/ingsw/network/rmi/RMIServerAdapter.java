@@ -1,6 +1,7 @@
 package it.polimi.ingsw.network.rmi;
 
 import it.polimi.ingsw.controller.GameController;
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
@@ -83,6 +84,33 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             throws RemoteException{
         RMIClientConnection connection = registerConnection(nickname, client);
         controller.joinLobby(nickname, color, connection);
+    }
+
+    /**
+     * Handles a remote request to reconnect to an existing game session.
+     *
+     * @param nickname nickname of the reconnecting player
+     * @param color    chosen totem color
+     * @param client   remote callback object of the client
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void reconnect(String nickname, TotemColor color, ClientRMI client)
+            throws RemoteException {
+        RMIClientConnection connection = registerConnection(nickname, client);
+        controller.acceptRecovery(nickname, color, connection);
+    }
+
+    /**
+     * Handles a remote request to discard recovery and start fresh.
+     *
+     * @param client remote callback object of the client refusing recovery
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void declineRecovery(ClientRMI client) throws RemoteException {
+        RMIClientConnection connection = new RMIClientConnection(client);
+        controller.declineRecovery(connection);
     }
 
     /**
@@ -211,6 +239,9 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             this.writerThread.start();
         }
 
+        /**
+         * Processes queued remote callbacks for this client.
+         */
         private void writerLoop() {
             while (connected) {
                 try {
@@ -229,6 +260,11 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             }
         }
 
+        /**
+         * Adds a remote callback to the outgoing queue.
+         *
+         * @param call callback to enqueue
+         */
         private void enqueue(RemoteCallback call) {
             if (connected) outbox.offer(call);
         }
@@ -318,6 +354,27 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         }
 
         /**
+         * Notifies the remote client that recovery was canceled.
+         *
+         * @param reason reason shown to the user
+         */
+        @Override
+        public void onRecoveryCancelled(String reason) {
+            enqueue(() -> {
+                clientStub.onRecoveryCancelled(reason);
+                if(nickname != null) {
+                    connectionsByNickname.remove(nickname, this);
+                }
+                disconnect();
+            });
+        }
+
+        @Override
+        public void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
+            enqueue(() -> clientStub.onRecoveryUpdate(reconnectedPlayers, missingPlayers));
+        }
+
+        /**
          * Notifies the remote client that the game has started.
          *
          * @param snapshot initial game state snapshot
@@ -388,6 +445,16 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             enqueue(() -> clientStub.onGameEnded(dto));
         }
 
+        /**
+         * Forwards the leaderboard to the remote client asynchronously.
+         *
+         * @param ranking  ordered list of match results
+         * @param position position of the client player
+         */
+        @Override
+        public void onLeaderboard(List<MatchResult> ranking, int position){
+            enqueue(() -> clientStub.onLeaderboard(ranking, position));
+        }
 
         /**
          * Marks this client as disconnected and notifies the controller.

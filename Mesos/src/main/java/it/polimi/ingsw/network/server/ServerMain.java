@@ -1,34 +1,38 @@
 package it.polimi.ingsw.network.server;
 
 import it.polimi.ingsw.controller.GameController;
+import it.polimi.ingsw.controller.RecoveryPhase;
+import it.polimi.ingsw.model.game.GameActions;
 import it.polimi.ingsw.network.rmi.RMIServerAdapter;
 import it.polimi.ingsw.network.socket.SocketServer;
+import it.polimi.ingsw.persistence.PersistenceManager;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-/**
- * Entry point for the Mesos game server.
- * Starts both the Socket and RMI servers on their respective ports.
- * If either server fails to start, the process exits with an error code.
- *
- * @author Luca Grecchi
- */
 public class ServerMain {
 
     private static final int PORT = 12345;
     private static final int RMI_PORT = 1099;
 
-    /**
-     * Starts the server by initializing the GameController and launching
-     * both the Socket and RMI servers. If any error occurs during startup,
-     * logs the error and terminates the process.
-     *
-     * @param args command-line arguments (not used)
-     */
     public static void main(String[] args){
         GameController controller = new GameController();
+
+        System.out.println("Verifica salvataggi precedenti in corso...");
+        GameActions savedGame = PersistenceManager.loadGame();
+
+        if (savedGame != null) {
+            controller.setGame(savedGame);
+
+            System.out.println("=== MODALITÀ RECOVERY ===");
+            System.out.println("In attesa riconnessione giocatori...");
+
+            controller.transitionTo(new RecoveryPhase(controller, savedGame));
+
+        } else {
+            System.out.println("Nessun salvataggio trovato. Avvio server normale.");
+        }
 
         try {
             SocketServer socketServer = new SocketServer(controller);

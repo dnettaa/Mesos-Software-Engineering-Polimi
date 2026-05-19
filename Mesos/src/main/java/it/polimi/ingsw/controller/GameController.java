@@ -5,8 +5,15 @@
     import it.polimi.ingsw.network.VirtualView;
     import it.polimi.ingsw.model.game.GameListener;
     import it.polimi.ingsw.model.game.DTO.*;
+    import it.polimi.ingsw.persistence.PersistenceManager;
+
+    import it.polimi.ingsw.leaderboard.*;
+    import it.polimi.ingsw.config.DBConfiguration;
+    import it.polimi.ingsw.config.ConfigLoader;
 
     import java.util.HashMap;
+    import java.util.ArrayList;
+    import java.util.List;
     import java.util.Map;
 
     /**
@@ -26,13 +33,51 @@
         private GameActions game;
         private ControllerPhase currentPhase;
         private final Map<String, VirtualView> views;
+        private int playerCount;
+        private final RankingService rankingService;
 
+        /**
+         * Constructs a new GameController.
+         * Initializes the view map and configures the leaderboard service.
+         * If a valid database connection is available, a SQL repository is used;
+         * otherwise, it falls back to an in-memory implementation.
+         */
         public GameController() {
             this.views = new HashMap<>();
+
+            MatchResultRepository repo;
+
+            DBConfiguration config = ConfigLoader.load();
+
+            if (config != null) {
+                SqlMatchResultRepository sqlRepo = new SqlMatchResultRepository(
+                        config.dbUrl,
+                        config.dbUser,
+                        config.dbPassword
+                );
+
+                if (sqlRepo.testConnection()) {
+                    repo = sqlRepo;
+                    System.out.println("Using SQL database");
+                } else {
+                    repo = new InMemoryMatchResultRepository();
+                    System.out.println("! DB unreachable → using InMemory database");
+                }
+
+            } else {
+                repo = new InMemoryMatchResultRepository();
+                System.out.println("! Using InMemory database");
+            }
+
+            this.rankingService = new RankingService(repo);
         }
 
         public Map<String, VirtualView> getViews() {
             return views;
+        }
+
+        public void setPlayerCount(int playerCount) {
+            this.playerCount = playerCount;
         }
 
         // METODI DA DELEGARE ALLA LOBBY PHASE
@@ -64,6 +109,36 @@
          */
         public synchronized void joinLobby(String nickname, TotemColor color, VirtualView view) {
             currentPhase.joinLobby(nickname, color, view);
+        }
+
+        /**
+         * Handles a player's reconnection request during server recovery.
+         * Delegates the reconnect logic to the current controller phase.
+         *
+         * @param nickname the player's nickname
+         * @param color the player's original totem color
+         * @param view the reconnecting virtual view
+         */
+        public synchronized void reconnectPlayer(String nickname, TotemColor color, VirtualView view) {
+            currentPhase.reconnect(this, nickname, color, view);
+        }
+
+        public synchronized void acceptRecovery(String nickname, TotemColor color, VirtualView view) {
+            if (currentPhase != null) {
+                currentPhase.acceptRecovery(this, nickname, color, view);
+            }
+        }
+
+        public synchronized void declineRecovery(VirtualView view) {
+            if (currentPhase != null) {
+                currentPhase.declineRecovery(this, view);
+            }
+        }
+
+        public synchronized void reset() {
+            this.game = null;
+            this.currentPhase = null;
+            this.views.clear();
         }
 
         /**
@@ -150,14 +225,18 @@
             }
         }
 
+
         /**
-         * Disconnects all connected clients and clears the view map.
+         * Disconnects all connected clients and clears the view map safely.
          */
         public void closeAll() {
-            for (VirtualView view : views.values()) {
+            List<VirtualView> viewsToDisconnect = new ArrayList<>(views.values());
+
+            views.clear();
+
+            for (VirtualView view : viewsToDisconnect) {
                 view.disconnect();
             }
-            views.clear();
         }
 
         // GESTIONE DEL MODEL
@@ -209,6 +288,7 @@
          */
         @Override
         public void onGameStarted(GameStateSnapshot snap) {
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) {
                     view.onGameStarted(snap);
@@ -217,13 +297,13 @@
         }
 
         /**
-         * Invoked when a player places a totem on the board.
-         * Forwards the corresponding update DTO to all connected views.
+         * Handles a totem placement update from the model.
          *
-         * @param dto contains information about the placement and next player
+         * @param dto DTO containing the placement information
          */
         @Override
         public void onTotemPlaced(TotemPlacedDTO dto) {
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) {
                     view.onTotemPlaced(dto);
@@ -232,13 +312,13 @@
         }
 
         /**
-         * Invoked when a player takes cards from the board.
-         * Forwards the DTO containing all state changes to all connected views.
+         * Handles a card selection update from the model.
          *
-         * @param dto contains details about the card selection and resulting changes
+         * @param dto DTO containing the taken-card information
          */
         @Override
         public void onCardsTaken(CardsTakenDTO dto) {
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) {
                     view.onCardsTaken(dto);
@@ -247,13 +327,13 @@
         }
 
         /**
-         * Invoked when a player takes an extra card.
-         * Forwards the update DTO to all connected views.
+         * Handles an extra-card selection update from the model.
          *
-         * @param dto contains information about the extra card taken
+         * @param dto DTO containing the extra-card information
          */
         @Override
         public void onExtraCardTaken(ExtraCardTakenDTO dto) {
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) {
                     view.onExtraCardTaken(dto);
@@ -262,13 +342,13 @@
         }
 
         /**
-         * Invoked when an event is resolved.
-         * Forwards the resulting DTO to all connected views.
+         * Handles an event resolution update from the model.
          *
-         * @param dto contains the effects of the resolved event
+         * @param dto DTO containing the event resolution information
          */
         @Override
         public void onEventResolved(EventResolvedDTO dto) {
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) {
                     view.onEventResolved(dto);
@@ -277,13 +357,13 @@
         }
 
         /**
-         * Invoked at the end of a round.
-         * Forwards the DTO describing the new round setup to all connected views.
+         * Handles a round-end update from the model.
          *
-         * @param dto contains all state changes for the new round
+         * @param dto DTO containing the round-end information
          */
         @Override
         public void onRoundEnded(RoundEndedDTO dto) {
+            PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) {
                     view.onRoundEnded(dto);
@@ -292,16 +372,28 @@
         }
 
         /**
-         * Invoked when the game ends.
-         * Forwards the final results DTO to all connected views.
+         * Handles a game-end update from the model.
+         * Stores results, computes the leaderboard, and notifies all clients
+         * with both final game data and ranking information.
          *
          * @param dto contains final scores and ranking
          */
         @Override
         public void onGameEnded(GameEndedDTO dto) {
+            PersistenceManager.deleteSave();
+
+            rankingService.recordGame(dto, playerCount);
+
+            List<MatchResult> ranking = rankingService.getRanking(playerCount);
+
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) {
+
+                    String nick = view.getNickname();
+                    int position = rankingService.getPlayerPosition(nick, playerCount);
+
                     view.onGameEnded(dto);
+                    view.onLeaderboard(ranking, position);
                 }
             }
         }

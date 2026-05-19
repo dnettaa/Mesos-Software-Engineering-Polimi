@@ -12,6 +12,7 @@ import it.polimi.ingsw.model.card.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -32,7 +33,7 @@ public class Game implements GameActions{
     private List<Player> placementOrder;
     private int currentPlayerIndex;
     private List<OfferSlot> resolutionOrder;
-    private final List<GameListener> listeners = new ArrayList<>();
+    private transient List<GameListener> listeners = new ArrayList<>();
 
     public Game(int gameID, List<Player> players, Board board, int currentRound, Phase phase,
                 GameState state, List<Player> placementOrder, int currentPlayerIndex, List<OfferSlot> resolutionOrder)
@@ -107,6 +108,36 @@ public class Game implements GameActions{
 
     public void setCurrentRound(int round) {
         this.currentRound = round;
+    }
+
+    /**
+     * Rebuilds object references that are duplicated by JSON deserialization.
+     * After loading a saved game, all board and order references must point to
+     * the canonical player instances stored in {@link #players}.
+     */
+    public void restoreReferencesAfterLoad() {
+        Map<String, Player> playersByNickname = players.stream()
+                .collect(Collectors.toMap(Player::getNickname, player -> player));
+
+        placementOrder = placementOrder.stream()
+                .map(player -> requireCanonicalPlayer(playersByNickname, player))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        board.rebindPlayerReferences(playersByNickname);
+
+        if (resolutionOrder != null && !resolutionOrder.isEmpty()) {
+            resolutionOrder = board.getOfferResolutionOrder();
+        }
+
+        listeners = new ArrayList<>();
+    }
+
+    private Player requireCanonicalPlayer(Map<String, Player> playersByNickname, Player player) {
+        Player canonical = playersByNickname.get(player.getNickname());
+        if (canonical == null) {
+            throw new IllegalStateException("Unknown player in saved game: " + player.getNickname());
+        }
+        return canonical;
     }
 
     /**
@@ -364,7 +395,7 @@ public class Game implements GameActions{
      *
      * @return a GameStateSnapshot representing the current state of the game
      */
-    private GameStateSnapshot buildSnapshot() {
+    public GameStateSnapshot buildSnapshot() {
         // placement order
         List<String> placementNicknames = placementOrder.stream()
                 .map(Player::getNickname)
@@ -420,7 +451,10 @@ public class Game implements GameActions{
      */
     @Override
     public void addListener(GameListener listener) {
-        listeners.add(listener);
+        if (this.listeners == null) {
+            this.listeners = new ArrayList<>();
+        }
+        this.listeners.add(listener);
     }
 
     /**
