@@ -115,6 +115,7 @@ public class RecoveryPhase implements ControllerPhase {
             timeoutScheduler.shutdownNow();
             System.out.println("[RECOVERY] All players reconnected. Resuming game.");
 
+            controller.setPlayerCount(expectedTotal);
             controller.transitionTo(new InGamePhase(controller, game));
 
             GameStateSnapshot resumedSnapshot = game.buildSnapshot();
