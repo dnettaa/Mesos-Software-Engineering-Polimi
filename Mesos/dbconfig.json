@@ -1,5 +1,0 @@
-{
-  "dbUrl": "jdbc:postgresql://ep-solitary-night-alygkil0.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require",
-  "dbUser": "neondb_owner",
-  "dbPassword": "npg_CFnD5QhpN6Xq"
-}
