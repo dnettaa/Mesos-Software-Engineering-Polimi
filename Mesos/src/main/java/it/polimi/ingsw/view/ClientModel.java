@@ -384,16 +384,7 @@ public class ClientModel {
      * @param dto The data object containing the board deltas and next round info.
      */
     public void applyRoundEnded(RoundEndedDTO dto) {
-        List<String> lowerRow = new ArrayList<>(this.lowerRowCardIDs);
-
-        lowerRow.removeAll(dto.discardedLowerTribeIDs());
-        lowerRow.removeAll(dto.discardedLowerEventIDs());
-        lowerRow.removeAll(dto.discardedLowerBuildingIDs());
-        lowerRow.removeAll(dto.movedUpperToLowerBuildingIDs());
-        lowerRow.addAll(dto.movedUpperToLowerTribeIDs());
-        lowerRow.addAll(dto.movedUpperToLowerBuildingIDs());
-
-        this.lowerRowCardIDs = lowerRow;
+        this.lowerRowCardIDs = new ArrayList<>(dto.newLowerRowIDs());
         this.upperRowCardIDs = new ArrayList<>(dto.newUpperRowIDs());
 
         this.currentRound = dto.newRound();

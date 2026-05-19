@@ -231,6 +231,9 @@ public class Board {
         List<String> newUpperRowIDs = upperRow.getAllCards().stream()
                 .map(Card::getId).toList();
 
+        List<String> newLowerRowIDs = lowerRow.getAllCards().stream()
+                .map(Card::getId).toList();
+
         List<String> revealedBuildingIDs = previousEra != currentEra ?
                 upperRow.getBuildingCardsInternal().stream().map(Card::getId).toList() :
                 List.of();
@@ -242,6 +245,7 @@ public class Board {
                 discardedLowerBuildingIDs,
                 movedUpperToLowerBuildingIDs,
                 newUpperRowIDs,
+                newLowerRowIDs,
                 revealedBuildingIDs,
                 currentEra,
                 newRound,
