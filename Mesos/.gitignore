@@ -92,3 +92,4 @@ dbconfig.json
 
 target/
 /src/main/resources/GUI-resources/
+.DS_Store

@@ -9,7 +9,7 @@
 
     <!-- Full-screen background image, scaled by GUI.java listeners -->
     <ImageView fx:id="backgroundImage" preserveRatio="false">
-        <image><Image url="/GUI-resources/images/wallpaper.png"/></image>
+        <image><Image url="/GUI-resources/images/wallpaper_no_logo.png"/></image>
     </ImageView>
 
     <!-- Fixed-resolution pane scaled proportionally by GUI.java -->

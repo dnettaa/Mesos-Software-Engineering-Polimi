@@ -376,8 +376,11 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      * @throws RemoteException if the remote invocation fails
      */
     @Override
-    public void onEventResolved(EventResolvedDTO dto) throws RemoteException{
-        applyAndRender(() -> view.getClientModel().applyEventResolved(dto));
+    public void onEventResolved(EventResolvedDTO dto) throws RemoteException {
+        applyAndRender(() -> {
+            view.getClientModel().applyEventResolved(dto);
+            view.showEventResolved(dto.eventCardID(), dto.eventType(), dto.ppDeltaByPlayer(), dto.foodDeltaByPlayer());
+        });
     }
 
     /**
