@@ -1,5 +1,6 @@
 package it.polimi.ingsw.view.GUI;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
 import it.polimi.ingsw.view.ClientModel;
@@ -295,7 +296,7 @@ public class GUI extends Application implements View {
     }
 
     /**
-     * Notifies the user of a disconnection without terminating the application.
+     * Notifies the user of a disconnection, shows an error dialog and exits the application.
      *
      * @param reason human-readable disconnection reason
      */
@@ -309,6 +310,7 @@ public class GUI extends Application implements View {
             alert.setHeaderText("Connection lost");
             alert.setContentText(reason);
             alert.showAndWait();
+            Platform.exit();
         });
     }
 
@@ -320,19 +322,6 @@ public class GUI extends Application implements View {
      *
      * @param scene the scene whose scalable pane should be resized
      */
-    @Override
-    public void showRecoveryCancelled(String reason) {
-        Platform.runLater(() -> {
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                    javafx.scene.control.Alert.AlertType.INFORMATION
-            );
-            alert.setTitle("Recovery cancelled");
-            alert.setHeaderText("Saved game discarded");
-            alert.setContentText(reason);
-            alert.showAndWait();
-        });
-    }
-
     private void updateScale(Scene scene) {
         StackPane scalablePane = (StackPane) scene.lookup("#scalablePane");
         ImageView bg = (ImageView) scene.lookup("#backgroundImage");
@@ -377,12 +366,22 @@ public class GUI extends Application implements View {
     }
 
     @Override
+    public void showLeaderboard(List<MatchResult> ranking, int position) {
+        //to be implemented
+    }
+
+    @Override
     public boolean askRecoveryChoice() {
         return true; //to be implemented.
     }
 
     @Override
     public void showRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
+        //to be implemented
+    }
+
+    @Override
+    public void showRecoveryCancelled(String reason) {
         //to be implemented
     }
 }

@@ -7,7 +7,13 @@
     import it.polimi.ingsw.model.game.DTO.*;
     import it.polimi.ingsw.persistence.PersistenceManager;
 
+    import it.polimi.ingsw.leaderboard.*;
+    import it.polimi.ingsw.config.DBConfiguration;
+    import it.polimi.ingsw.config.ConfigLoader;
+
     import java.util.HashMap;
+    import java.util.ArrayList;
+    import java.util.List;
     import java.util.Map;
 
     /**
@@ -27,13 +33,51 @@
         private GameActions game;
         private ControllerPhase currentPhase;
         private final Map<String, VirtualView> views;
+        private int playerCount;
+        private final RankingService rankingService;
 
+        /**
+         * Constructs a new GameController.
+         * Initializes the view map and configures the leaderboard service.
+         * If a valid database connection is available, a SQL repository is used;
+         * otherwise, it falls back to an in-memory implementation.
+         */
         public GameController() {
             this.views = new HashMap<>();
+
+            MatchResultRepository repo;
+
+            DBConfiguration config = ConfigLoader.load();
+
+            if (config != null) {
+                SqlMatchResultRepository sqlRepo = new SqlMatchResultRepository(
+                        config.dbUrl,
+                        config.dbUser,
+                        config.dbPassword
+                );
+
+                if (sqlRepo.testConnection()) {
+                    repo = sqlRepo;
+                    System.out.println("Using SQL database");
+                } else {
+                    repo = new InMemoryMatchResultRepository();
+                    System.out.println("! DB unreachable → using InMemory database");
+                }
+
+            } else {
+                repo = new InMemoryMatchResultRepository();
+                System.out.println("! Using InMemory database");
+            }
+
+            this.rankingService = new RankingService(repo);
         }
 
         public Map<String, VirtualView> getViews() {
             return views;
+        }
+
+        public void setPlayerCount(int playerCount) {
+            this.playerCount = playerCount;
         }
 
         // METODI DA DELEGARE ALLA LOBBY PHASE
@@ -181,11 +225,12 @@
             }
         }
 
+
         /**
          * Disconnects all connected clients and clears the view map safely.
          */
         public void closeAll() {
-            java.util.List<VirtualView> viewsToDisconnect = new java.util.ArrayList<>(views.values());
+            List<VirtualView> viewsToDisconnect = new ArrayList<>(views.values());
 
             views.clear();
 
@@ -233,6 +278,8 @@
             return currentPhase;
         }
 
+        // METODI DI GAME LISTENER
+
         /**
          * Invoked when the game starts.
          * Forwards the initial game snapshot to all connected views.
@@ -243,7 +290,9 @@
         public void onGameStarted(GameStateSnapshot snap) {
             PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) view.onGameStarted(snap);
+                if (view.isConnected()) {
+                    view.onGameStarted(snap);
+                }
             }
         }
 
@@ -256,7 +305,9 @@
         public void onTotemPlaced(TotemPlacedDTO dto) {
             PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) view.onTotemPlaced(dto);
+                if (view.isConnected()) {
+                    view.onTotemPlaced(dto);
+                }
             }
         }
 
@@ -269,7 +320,9 @@
         public void onCardsTaken(CardsTakenDTO dto) {
             PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) view.onCardsTaken(dto);
+                if (view.isConnected()) {
+                    view.onCardsTaken(dto);
+                }
             }
         }
 
@@ -282,7 +335,9 @@
         public void onExtraCardTaken(ExtraCardTakenDTO dto) {
             PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) view.onExtraCardTaken(dto);
+                if (view.isConnected()) {
+                    view.onExtraCardTaken(dto);
+                }
             }
         }
 
@@ -295,7 +350,9 @@
         public void onEventResolved(EventResolvedDTO dto) {
             PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) view.onEventResolved(dto);
+                if (view.isConnected()) {
+                    view.onEventResolved(dto);
+                }
             }
         }
 
@@ -308,20 +365,36 @@
         public void onRoundEnded(RoundEndedDTO dto) {
             PersistenceManager.saveGame(this.game);
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) view.onRoundEnded(dto);
+                if (view.isConnected()) {
+                    view.onRoundEnded(dto);
+                }
             }
         }
 
         /**
          * Handles a game-end update from the model.
+         * Stores results, computes the leaderboard, and notifies all clients
+         * with both final game data and ranking information.
          *
-         * @param dto DTO containing the final game results
+         * @param dto contains final scores and ranking
          */
         @Override
         public void onGameEnded(GameEndedDTO dto) {
             PersistenceManager.deleteSave();
+
+            rankingService.recordGame(dto, playerCount);
+
+            List<MatchResult> ranking = rankingService.getRanking(playerCount);
+
             for (VirtualView view : views.values()) {
-                if (view.isConnected()) view.onGameEnded(dto);
+                if (view.isConnected()) {
+
+                    String nick = view.getNickname();
+                    int position = rankingService.getPlayerPosition(nick, playerCount);
+
+                    view.onGameEnded(dto);
+                    view.onLeaderboard(ranking, position);
+                }
             }
         }
     }

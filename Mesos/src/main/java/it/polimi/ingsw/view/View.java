@@ -2,6 +2,8 @@ package it.polimi.ingsw.view;
 
 import java.util.List;
 import java.util.Map;
+
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
 
@@ -27,7 +29,7 @@ public interface View {
     void notifyDisconnection(String reason);
 
     /**
-     * Notifies the user that recovery was cancelled and the initial menu can be shown again.
+     * Notifies the user that recovery was canceled and the initial menu can be shown again.
      */
     void showRecoveryCancelled(String reason);
 
@@ -63,6 +65,11 @@ public interface View {
 
     void showEventResolved(String eventCardID, String eventType,
                            Map<String, Integer> ppDelta, Map<String, Integer> foodDelta);
+
+    /**
+     * Displays the leaderboard received from the server.
+     */
+    void showLeaderboard(List<MatchResult> ranking, int position);
 
     boolean askRecoveryChoice();
 

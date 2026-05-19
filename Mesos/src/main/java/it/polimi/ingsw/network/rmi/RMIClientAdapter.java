@@ -1,5 +1,6 @@
 package it.polimi.ingsw.network.rmi;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualServer;
 import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
@@ -34,7 +35,7 @@ import java.util.concurrent.Executors;
  * notification is represented by a specific remote method call.
  *
  * @author Diana
- */
+     */
 
 public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, VirtualServer{
 
@@ -410,6 +411,18 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     @Override
     public void ping() throws RemoteException{
         // Empty by design: a successful remote invocation is enough to prove reachability.
+    }
+
+    /**
+     * Receives the leaderboard from the server and forwards it to the view.
+     *
+     * @param ranking  ordered list of match results
+     * @param position position of the client player
+     * @throws RemoteException if the remote invocation fails
+     */
+    @Override
+    public void onLeaderboard(List<MatchResult> ranking, int position) throws RemoteException {
+        view.showLeaderboard(ranking, position);
     }
 
     /**
