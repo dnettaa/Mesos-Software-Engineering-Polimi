@@ -348,3 +348,60 @@
 .endgame-table {
     -fx-font-size: 14px;
 }
+
+/* ========================= RECOVERY OVERLAY ========================= */
+
+.recovery-overlay {
+    -fx-background-color: rgba(45, 45, 45, 0.58);
+}
+
+.recovery-panel {
+    -fx-background-color: rgba(50, 50, 50, 0.58);
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: none;
+}
+
+.recovery-title {
+    -fx-font-size: 25px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f2eee5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.72), 5, 0, 0, 1);
+}
+
+.recovery-message {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f0eadf;
+    -fx-text-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.70), 4, 0, 0, 1);
+}
+
+.recovery-details {
+    -fx-font-size: 14px;
+    -fx-text-fill: #ddd6ca;
+    -fx-text-alignment: center;
+    -fx-line-spacing: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.62), 4, 0, 0, 1);
+}
+
+.recovery-primary-button {
+    -fx-background-color: linear-gradient(to bottom, #4d8b42, #2f6528);
+    -fx-text-fill: #f4f7e8;
+    -fx-border-color: #21491c;
+}
+
+.recovery-primary-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #62a955, #3c7933);
+}
+
+.recovery-secondary-button {
+    -fx-background-color: linear-gradient(to bottom, #7e7770, #57504a);
+    -fx-text-fill: #f2eee6;
+    -fx-border-color: #37312c;
+}
+
+.recovery-secondary-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #958d85, #69615a);
+}

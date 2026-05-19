@@ -8,14 +8,21 @@ import it.polimi.ingsw.view.View;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Main GUI class for the MESOS game client.
@@ -35,6 +42,11 @@ public class GUI extends Application implements View {
     private GUILobbyController lobbyController;
     private GUIGameController gameController;
     private GUIEndGameController endGameController;
+
+    private StackPane recoveryOverlay;
+    private Label recoveryTitleLabel;
+    private Label recoveryMessageLabel;
+    private Label recoveryDetailsLabel;
 
     // ── JavaFX entry point ────────────────────────────────────────────────────
 
@@ -81,6 +93,11 @@ public class GUI extends Application implements View {
      */
     public void showWelcomeScreen() {
         try {
+            clearRecoveryOverlay();
+            this.lobbyController = null;
+            this.gameController = null;
+            this.endGameController = null;
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/WelcomeScreen.fxml"));
             Scene scene = new Scene(loader.load());
             scene.getStylesheets().add(getClass().getResource("/fxml/style.css").toExternalForm());
@@ -119,6 +136,11 @@ public class GUI extends Application implements View {
      */
     public void showLobbyScreen() {
         try {
+            clearRecoveryOverlay();
+            this.gameController = null;
+            this.endGameController = null;
+            this.clientModel = new ClientModel();
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LobbyScreen.fxml"));
             Scene scene = new Scene(loader.load());
             scene.getStylesheets().add(getClass().getResource("/fxml/style.css").toExternalForm());
@@ -163,6 +185,8 @@ public class GUI extends Application implements View {
     public void showGameScreen() {
         Platform.runLater(() -> {
             try {
+                clearRecoveryOverlay();
+
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/GameScreen.fxml"));
                 Scene scene = new Scene(loader.load());
                 scene.getStylesheets().add(getClass().getResource("/fxml/style.css").toExternalForm());
@@ -206,6 +230,8 @@ public class GUI extends Application implements View {
     public void showEndGameScreen() {
         Platform.runLater(() -> {
             try {
+                clearRecoveryOverlay();
+
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/EndGameScreen.fxml"));
                 Scene scene = new Scene(loader.load());
                 scene.getStylesheets().add(getClass().getResource("/fxml/style.css").toExternalForm());
@@ -286,6 +312,8 @@ public class GUI extends Application implements View {
          * that the game is over.
          */
         Platform.runLater(() -> {
+            clearRecoveryOverlayIfConnected();
+
             if (isEndGamePhase()) {
                 if (gameController != null) {
                     gameController.scheduleEndGame();
@@ -310,6 +338,8 @@ public class GUI extends Application implements View {
             if (clientModel == null) {
                 return;
             }
+
+            clearRecoveryOverlayIfConnected();
 
             if (isEndGamePhase()) {
                 if (endGameController != null) {
@@ -425,21 +455,33 @@ public class GUI extends Application implements View {
     }
 
     /**
-     * Notifies the user of a disconnection, shows an error dialog and exits the application.
+     * Notifies the user of a temporary disconnection and keeps the GUI open while
+     * the network adapter tries to reconnect in the background.
      *
      * @param reason human-readable disconnection reason
      */
     @Override
     public void notifyDisconnection(String reason) {
         Platform.runLater(() -> {
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                    javafx.scene.control.Alert.AlertType.ERROR
+            if (!isRecoverableDisconnection(reason)) {
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                        javafx.scene.control.Alert.AlertType.ERROR
+                );
+                alert.setTitle("Disconnected");
+                alert.setHeaderText("Connection closed");
+                alert.setContentText(reason);
+                alert.showAndWait();
+                Platform.exit();
+                return;
+            }
+
+            showRecoveryOverlay(
+                    "Server connection lost",
+                    reason == null || reason.isBlank()
+                            ? "The server is offline. Waiting for it to come back..."
+                            : reason,
+                    "The game is paused locally. This window will update automatically."
             );
-            alert.setTitle("Disconnected");
-            alert.setHeaderText("Connection lost");
-            alert.setContentText(reason);
-            alert.showAndWait();
-            Platform.exit();
         });
     }
 
@@ -509,16 +551,175 @@ public class GUI extends Application implements View {
 
     @Override
     public boolean askRecoveryChoice() {
-        return true; //to be implemented.
+        CompletableFuture<Boolean> answer = new CompletableFuture<>();
+
+        Platform.runLater(() -> showRecoveryChoice(answer));
+
+        try {
+            return answer.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
     public void showRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
-        //to be implemented
+        Platform.runLater(() -> {
+            String joined = formatPlayers(reconnectedPlayers);
+            String missing = formatPlayers(missingPlayers);
+
+            showRecoveryOverlay(
+                    "Recovering saved game",
+                    "Waiting for every player to reconnect.",
+                    "Back online: " + joined + "\nMissing: " + missing
+            );
+        });
     }
 
     @Override
     public void showRecoveryCancelled(String reason) {
-        //to be implemented
+        Platform.runLater(() -> {
+            clearRecoveryOverlay();
+            showLobbyScreen();
+            if (lobbyController != null && reason != null && !reason.isBlank()) {
+                lobbyController.showError(reason);
+            }
+        });
+    }
+
+    private void showRecoveryChoice(CompletableFuture<Boolean> answer) {
+        Button yesButton = new Button("Yes");
+        yesButton.getStyleClass().add("recovery-primary-button");
+        yesButton.setMinWidth(130);
+
+        Button noButton = new Button("No");
+        noButton.getStyleClass().add("recovery-secondary-button");
+        noButton.setMinWidth(130);
+
+        HBox buttons = new HBox(16, yesButton, noButton);
+        buttons.setAlignment(Pos.CENTER);
+
+        showRecoveryOverlay(
+                "Server is back online",
+                "Do you want to reconnect to the saved game?",
+                "Choose Yes to resume this match. Choose No to return to the lobby.",
+                buttons
+        );
+
+        yesButton.setOnAction(event -> {
+            showRecoveryOverlay(
+                    "Recovering saved game",
+                    "Your choice has been sent.",
+                    "Waiting for the other players..."
+            );
+            answer.complete(true);
+        });
+
+        noButton.setOnAction(event -> {
+            showRecoveryOverlay(
+                    "Leaving saved game",
+                    "Returning to the lobby.",
+                    "You will be able to create a new game or join a lobby."
+            );
+            answer.complete(false);
+        });
+    }
+
+    private void showRecoveryOverlay(String title, String message, String details) {
+        showRecoveryOverlay(title, message, details, null);
+    }
+
+    private void showRecoveryOverlay(String title, String message, String details, HBox buttons) {
+        Scene scene = primaryStage == null ? null : primaryStage.getScene();
+        if (scene == null || !(scene.getRoot() instanceof StackPane root)) {
+            return;
+        }
+
+        if (recoveryOverlay == null || recoveryOverlay.getScene() != scene) {
+            recoveryOverlay = new StackPane();
+            recoveryOverlay.getStyleClass().add("recovery-overlay");
+            recoveryOverlay.setPickOnBounds(true);
+
+            VBox panel = new VBox(16);
+            panel.getStyleClass().add("recovery-panel");
+            panel.setAlignment(Pos.CENTER);
+            panel.setPrefWidth(500);
+            panel.setPrefHeight(220);
+            panel.setMaxWidth(500);
+            panel.setMaxHeight(260);
+            panel.setPadding(new Insets(22, 30, 22, 30));
+
+            recoveryTitleLabel = new Label();
+            recoveryTitleLabel.getStyleClass().add("recovery-title");
+            recoveryTitleLabel.setWrapText(true);
+            recoveryTitleLabel.setAlignment(Pos.CENTER);
+
+            recoveryMessageLabel = new Label();
+            recoveryMessageLabel.getStyleClass().add("recovery-message");
+            recoveryMessageLabel.setWrapText(true);
+            recoveryMessageLabel.setAlignment(Pos.CENTER);
+
+            recoveryDetailsLabel = new Label();
+            recoveryDetailsLabel.getStyleClass().add("recovery-details");
+            recoveryDetailsLabel.setWrapText(true);
+            recoveryDetailsLabel.setAlignment(Pos.CENTER);
+
+            panel.getChildren().addAll(recoveryTitleLabel, recoveryMessageLabel, recoveryDetailsLabel);
+            recoveryOverlay.getChildren().add(panel);
+        }
+
+        VBox panel = (VBox) recoveryOverlay.getChildren().get(0);
+        panel.getChildren().removeIf(node -> node instanceof HBox);
+        if (buttons != null) {
+            panel.getChildren().add(buttons);
+        }
+
+        recoveryTitleLabel.setText(title);
+        recoveryMessageLabel.setText(message);
+        recoveryDetailsLabel.setText(details == null ? "" : details);
+        recoveryOverlay.setMouseTransparent(false);
+
+        if (!root.getChildren().contains(recoveryOverlay)) {
+            root.getChildren().add(recoveryOverlay);
+        }
+    }
+
+    private void clearRecoveryOverlay() {
+        if (primaryStage != null && primaryStage.getScene() != null
+                && primaryStage.getScene().getRoot() instanceof StackPane root
+                && recoveryOverlay != null) {
+            root.getChildren().remove(recoveryOverlay);
+        }
+        recoveryOverlay = null;
+        recoveryTitleLabel = null;
+        recoveryMessageLabel = null;
+        recoveryDetailsLabel = null;
+    }
+
+    private void clearRecoveryOverlayIfConnected() {
+        if (virtualServer == null || virtualServer.isConnected()) {
+            clearRecoveryOverlay();
+        }
+    }
+
+    private String formatPlayers(List<String> players) {
+        if (players == null || players.isEmpty()) {
+            return "none";
+        }
+        return String.join(", ", players);
+    }
+
+    private boolean isRecoverableDisconnection(String reason) {
+        if (reason == null) {
+            return false;
+        }
+
+        String normalized = reason.toLowerCase();
+        return normalized.contains("server offline")
+                || normalized.contains("waiting for recovery")
+                || normalized.contains("server lost");
     }
 }
