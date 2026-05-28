@@ -35,7 +35,7 @@ public class OfferResolutionPhase implements Phase {
      * @param chosenLower cards chosen from the lower row
      */
     @Override
-    public void takeCards(Game game, Player player, List<Card> chosenUpper, List<Card> chosenLower) {
+    public void takeCards(Game game, Player player, List<Card> chosenUpper, List<Card> chosenLower, List<Card> orderedCards) {
 
         game.validateState();
         game.validateActivePlayerOfferResolution(player);
@@ -50,17 +50,14 @@ public class OfferResolutionPhase implements Phase {
             player.addFood(foodReward);
         }
 
-        for (Card upperCard : chosenUpper) {
-            game.getBoard().removeCardFromUpper(upperCard);
-            upperCard.applyTo(player);
-        }
-        for (Card lowerCard : chosenLower) {
-            game.getBoard().removeCardFromLower(lowerCard);
-            lowerCard.applyTo(player);
-        }
+        for (Card upperCard : chosenUpper) game.getBoard().removeCardFromUpper(upperCard);
+        for (Card lowerCard : chosenLower) game.getBoard().removeCardFromLower(lowerCard);
+        for (Card card : orderedCards) card.applyTo(player);
 
-        game.getBoard().returnTotemToTurnOrder(player);
-        game.applyTurnOrderBonus(player);
+        if (game.getCurrentRound() < 10) {
+            game.getBoard().returnTotemToTurnOrder(player);
+            game.applyTurnOrderBonus(player);
+        }
 
         game.setCurrentPlayerIndex(game.getCurrentPlayerIndex() + 1);
 
@@ -71,15 +68,14 @@ public class OfferResolutionPhase implements Phase {
             boolean nextPhaseSet = false;
 
             for (Player p : game.getPlayers()) {
-                for (BuildingCard b : p.getTribe().getBuildings()) {
-                    if (b.requiresExtraCardPhase()) {
-                        game.setCurrentPlayerIndex(game.getPlayers().indexOf(p));
-                        game.setCurrentPhase(new ExtraCardPhase());
-                        nextPhaseSet = true;
-                        break;
-                    }
+                boolean needsExtra = p.getTribe().getBuildings().stream()
+                        .anyMatch(BuildingCard::requiresExtraCardPhase);
+                if (needsExtra && game.hasAffordableUpperCard(p)) {
+                    game.setCurrentPlayerIndex(game.getPlayers().indexOf(p));
+                    game.setCurrentPhase(new ExtraCardPhase());
+                    nextPhaseSet = true;
+                    break;
                 }
-                if (nextPhaseSet) break;
             }
 
             if (!nextPhaseSet) {
@@ -90,7 +86,6 @@ public class OfferResolutionPhase implements Phase {
 
             int foodDelta = player.getFood() - initialFood;
             int ppDelta = player.getPrestigePoints() - initialPP;
-            int turnOrderPosition = game.getBoard().getTurnOrderTrack().getPlayersInOrder().indexOf(player);
 
             List<String> upperIDs = chosenUpper.stream().map(Card::getId).toList();
             List<String> lowerIDs = chosenLower.stream().map(Card::getId).toList();
@@ -119,7 +114,6 @@ public class OfferResolutionPhase implements Phase {
                     foodDelta,
                     ppDelta,
                     freedSlotID,
-                    turnOrderPosition,
                     nextPlayer,
                     game.getCurrentPhaseName()
             );

@@ -16,20 +16,22 @@ import java.util.List;
 public class TakeCardsMessage extends ClientMessage{
     private final List<String> upperIDs;
     private final List<String> lowerIDs;
+    private final List<String> orderedIDs;
 
     /**
      * Creates a new take-cards message.
      *
-     * @param nickname the nickname of the player who wants to take the cards
-     * @param upperIDs the ids of the selected cards from the upper row
-     * @param lowerIDs the ids of the selected cards from the lower row
+     * @param nickname   the nickname of the player who wants to take the cards
+     * @param upperIDs   the ids of the selected cards from the upper row
+     * @param lowerIDs   the ids of the selected cards from the lower row
+     * @param orderedIDs all selected card ids in the order the player picked them
      */
-    public TakeCardsMessage(String nickname, List<String> upperIDs, List<String> lowerIDs){
+    public TakeCardsMessage(String nickname, List<String> upperIDs, List<String> lowerIDs, List<String> orderedIDs){
         super(nickname);
         this.upperIDs = new ArrayList<>(upperIDs);
         this.lowerIDs = new ArrayList<>(lowerIDs);
+        this.orderedIDs = new ArrayList<>(orderedIDs);
     }
-
 
     /**
      * Returns the ids of the selected lower-row cards.
@@ -50,6 +52,15 @@ public class TakeCardsMessage extends ClientMessage{
     }
 
     /**
+     * Returns all selected card ids in pick order.
+     *
+     * @return a copy of the ordered card ids
+     */
+    public List<String> getOrderedIDs(){
+        return new ArrayList<>(orderedIDs);
+    }
+
+    /**
      * Executes the take-cards action on the controller.
      *
      * @param controller the game controller handling the request
@@ -57,6 +68,6 @@ public class TakeCardsMessage extends ClientMessage{
      */
     @Override
     public void execute (GameController controller, VirtualView sender){
-        controller.takeCards(getNickname(), getUpperIDs(), getLowerIDs());
+        controller.takeCards(getNickname(), getUpperIDs(), getLowerIDs(), getOrderedIDs());
     }
 }

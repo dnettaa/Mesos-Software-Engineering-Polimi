@@ -203,9 +203,6 @@ public class Board {
                 .filter(Card::isPickable).map(Card::getId).toList();
         List<String> discardedLowerEventIDs = lowerRow.getEventCards().stream()
                 .map(Card::getId).toList();
-        List<String> discardedLowerBuildingIDs = lowerRow.getBuildingCardsInternal().stream()
-                .map(Card::getId).toList();
-
         List<String> movedUpperToLowerTribeIDs = upperRow.getTribeCards().stream()
                 .map(Card::getId).toList();
 
@@ -216,18 +213,25 @@ public class Board {
         Era previousEra = currentEra;
         currentEra = checkEraTransition(currentEra);
 
+        List<String> discardedLowerBuildingIDs;
         List<String> movedUpperToLowerBuildingIDs;
         if (previousEra != currentEra) {
+            discardedLowerBuildingIDs = lowerRow.getBuildingCardsInternal().stream()
+                    .map(Card::getId).toList();
             movedUpperToLowerBuildingIDs = upperRow.getBuildingCardsInternal()
                     .stream().map(Card::getId).toList();
             clearLowerRowBuildings();
             moveUpperBuildingsToLower();
             revealBuildingsForEra(currentEra);
         } else {
+            discardedLowerBuildingIDs = List.of();
             movedUpperToLowerBuildingIDs = List.of();
         }
 
         List<String> newUpperRowIDs = upperRow.getAllCards().stream()
+                .map(Card::getId).toList();
+
+        List<String> newLowerRowIDs = lowerRow.getAllCards().stream()
                 .map(Card::getId).toList();
 
         List<String> revealedBuildingIDs = previousEra != currentEra ?
@@ -241,6 +245,7 @@ public class Board {
                 discardedLowerBuildingIDs,
                 movedUpperToLowerBuildingIDs,
                 newUpperRowIDs,
+                newLowerRowIDs,
                 revealedBuildingIDs,
                 currentEra,
                 newRound,

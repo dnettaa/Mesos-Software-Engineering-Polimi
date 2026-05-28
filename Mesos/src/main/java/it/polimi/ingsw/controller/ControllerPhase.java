@@ -44,11 +44,12 @@ public interface ControllerPhase {
     /**
      * Handles the selection of cards by a player.
      *
-     * @param nickname the nickname of the player
-     * @param upperIDs identifiers of selected cards from the upper row
-     * @param lowerIDs identifiers of selected cards from the lower row
+     * @param nickname   the nickname of the player
+     * @param upperIDs   identifiers of selected cards from the upper row
+     * @param lowerIDs   identifiers of selected cards from the lower row
+     * @param orderedIDs all selected card ids in the order the player picked them
      */
-    void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs);
+    void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs, List<String> orderedIDs);
 
     /**
      * Handles the selection of an extra card.

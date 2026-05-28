@@ -49,12 +49,13 @@ public interface ServerRMI extends Remote{
     /**
      * Remotely requests to take cards from the upper and lower rows.
      *
-     * @param nickname nickname of the player performing the action
-     * @param upperIDs identifiers of the selected upper-row cards
-     * @param lowerIDs identifiers of the selected lower-row cards
+     * @param nickname   nickname of the player performing the action
+     * @param upperIDs   identifiers of the selected upper-row cards
+     * @param lowerIDs   identifiers of the selected lower-row cards
+     * @param orderedIDs all selected card ids in the order the player picked them
      * @throws RemoteException if the remote invocation fails
      */
-    void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs)
+    void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs, List<String> orderedIDs)
             throws RemoteException;
 
     /**

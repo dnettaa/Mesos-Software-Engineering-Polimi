@@ -43,6 +43,11 @@ public interface View {
     void showRecoveryCancelled(String reason);
 
     /**
+     * Shuts down the client application after printing the given message.
+     */
+    void shutdown(String reason);
+
+    /**
      * Binds the view to the network layer.
      *
      * @param vs the {@link VirtualServer} to use for outgoing messages

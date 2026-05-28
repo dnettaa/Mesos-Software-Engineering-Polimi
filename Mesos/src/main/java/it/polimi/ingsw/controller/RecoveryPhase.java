@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class RecoveryPhase implements ControllerPhase {
 
-    private static final int TIMEOUT_SECONDS = 60;
+    private static final int TIMEOUT_SECONDS = 20;
 
     private final GameController controller;
     private final GameActions game;
@@ -214,7 +214,7 @@ public class RecoveryPhase implements ControllerPhase {
      * Disabled during recovery.
      */
     @Override
-    public void takeCards(String nickname, java.util.List<String> upperIDs, java.util.List<String> lowerIDs) {}
+    public void takeCards(String nickname, java.util.List<String> upperIDs, java.util.List<String> lowerIDs, java.util.List<String> orderedIDs) {}
 
     /**
      * Disabled during recovery.

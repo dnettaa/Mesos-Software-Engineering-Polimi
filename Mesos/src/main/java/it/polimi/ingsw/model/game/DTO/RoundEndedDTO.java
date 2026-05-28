@@ -12,6 +12,7 @@ public record RoundEndedDTO(
         List<String> discardedLowerBuildingIDs,
         List<String> movedUpperToLowerBuildingIDs,
         List<String> newUpperRowIDs,
+        List<String> newLowerRowIDs,
         List<String> revealedBuildingIDs,
         Era newEra,
         int newRound,

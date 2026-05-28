@@ -12,7 +12,6 @@ public record CardsTakenDTO(
         int foodDelta,
         int ppDelta,
         char freedSlotID,
-        int turnOrderPosition,
         String nextPlayerNickname,
         String nextPhaseName
 ) implements Serializable{

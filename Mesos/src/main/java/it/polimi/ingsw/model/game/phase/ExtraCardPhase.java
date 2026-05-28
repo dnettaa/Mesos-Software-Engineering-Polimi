@@ -1,6 +1,5 @@
 package it.polimi.ingsw.model.game.phase;
 
-import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.exception.ErrorCode;
 import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.game.DTO.ExtraCardTakenDTO;
@@ -54,7 +53,7 @@ import it.polimi.ingsw.model.card.Card;
                                     player.getNickname(),
                                     card.getId(),
                                     true,
-                                    card instanceof BuildingCard,
+                                    card.getId().startsWith("BU"),
                                     foodDelta,
                                     game.getCurrentPhaseName()
         );

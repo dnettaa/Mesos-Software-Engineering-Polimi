@@ -154,7 +154,7 @@ public class LobbyPhase implements ControllerPhase {
      * @param lowerIDs selected lower row cards
      */
     @Override
-    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs) {
+    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs, List<String> orderedIDs) {
         gameController.sendError(nickname, ErrorCode.INVALID_PHASE.name(),
                 "Cannot take cards during lobby phase");
     }

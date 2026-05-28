@@ -21,6 +21,8 @@ import java.util.List;
  * @author Luca Grecchi
  */
 public class VirtualSocketServer implements VirtualServer, Runnable {
+    private static final int RECONNECT_TIMEOUT_SECONDS = 20;
+
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
@@ -122,16 +124,19 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
 
         Thread reconnectThread = new Thread(() -> {
 
+            long deadline = System.currentTimeMillis() + RECONNECT_TIMEOUT_SECONDS * 1000L;
+
             while (!running) {
 
+                if (System.currentTimeMillis() >= deadline) {
+                    view.shutdown("Recovery timeout expired. Server did not come back online.");
+                    return;
+                }
+
                 try {
-
                     Thread.sleep(3000);
-
                     reconnect();
-
                 } catch (Exception ignored) {
-
                 }
             }
 
@@ -244,8 +249,8 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
      * @param lowerIDs the list of IDs for the selected cards in the lower row
      */
     @Override
-    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs) {
-        write(new TakeCardsMessage(nickname, upperIDs, lowerIDs));
+    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs, List<String> orderedIDs) {
+        write(new TakeCardsMessage(nickname, upperIDs, lowerIDs, orderedIDs));
     }
 
     /**
