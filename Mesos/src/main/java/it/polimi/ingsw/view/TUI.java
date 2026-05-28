@@ -377,6 +377,12 @@ public class TUI implements View {
         System.exit(0);
     }
 
+    @Override
+    public void goToWelcomeScreen(String reason) {
+        System.out.println("\n[DISCONNECTED] " + reason);
+        System.exit(0);
+    }
+
     /**
      * Displays setup or networking errors that occur before the game starts
      * (e.g., Lobby full, Name already taken) and restarts the setup wizard.

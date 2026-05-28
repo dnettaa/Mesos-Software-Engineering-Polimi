@@ -104,13 +104,19 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
 
     /**
      * Handles an unexpected server disconnection.
-     * Stops the current connection and starts
-     * the automatic recovery loop.
+     * If the client was waiting in the lobby, returns directly to the welcome screen.
+     * If the client was in a game, starts the automatic recovery loop instead.
      */
     private void handleServerCrash(){
 
         running = false;
         recovering = true;
+
+        if (!wasInGame) {
+            recovering = false;
+            view.goToWelcomeScreen("Server disconnected. Please reconnect.");
+            return;
+        }
 
         view.notifyDisconnection(
                 "Server offline. Waiting for recovery..."

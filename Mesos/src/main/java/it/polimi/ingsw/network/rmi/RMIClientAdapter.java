@@ -451,13 +451,22 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     }
 
     /**
-     * Handles a failed remote call by marking the connection as closed and notifying the view.
+     * Handles a failed remote call.
+     * If the client was waiting in the lobby, returns directly to the welcome screen.
+     * If the client was in a game, starts the automatic recovery loop instead.
      *
      * @param message message shown to the user
      */
     private void handleRemoteFailure(String message){
         connected = false;
         recovering = true;
+
+        if (!wasInGame) {
+            recovering = false;
+            view.goToWelcomeScreen("Server disconnected. Please reconnect.");
+            return;
+        }
+
         notifyServerOffline();
         startReconnectLoop();
     }

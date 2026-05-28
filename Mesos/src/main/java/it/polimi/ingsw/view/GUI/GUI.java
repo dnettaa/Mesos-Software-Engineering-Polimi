@@ -859,4 +859,15 @@ public class GUI extends Application implements View {
             System.exit(0);
         });
     }
+
+    @Override
+    public void goToWelcomeScreen(String reason) {
+        Platform.runLater(() -> {
+            virtualServer = null;
+            clientModel = new ClientModel();
+            nickname = null;
+            clearRecoveryOverlay();
+            showWelcomeScreen();
+        });
+    }
 }
