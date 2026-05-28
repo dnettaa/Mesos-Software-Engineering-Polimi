@@ -305,7 +305,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
         connected = false;
         recovering = false;
         disconnectionNotified = true;
-        view.notifyDisconnection(reason);
+        view.shutdown(reason);
     }
 
     /**

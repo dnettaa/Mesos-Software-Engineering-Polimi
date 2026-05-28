@@ -471,14 +471,22 @@ public class GUI extends Application implements View {
     public void notifyDisconnection(String reason) {
         Platform.runLater(() -> {
             if (!isRecoverableDisconnection(reason)) {
-                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                        javafx.scene.control.Alert.AlertType.ERROR
+                Button closeButton = new Button("Close");
+                closeButton.getStyleClass().add("recovery-primary-button");
+                closeButton.setMinWidth(130);
+                closeButton.setOnAction(e -> {
+                    Platform.exit();
+                    System.exit(0);
+                });
+                HBox buttons = new HBox(closeButton);
+                buttons.setAlignment(Pos.CENTER);
+
+                showRecoveryOverlay(
+                        "Game ended",
+                        reason == null || reason.isBlank() ? "The connection was closed." : reason,
+                        "The session has ended. You can close this window.",
+                        buttons
                 );
-                alert.setTitle("Disconnected");
-                alert.setHeaderText("Connection closed");
-                alert.setContentText(reason);
-                alert.showAndWait();
-                Platform.exit();
                 return;
             }
 
@@ -854,9 +862,22 @@ public class GUI extends Application implements View {
     @Override
     public void shutdown(String reason) {
         Platform.runLater(() -> {
-            System.out.println("[CLIENT] " + reason);
-            Platform.exit();
-            System.exit(0);
+            Button closeButton = new Button("Close");
+            closeButton.getStyleClass().add("recovery-primary-button");
+            closeButton.setMinWidth(130);
+            closeButton.setOnAction(e -> {
+                Platform.exit();
+                System.exit(0);
+            });
+            HBox buttons = new HBox(closeButton);
+            buttons.setAlignment(Pos.CENTER);
+
+            showRecoveryOverlay(
+                    "Session ended",
+                    reason == null || reason.isBlank() ? "The session has been closed." : reason,
+                    "You can close this window.",
+                    buttons
+            );
         });
     }
 

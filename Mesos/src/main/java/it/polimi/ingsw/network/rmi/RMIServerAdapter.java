@@ -344,13 +344,17 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
 
         /**
          * Notifies the remote client that the connection has been closed.
+         * disconnect() is called inside the lambda so the message is delivered
+         * before the writer thread is stopped.
          *
          * @param reason reason of the disconnection
          */
         @Override
         public void onDisconnection(String reason){
-            enqueue(() -> clientStub.onDisconnection(reason));
-            disconnect();
+            enqueue(() -> {
+                clientStub.onDisconnection(reason);
+                disconnect();
+            });
         }
 
         /**

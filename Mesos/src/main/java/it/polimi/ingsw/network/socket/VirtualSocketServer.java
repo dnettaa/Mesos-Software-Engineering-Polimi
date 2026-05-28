@@ -85,11 +85,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             while (running) {
                 ServerMessage msg = (ServerMessage) in.readObject();
 
-                /*
-                 * Game officially started:
-                 * recovery data becomes valid
-                 */
-                if(msg instanceof GameStartedMessage){
+                if (msg instanceof GameStartedMessage) {
                     wasInGame = true;
                 }
 

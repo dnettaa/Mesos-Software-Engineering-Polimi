@@ -209,7 +209,10 @@ public class TUI implements View {
         if (clientModel.getCurrentPlayerNickname() != null) {
             if (nickname.equals(clientModel.getCurrentPlayerNickname())) {
                 System.out.println("\n" + BRIGHT_GREEN + BOLD + "  *** IT IS YOUR TURN! ***" + RESET);
-                handleTurnInput(clientModel.getCurrentPhaseName());
+                String phase = clientModel.getCurrentPhaseName();
+                Thread inputThread = new Thread(() -> handleTurnInput(phase), "TUI-Input");
+                inputThread.setDaemon(true);
+                inputThread.start();
             } else {
                 System.out.println("\n" + WHITE + "  Waiting for " + YELLOW + clientModel.getCurrentPlayerNickname() + RESET + "...");
             }
@@ -362,6 +365,17 @@ public class TUI implements View {
     @Override
     public void notifyDisconnection(String reason) {
         System.out.println("\n[DISCONNECTED] " + reason);
+        if (!isRecoverableReason(reason)) {
+            System.exit(0);
+        }
+    }
+
+    private boolean isRecoverableReason(String reason) {
+        if (reason == null) return false;
+        String lower = reason.toLowerCase();
+        return lower.contains("server offline")
+                || lower.contains("waiting for recovery")
+                || lower.contains("server lost");
     }
 
     @Override

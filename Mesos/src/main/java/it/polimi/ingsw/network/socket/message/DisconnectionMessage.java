@@ -37,6 +37,6 @@ public class DisconnectionMessage extends ServerMessage{
      */
     @Override
     public void apply(View view){
-        view.notifyDisconnection(reason);
+        view.shutdown(reason);
     }
 }
