@@ -1,5 +1,6 @@
     package it.polimi.ingsw.controller;
 
+    import it.polimi.ingsw.model.exception.ErrorCode;
     import it.polimi.ingsw.model.game.GameActions;
     import it.polimi.ingsw.model.player.TotemColor;
     import it.polimi.ingsw.network.VirtualView;
@@ -106,6 +107,10 @@
          * @param view the virtual view associated with the player
          */
         public synchronized void joinLobby(String nickname, TotemColor color, VirtualView view) {
+            if (currentPhase == null) {
+                view.onError(ErrorCode.LOBBY_NOT_CREATED.name(), "Lobby has not been created yet");
+                return;
+            }
             currentPhase.joinLobby(nickname, color, view);
         }
 
@@ -118,6 +123,10 @@
          * @param view the reconnecting virtual view
          */
         public synchronized void reconnectPlayer(String nickname, TotemColor color, VirtualView view) {
+            if (currentPhase == null) {
+                view.onRecoveryCancelled("Recovery has already expired. Please create or join a new lobby.");
+                return;
+            }
             currentPhase.reconnect(this, nickname, color, view);
         }
 
@@ -130,6 +139,8 @@
         public synchronized void declineRecovery(VirtualView view) {
             if (currentPhase != null) {
                 currentPhase.declineRecovery(this, view);
+            } else if (view != null) {
+                view.onRecoveryCancelled("Recovery has already expired. Please create or join a new lobby.");
             }
         }
 
