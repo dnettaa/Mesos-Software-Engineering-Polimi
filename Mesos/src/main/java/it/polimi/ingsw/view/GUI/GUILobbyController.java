@@ -131,6 +131,13 @@ public class GUILobbyController {
         }
     }
 
+    @FXML
+    public void onOpenRules() {
+        if (gui != null) {
+            gui.openRulesPdf();
+        }
+    }
+
     /**
      * Updates the player list and the status label with the current lobby state.
      *

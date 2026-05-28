@@ -2,6 +2,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml"
            fx:controller="it.polimi.ingsw.view.GUI.GUILobbyController"
@@ -20,6 +21,15 @@
         <ImageView preserveRatio="true" fitWidth="1150">
             <image><Image url="/GUI-resources/images/input_screen.png"/></image>
         </ImageView>
+
+        <Button text="Rules"
+                onAction="#onOpenRules"
+                styleClass="rules-button"
+                StackPane.alignment="TOP_RIGHT">
+            <StackPane.margin>
+                <Insets top="26" right="34" bottom="0" left="0"/>
+            </StackPane.margin>
+        </Button>
 
         <!-- Main content area, positioned inside the frame -->
         <HBox fx:id="mainContentBox" alignment="CENTER"

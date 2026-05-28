@@ -48,6 +48,23 @@
     -fx-effect: innershadow(gaussian, rgba(0,0,0,0.6), 8, 0, 0, 2);
 }
 
+.rules-button {
+    -fx-background-color: rgba(245, 230, 190, 0.92);
+    -fx-text-fill: #3b1e00;
+    -fx-border-color: #7a4a1a;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 7 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 7, 0, 0, 2);
+}
+
+.rules-button:hover {
+    -fx-background-color: #fde8b0;
+}
+
 /* ── Radio buttons ─────────────────────────────────── */
 .radio-button {
     -fx-text-fill: #2d1800;

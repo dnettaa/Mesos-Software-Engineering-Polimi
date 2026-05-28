@@ -14,7 +14,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -51,6 +53,7 @@ public class GUI extends Application implements View {
     private Label recoveryTitleLabel;
     private Label recoveryMessageLabel;
     private Label recoveryDetailsLabel;
+    private StackPane rulesOverlay;
 
     // ── JavaFX entry point ────────────────────────────────────────────────────
 
@@ -558,6 +561,100 @@ public class GUI extends Application implements View {
      */
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public void openRulesPdf() {
+        Platform.runLater(() -> {
+            Scene scene = primaryStage == null ? null : primaryStage.getScene();
+            if (scene == null || !(scene.getRoot() instanceof StackPane root)) {
+                return;
+            }
+
+            if (rulesOverlay != null && root.getChildren().contains(rulesOverlay)) {
+                return;
+            }
+
+            VBox pagesBox = new VBox(18);
+            pagesBox.setAlignment(Pos.TOP_CENTER);
+            pagesBox.setPadding(new Insets(12, 18, 18, 18));
+
+            for (int i = 1; i <= 8; i++) {
+                String path = String.format("/GUI-resources/rules/page-%02d.png", i);
+                var stream = getClass().getResourceAsStream(path);
+                if (stream == null) {
+                    showRulesError("Rules page not found.\nExpected path: " + path);
+                    return;
+                }
+
+                ImageView page = new ImageView(new Image(stream));
+                page.setFitWidth(820);
+                page.setPreserveRatio(true);
+                page.setSmooth(true);
+                page.setStyle("-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 12, 0, 0, 3);");
+                pagesBox.getChildren().add(page);
+            }
+
+            ScrollPane scroll = new ScrollPane(pagesBox);
+            scroll.setFitToWidth(true);
+            scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            scroll.setPrefViewportHeight(610);
+            scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+            VBox.setVgrow(scroll, Priority.ALWAYS);
+
+            Button closeButton = new Button("Close");
+            closeButton.getStyleClass().add("rules-button");
+
+            HBox header = new HBox(16);
+            header.setAlignment(Pos.CENTER_RIGHT);
+            Label title = new Label("Rules");
+            title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #fde8b0;");
+            HBox.setHgrow(title, Priority.ALWAYS);
+            header.getChildren().addAll(title, closeButton);
+
+            VBox panel = new VBox(12, header, scroll);
+            panel.setMaxWidth(900);
+            panel.setMaxHeight(720);
+            panel.setPadding(new Insets(18));
+            panel.setStyle(
+                    "-fx-background-color: rgba(22,10,4,0.96); " +
+                    "-fx-background-radius: 10; " +
+                    "-fx-border-color: #c8860a; -fx-border-width: 2; -fx-border-radius: 10;"
+            );
+
+            rulesOverlay = new StackPane(panel);
+            rulesOverlay.setStyle("-fx-background-color: rgba(0,0,0,0.72);");
+            rulesOverlay.setPickOnBounds(true);
+
+            closeButton.setOnAction(event -> closeRulesOverlay());
+            rulesOverlay.setOnMouseClicked(event -> {
+                if (event.getTarget() == rulesOverlay) {
+                    closeRulesOverlay();
+                }
+            });
+
+            root.getChildren().add(rulesOverlay);
+            StackPane.setAlignment(rulesOverlay, Pos.CENTER);
+        });
+    }
+
+    private void closeRulesOverlay() {
+        if (primaryStage != null && primaryStage.getScene() != null
+                && primaryStage.getScene().getRoot() instanceof StackPane root
+                && rulesOverlay != null) {
+            root.getChildren().remove(rulesOverlay);
+        }
+        rulesOverlay = null;
+    }
+
+    private void showRulesError(String message) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.INFORMATION
+        );
+        alert.setTitle("Rules");
+        alert.setHeaderText("Rules PDF unavailable");
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     public List<MatchResult> getGlobalLeaderboard() {

@@ -68,6 +68,9 @@
                                    styleClass="game-player-name-label"/>
                         </HBox>
                     </VBox>
+                    <Button text="Rules"
+                            onAction="#onOpenRules"
+                            styleClass="rules-button"/>
                 </HBox>
             </top>
 
