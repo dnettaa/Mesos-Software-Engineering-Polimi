@@ -9,6 +9,7 @@ import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.network.VirtualView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +63,9 @@ class InGamePhaseTest{
         List<String> upper = List.of("U1", "U2");
         List<String> lower = List.of("L1");
 
-        inGamePhase.takeCards("Diana", upper, lower);
+        List<String> ordered = new ArrayList<>(upper);
+        ordered.addAll(lower);
+        inGamePhase.takeCards("Diana", upper, lower, ordered);
 
         assertEquals("Diana", game.lastTakeCardsNickname);
         assertEquals(upper, game.lastUpperIDs);
@@ -75,7 +78,7 @@ class InGamePhaseTest{
     void testTakeCardsExceptionSendsError(){
         game.exceptionToThrow = new GameException(ErrorCode.INVALID_SELECTION, "Invalid selection");
 
-        inGamePhase.takeCards("Diana", List.of("U1"), List.of("L1"));
+        inGamePhase.takeCards("Diana", List.of("U1"), List.of("L1"), List.of("U1", "L1"));
 
         assertNotNull(dianaView.lastErrorDescription);
         assertEquals("Invalid selection", dianaView.lastErrorDescription);
@@ -161,7 +164,7 @@ class InGamePhaseTest{
         }
 
         @Override
-        public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs){
+        public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs, List<String> orderedIDs){
             takeCardsCalls++;
             lastTakeCardsNickname = nickname;
             lastUpperIDs = upperIDs;

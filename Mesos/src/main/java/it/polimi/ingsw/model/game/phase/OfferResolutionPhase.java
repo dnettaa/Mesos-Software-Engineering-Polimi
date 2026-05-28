@@ -1,10 +1,10 @@
 package it.polimi.ingsw.model.game.phase;
 
-import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.game.DTO.CardsTakenDTO;
 import it.polimi.ingsw.model.game.Game;
 import it.polimi.ingsw.model.player.Player;
 import it.polimi.ingsw.model.card.*;
+import it.polimi.ingsw.model.card.building.BuildingCard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +35,7 @@ public class OfferResolutionPhase implements Phase {
      * @param chosenLower cards chosen from the lower row
      */
     @Override
-    public void takeCards(Game game, Player player, List<Card> chosenUpper, List<Card> chosenLower) {
+    public void takeCards(Game game, Player player, List<Card> chosenUpper, List<Card> chosenLower, List<Card> orderedCards) {
 
         game.validateState();
         game.validateActivePlayerOfferResolution(player);
@@ -50,22 +50,9 @@ public class OfferResolutionPhase implements Phase {
             player.addFood(foodReward);
         }
 
-        for (Card upperCard : chosenUpper) {
-            game.getBoard().removeCardFromUpper(upperCard);
-        }
-        for (Card lowerCard : chosenLower) {
-            game.getBoard().removeCardFromLower(lowerCard);
-        }
-
-        List<Card> allChosenCards = new ArrayList<>(chosenUpper);
-        allChosenCards.addAll(chosenLower);
-
-        for (Card card : allChosenCards) {
-            if (card.getId().startsWith("BU")) card.applyTo(player);
-        }
-        for (Card card : allChosenCards) {
-            if (!card.getId().startsWith("BU")) card.applyTo(player);
-        }
+        for (Card upperCard : chosenUpper) game.getBoard().removeCardFromUpper(upperCard);
+        for (Card lowerCard : chosenLower) game.getBoard().removeCardFromLower(lowerCard);
+        for (Card card : orderedCards) card.applyTo(player);
 
         game.getBoard().returnTotemToTurnOrder(player);
         game.applyTurnOrderBonus(player);
@@ -107,12 +94,12 @@ public class OfferResolutionPhase implements Phase {
             allChosen.addAll(chosenLower);
 
             List<String> addedBuildings = allChosen.stream()
-                            .filter(c -> c.getId().startsWith("BU"))
+                            .filter(c -> c instanceof BuildingCard)
                             .map(Card::getId)
                             .toList();
 
             List<String> addedTribeCards = allChosen.stream()
-                            .filter(c -> !c.getId().startsWith("BU"))
+                            .filter(c -> !(c instanceof BuildingCard))
                             .map(Card::getId)
                             .toList();
 

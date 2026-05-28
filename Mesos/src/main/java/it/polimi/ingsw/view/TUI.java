@@ -331,7 +331,9 @@ public class TUI implements View {
                     return;
                 }
 
-                virtualServer.takeCards(nickname, up, down);
+                List<String> ordered = new ArrayList<>(up);
+                ordered.addAll(down);
+                virtualServer.takeCards(nickname, up, down, ordered);
                 break;
             }
 

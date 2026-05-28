@@ -186,13 +186,13 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      * @param lowerIDs identifiers of the selected lower-row cards
      */
     @Override
-    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs){
+    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs, List<String> orderedIDs){
         if(!isReady()){
             return;
         }
 
         try{
-            serverStub.takeCards(nickname, upperIDs, lowerIDs);
+            serverStub.takeCards(nickname, upperIDs, lowerIDs, orderedIDs);
         } catch(RemoteException e){
             handleRemoteFailure("Connection with the RMI server lost while taking cards.");
         }

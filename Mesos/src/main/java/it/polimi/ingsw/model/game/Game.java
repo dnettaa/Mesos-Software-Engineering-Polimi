@@ -162,11 +162,20 @@ public class Game implements GameActions{
      * @param chosenUpperIDs cards chosen from the upper row
      * @param chosenLowerIDs cards chosen from the lower row
      */
-    public void takeCards(String nickname, List<String> chosenUpperIDs, List<String> chosenLowerIDs){
+    public void takeCards(String nickname, List<String> chosenUpperIDs, List<String> chosenLowerIDs, List<String> orderedIDs){
         Player player = findPlayerByNickname(nickname);
         List<Card> chosenUpper = resolveCards(chosenUpperIDs, board.getUpperRowCards());
         List<Card> chosenLower = resolveCards(chosenLowerIDs, board.getLowerRowCards());
-        currentPhase.takeCards(this, player, chosenUpper, chosenLower);
+
+        Map<String, Card> cardByID = new java.util.HashMap<>();
+        for (Card c : chosenUpper) cardByID.put(c.getId(), c);
+        for (Card c : chosenLower) cardByID.put(c.getId(), c);
+        List<Card> orderedCards = orderedIDs.stream()
+                .map(cardByID::get)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        currentPhase.takeCards(this, player, chosenUpper, chosenLower, orderedCards);
     }
 
     /**

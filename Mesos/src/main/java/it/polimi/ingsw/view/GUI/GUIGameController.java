@@ -1022,7 +1022,11 @@ public class GUIGameController {
         // Selections and selection styles remain visible while we wait for the server.
 
         switch (model.getCurrentPhaseName()) {
-            case "OfferResolutionPhase" -> gui.getVirtualServer().takeCards(gui.getNickname(), upper, lower);
+            case "OfferResolutionPhase" -> {
+                List<String> ordered = new ArrayList<>(upper);
+                ordered.addAll(lower);
+                gui.getVirtualServer().takeCards(gui.getNickname(), upper, lower, ordered);
+            }
             case "ExtraCardPhase" -> {
                 String extra = upper.isEmpty() ? lower.get(0) : upper.get(0);
                 gui.getVirtualServer().takeExtraCard(gui.getNickname(), extra);

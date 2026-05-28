@@ -135,10 +135,10 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
      * @throws RemoteException if the player is not connected through RMI
      */
     @Override
-    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs)
+    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs, List<String> orderedIDs)
             throws RemoteException{
         ensureConnected(nickname);
-        controller.takeCards(nickname, upperIDs, lowerIDs);
+        controller.takeCards(nickname, upperIDs, lowerIDs, orderedIDs);
     }
 
     /**

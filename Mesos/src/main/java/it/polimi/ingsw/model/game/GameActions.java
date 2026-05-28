@@ -18,7 +18,7 @@ public interface GameActions {
 
     void placeTotem(String nickname, char slotID);
 
-    void takeCards(String nickname, List<String> chosenUpperIDs, List<String> chosenLowerIDs);
+    void takeCards(String nickname, List<String> chosenUpperIDs, List<String> chosenLowerIDs, List<String> orderedIDs);
 
     void takeExtraCard(String nickname, String cardID);
 

@@ -214,7 +214,7 @@ public class RecoveryPhase implements ControllerPhase {
      * Disabled during recovery.
      */
     @Override
-    public void takeCards(String nickname, java.util.List<String> upperIDs, java.util.List<String> lowerIDs) {}
+    public void takeCards(String nickname, java.util.List<String> upperIDs, java.util.List<String> lowerIDs, java.util.List<String> orderedIDs) {}
 
     /**
      * Disabled during recovery.

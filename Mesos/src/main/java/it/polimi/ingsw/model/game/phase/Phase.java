@@ -40,7 +40,7 @@ public interface Phase {
      * @param lower cards chosen from the lower row
      * @throws GameException with {@link ErrorCode#INVALID_PHASE} if called during a phase where taking cards is not allowed
      */
-    default void takeCards(Game game, Player player, List<Card> upper, List<Card> lower) {
+    default void takeCards(Game game, Player player, List<Card> upper, List<Card> lower, List<Card> ordered) {
         throw new GameException(ErrorCode.INVALID_PHASE, "Invalid action for current phase");
     }
 

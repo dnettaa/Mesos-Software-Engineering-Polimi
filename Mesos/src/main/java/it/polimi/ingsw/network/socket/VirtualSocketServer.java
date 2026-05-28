@@ -244,8 +244,8 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
      * @param lowerIDs the list of IDs for the selected cards in the lower row
      */
     @Override
-    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs) {
-        write(new TakeCardsMessage(nickname, upperIDs, lowerIDs));
+    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs, List<String> orderedIDs) {
+        write(new TakeCardsMessage(nickname, upperIDs, lowerIDs, orderedIDs));
     }
 
     /**
