@@ -521,4 +521,13 @@ public class GUI extends Application implements View {
     public void showRecoveryCancelled(String reason) {
         //to be implemented
     }
+
+    @Override
+    public void shutdown(String reason) {
+        Platform.runLater(() -> {
+            System.out.println("[CLIENT] " + reason);
+            Platform.exit();
+            System.exit(0);
+        });
+    }
 }

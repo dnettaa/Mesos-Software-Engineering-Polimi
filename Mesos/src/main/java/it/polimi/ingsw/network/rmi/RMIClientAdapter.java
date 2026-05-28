@@ -40,6 +40,7 @@ import java.util.concurrent.Executors;
 public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, VirtualServer{
 
     private static final String SERVER_NAME = "MesosServer";
+    private static final int RECONNECT_TIMEOUT_SECONDS = 20;
     private final View view;
     private ServerRMI serverStub;
     private String nickname;
@@ -551,11 +552,16 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
         Thread reconnectThread = new Thread(() -> {
 
             try {
-                while(!connected){
-                    try{
+                long deadline = System.currentTimeMillis() + RECONNECT_TIMEOUT_SECONDS * 1000L;
+                while (!connected) {
+                    if (System.currentTimeMillis() >= deadline) {
+                        view.shutdown("Recovery timeout expired. Server did not come back online.");
+                        return;
+                    }
+                    try {
                         Thread.sleep(3000);
                         reconnectToServer();
-                    }catch(Exception ignored){}
+                    } catch (Exception ignored) {}
                 }
             } finally {
                 reconnectLoopRunning = false;

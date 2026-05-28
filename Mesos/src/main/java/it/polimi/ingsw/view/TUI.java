@@ -370,6 +370,12 @@ public class TUI implements View {
         run();
     }
 
+    @Override
+    public void shutdown(String reason) {
+        System.out.println("\n[CLIENT] " + reason);
+        System.exit(0);
+    }
+
     /**
      * Displays setup or networking errors that occur before the game starts
      * (e.g., Lobby full, Name already taken) and restarts the setup wizard.
