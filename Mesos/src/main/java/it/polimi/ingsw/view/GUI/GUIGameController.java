@@ -825,8 +825,12 @@ public class GUIGameController {
                 OfferSlotData mySlot = getMySlot(model);
                 int upSel = mySlot != null ? mySlot.upSel() : 0;
                 int downSel = mySlot != null ? mySlot.downSel() : 0;
+                long availUpper = countAffordable(model, model.getUpperRowCardIDs());
+                long availLower = countAffordable(model, model.getLowerRowCardIDs());
+                int effectiveUp = (int) Math.min(upSel, availUpper);
+                int effectiveDn = (int) Math.min(downSel, availLower);
                 messageLabel.setText("Pick " + upSel + " from upper row, " + downSel + " from lower row.");
-                if (upSel == 0 && downSel == 0 && currentPickPopup == null) {
+                if (effectiveUp == 0 && effectiveDn == 0 && currentPickPopup == null) {
                     Platform.runLater(() -> showPickConfirmPopup(List.of(), List.of()));
                 }
             }
@@ -951,7 +955,11 @@ public class GUIGameController {
 
             toggleCardSelection(cardID, upperRow, cardPane);
 
-            if (selectedUpperCards.size() == upSel && selectedLowerCards.size() == downSel) {
+            long availUpper = countAffordable(model, model.getUpperRowCardIDs());
+            long availLower = countAffordable(model, model.getLowerRowCardIDs());
+            int effectiveUp = (int) Math.min(upSel, availUpper);
+            int effectiveDn = (int) Math.min(downSel, availLower);
+            if (selectedUpperCards.size() == effectiveUp && selectedLowerCards.size() == effectiveDn) {
                 showPickConfirmPopup(new ArrayList<>(selectedUpperCards), new ArrayList<>(selectedLowerCards));
             }
         } else if ("ExtraCardPhase".equals(phase)) {
@@ -1029,7 +1037,11 @@ public class GUIGameController {
         // Selections and selection styles remain visible while we wait for the server.
 
         switch (model.getCurrentPhaseName()) {
-            case "OfferResolutionPhase" -> gui.getVirtualServer().takeCards(gui.getNickname(), upper, lower);
+            case "OfferResolutionPhase" -> {
+                List<String> ordered = new ArrayList<>(upper);
+                ordered.addAll(lower);
+                gui.getVirtualServer().takeCards(gui.getNickname(), upper, lower, ordered);
+            }
             case "ExtraCardPhase" -> {
                 String extra = upper.isEmpty() ? lower.get(0) : upper.get(0);
                 gui.getVirtualServer().takeExtraCard(gui.getNickname(), extra);
@@ -1148,6 +1160,21 @@ public class GUIGameController {
             clearCardSelectionStyles();
         });
         confirmBtn.setOnAction(e -> confirmPickAction(finalUpper, finalLower, model));
+    }
+
+    /** Returns how many cards in the given row the local player can currently afford,
+     *  accounting for builder discounts from cards already selected this turn. */
+    private long countAffordable(ClientModel model, List<String> rowCardIDs) {
+        String me = gui.getNickname();
+        PlayerData myData = me != null ? model.getPlayers().get(me) : null;
+        if (myData == null) return 0;
+        int food = myData.food();
+        int discount = myData.tribeCardID().stream().mapToInt(CardCatalog::getBuilderDiscount).sum()
+                + selectedUpperCards.stream().mapToInt(CardCatalog::getBuilderDiscount).sum();
+        return rowCardIDs.stream()
+                .filter(id -> !id.startsWith("EV"))
+                .filter(id -> Math.max(0, CardCatalog.getCost(id) - discount) <= food)
+                .count();
     }
 
     /** Returns the offer slot currently occupied by the local player, or null if none. */

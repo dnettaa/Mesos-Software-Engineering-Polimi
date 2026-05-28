@@ -67,9 +67,9 @@ public class InGamePhase implements ControllerPhase {
      * @param lowerIDs identifiers of selected cards from the lower row
      */
     @Override
-    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs) {
+    public void takeCards(String nickname, List<String> upperIDs, List<String> lowerIDs, List<String> orderedIDs) {
         try {
-            game.takeCards(nickname, upperIDs, lowerIDs);
+            game.takeCards(nickname, upperIDs, lowerIDs, orderedIDs);
         } catch (GameException e) {
             controller.sendError(nickname, e.getCode().name(), e.getMessage());
         }

@@ -172,8 +172,8 @@
          * @param upperIDs identifiers of selected cards from the upper row
          * @param lowerIDs identifiers of selected cards from the lower row
          */
-        public synchronized void takeCards(String nickname, java.util.List<String> upperIDs, java.util.List<String> lowerIDs) {
-            currentPhase.takeCards(nickname, upperIDs, lowerIDs);
+        public synchronized void takeCards(String nickname, java.util.List<String> upperIDs, java.util.List<String> lowerIDs, java.util.List<String> orderedIDs) {
+            currentPhase.takeCards(nickname, upperIDs, lowerIDs, orderedIDs);
         }
 
         /**

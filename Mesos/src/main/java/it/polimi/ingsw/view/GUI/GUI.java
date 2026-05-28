@@ -850,4 +850,13 @@ public class GUI extends Application implements View {
                 || normalized.contains("waiting for recovery")
                 || normalized.contains("server lost");
     }
+
+    @Override
+    public void shutdown(String reason) {
+        Platform.runLater(() -> {
+            System.out.println("[CLIENT] " + reason);
+            Platform.exit();
+            System.exit(0);
+        });
+    }
 }

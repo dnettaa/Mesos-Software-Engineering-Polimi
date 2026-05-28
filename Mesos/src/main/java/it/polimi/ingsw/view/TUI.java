@@ -332,7 +332,9 @@ public class TUI implements View {
                     return;
                 }
 
-                virtualServer.takeCards(nickname, up, down);
+                List<String> ordered = new ArrayList<>(up);
+                ordered.addAll(down);
+                virtualServer.takeCards(nickname, up, down, ordered);
                 break;
             }
 
@@ -367,6 +369,12 @@ public class TUI implements View {
 
         System.out.println("\n[RECOVERY] " + reason);
         run();
+    }
+
+    @Override
+    public void shutdown(String reason) {
+        System.out.println("\n[CLIENT] " + reason);
+        System.exit(0);
     }
 
     /**

@@ -162,11 +162,20 @@ public class Game implements GameActions{
      * @param chosenUpperIDs cards chosen from the upper row
      * @param chosenLowerIDs cards chosen from the lower row
      */
-    public void takeCards(String nickname, List<String> chosenUpperIDs, List<String> chosenLowerIDs){
+    public void takeCards(String nickname, List<String> chosenUpperIDs, List<String> chosenLowerIDs, List<String> orderedIDs){
         Player player = findPlayerByNickname(nickname);
         List<Card> chosenUpper = resolveCards(chosenUpperIDs, board.getUpperRowCards());
         List<Card> chosenLower = resolveCards(chosenLowerIDs, board.getLowerRowCards());
-        currentPhase.takeCards(this, player, chosenUpper, chosenLower);
+
+        Map<String, Card> cardByID = new java.util.HashMap<>();
+        for (Card c : chosenUpper) cardByID.put(c.getId(), c);
+        for (Card c : chosenLower) cardByID.put(c.getId(), c);
+        List<Card> orderedCards = orderedIDs.stream()
+                .map(cardByID::get)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        currentPhase.takeCards(this, player, chosenUpper, chosenLower, orderedCards);
     }
 
     /**
@@ -218,6 +227,11 @@ public class Game implements GameActions{
      *
      * @param player the player returning to the turn order track
      */
+    public boolean hasAffordableUpperCard(Player player) {
+        return board.getUpperRowCards().stream()
+                .anyMatch(c -> c.isPickable() && c.getCostFor(player) <= player.getFood());
+    }
+
     public void applyTurnOrderBonus(Player player){
         int bonus = board.getFoodBonus(player);
 
@@ -285,8 +299,14 @@ public class Game implements GameActions{
 
         int[] action = board.getActionFor(player);
 
-        List<Card> pickableUpper = board.getUpperRowCards();
-        List<Card> pickableLower = board.getLowerRowCards();
+        List<Card> pickableUpper = board.getUpperRowCards().stream()
+                .filter(Card::isPickable)
+                .filter(c -> c.getCostFor(player) <= player.getFood())
+                .toList();
+        List<Card> pickableLower = board.getLowerRowCards().stream()
+                .filter(Card::isPickable)
+                .filter(c -> c.getCostFor(player) <= player.getFood())
+                .toList();
 
         int actualUpper = Math.min(action[0], pickableUpper.size());
         int actualLower = Math.min(action[1], pickableLower.size());
