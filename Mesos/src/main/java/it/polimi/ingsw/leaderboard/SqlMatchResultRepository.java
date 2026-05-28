@@ -76,7 +76,9 @@ public class SqlMatchResultRepository implements MatchResultRepository {
     }
 
     /**
-     * Retrieves all match results for a given number of players.
+     * Retrieves the best match result for each player with a given number of players.
+     * All matches remain stored in the database, but leaderboard reads keep only
+     * one row per nickname: highest score first, most recent timestamp as tie-breaker.
      *
      * @param playerCount the number of players in the match
      * @return a list of matching results
@@ -86,7 +88,24 @@ public class SqlMatchResultRepository implements MatchResultRepository {
 
         List<MatchResult> results = new ArrayList<>();
 
-        String query = "SELECT nickname, final_score, player_count, played_at FROM match_results WHERE player_count = ?";
+        String query = """
+                SELECT nickname,
+                       final_score, 
+                       player_count, 
+                       played_at
+                FROM (
+                    SELECT nickname,
+                           final_score,
+                           player_count,
+                           played_at,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY nickname
+                               ORDER BY final_score DESC, played_at DESC) AS RN
+                    FROM match_results
+                    WHERE player_count = ?
+                ) best_results
+                WHERE RN = 1
+                """;
 
         try (Connection conn = getConnection();
             PreparedStatement stmt = conn.prepareStatement(query)) {

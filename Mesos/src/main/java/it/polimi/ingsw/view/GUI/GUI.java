@@ -13,6 +13,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -20,6 +21,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -38,6 +40,8 @@ public class GUI extends Application implements View {
     private ClientModel clientModel = new ClientModel();
     private Stage primaryStage;
     private String nickname;
+    private List<MatchResult> globalLeaderboard = List.of();
+    private int globalLeaderboardPosition = -1;
 
     private GUILobbyController lobbyController;
     private GUIGameController gameController;
@@ -515,6 +519,18 @@ public class GUI extends Application implements View {
         }
 
         if (scalablePane != null && windowWidth > 0 && windowHeight > 0) {
+            ScrollPane endGameScrollPane = (ScrollPane) scene.lookup("#endGameScrollPane");
+            if (endGameScrollPane != null) {
+                scalablePane.setScaleX(1);
+                scalablePane.setScaleY(1);
+                scalablePane.setPrefSize(windowWidth, windowHeight);
+                scalablePane.setMaxSize(windowWidth, windowHeight);
+                endGameScrollPane.setPrefSize(windowWidth, windowHeight);
+                endGameScrollPane.setMaxSize(windowWidth, windowHeight);
+                StackPane.setAlignment(scalablePane, javafx.geometry.Pos.CENTER);
+                return;
+            }
+
             double scale = Math.min(windowWidth / 1280.0, windowHeight / 800.0);
 
             scalablePane.setScaleX(scale);
@@ -544,9 +560,24 @@ public class GUI extends Application implements View {
         this.nickname = nickname;
     }
 
+    public List<MatchResult> getGlobalLeaderboard() {
+        return globalLeaderboard;
+    }
+
+    public int getGlobalLeaderboardPosition() {
+        return globalLeaderboardPosition;
+    }
+
     @Override
     public void showLeaderboard(List<MatchResult> ranking, int position) {
-        //to be implemented
+        this.globalLeaderboard = ranking == null ? List.of() : new ArrayList<>(ranking);
+        this.globalLeaderboardPosition = position;
+
+        Platform.runLater(() -> {
+            if (endGameController != null) {
+                endGameController.render();
+            }
+        });
     }
 
     @Override
