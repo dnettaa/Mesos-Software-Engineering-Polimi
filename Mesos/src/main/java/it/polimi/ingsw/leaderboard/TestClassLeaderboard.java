@@ -3,6 +3,7 @@ package it.polimi.ingsw.leaderboard;
 import it.polimi.ingsw.config.ConfigLoader;
 import it.polimi.ingsw.config.DBConfiguration;
 import it.polimi.ingsw.model.game.DTO.GameEndedDTO;
+import it.polimi.ingsw.view.TUI;
 
 import java.util.List;
 import java.util.Map;
@@ -17,17 +18,16 @@ public class TestClassLeaderboard {
         RankingService service;
 
         if (config != null) {
-            service = new RankingService(
-                    new SqlMatchResultRepository(
-                            config.dbUrl,
-                            config.dbUser,
-                            config.dbPassword
-                    )
-            );
-            System.out.println(" Using SQL DB");
+            SqlMatchResultRepository repository = new SqlMatchResultRepository(config.dbUrl, config.dbUser, config.dbPassword);
+            if (!repository.testConnection()) {
+                System.out.println("Database non disponibile");
+                return;
+            }
+            service = new RankingService(repository);
+            System.out.println("Using SQL DB");
         } else {
-            service = new RankingService(new InMemoryMatchResultRepository());
-            System.out.println("! Using InMemory DB");
+            System.out.println("Database non disponibile");
+            return;
         }
 
         // PARTITA 1
@@ -87,21 +87,11 @@ public class TestClassLeaderboard {
 
         service.recordGame(dto3, 2);
 
-        // STAMP
+        // SHOW WITH THE SAME RENDERING USED BY THE REAL TUI
         List<MatchResult> ranking = service.getRanking(2);
+        int position = service.getPlayerPosition("Roberto", 2);
 
-        System.out.println("\n=== LEADERBOARD (2 players) ===");
-
-        for (int i = 0; i < ranking.size(); i++) {
-            MatchResult r = ranking.get(i);
-
-            System.out.printf(
-                    "%d) %s - score: %d - date: %s%n",
-                    i + 1,
-                    r.nickname(),
-                    r.finalScore(),
-                    r.timestamp()
-            );
-        }
+        TUI tui = new TUI();
+        tui.showLeaderboard(ranking, position);
     }
 }

@@ -39,13 +39,13 @@
         /**
          * Constructs a new GameController.
          * Initializes the view map and configures the leaderboard service.
-         * If a valid database connection is available, a SQL repository is used;
-         * otherwise, it falls back to an in-memory implementation.
+         * If a valid database connection is available, a SQL repository is used.
+         * Otherwise, the game still runs but the global leaderboard is disabled.
          */
         public GameController() {
             this.views = new HashMap<>();
 
-            MatchResultRepository repo;
+            RankingService service = null;
 
             DBConfiguration config = ConfigLoader.load();
 
@@ -57,19 +57,17 @@
                 );
 
                 if (sqlRepo.testConnection()) {
-                    repo = sqlRepo;
+                    service = new RankingService(sqlRepo);
                     System.out.println("Using SQL database");
                 } else {
-                    repo = new InMemoryMatchResultRepository();
-                    System.out.println("! DB unreachable → using InMemory database");
+                    System.out.println("! Database non disponibile: leaderboard globale disabilitata");
                 }
 
             } else {
-                repo = new InMemoryMatchResultRepository();
-                System.out.println("! Using InMemory database");
+                System.out.println("! Database non disponibile: leaderboard globale disabilitata");
             }
 
-            this.rankingService = new RankingService(repo);
+            this.rankingService = service;
         }
 
         public Map<String, VirtualView> getViews() {
@@ -382,18 +380,23 @@
         public void onGameEnded(GameEndedDTO dto) {
             PersistenceManager.deleteSave();
 
-            rankingService.recordGame(dto, playerCount);
-
-            List<MatchResult> ranking = rankingService.getRanking(playerCount);
+            List<MatchResult> ranking = List.of();
+            if (rankingService != null) {
+                rankingService.recordGame(dto, playerCount);
+                ranking = rankingService.getRanking(playerCount);
+            } else {
+                System.out.println("Database non disponibile: leaderboard globale non salvata e non inviata");
+            }
 
             for (VirtualView view : views.values()) {
                 if (view.isConnected()) {
 
-                    String nick = view.getNickname();
-                    int position = rankingService.getPlayerPosition(nick, playerCount);
-
                     view.onGameEnded(dto);
-                    view.onLeaderboard(ranking, position);
+                    if (rankingService != null) {
+                        String nick = view.getNickname();
+                        int position = rankingService.getPlayerPosition(nick, playerCount);
+                        view.onLeaderboard(ranking, position);
+                    }
                 }
             }
         }

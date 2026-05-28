@@ -5,10 +5,8 @@ import it.polimi.ingsw.model.game.DTO.OfferSlotData;
 import it.polimi.ingsw.model.game.DTO.PlayerData;
 import it.polimi.ingsw.network.VirtualServer;
 import it.polimi.ingsw.model.player.TotemColor;
-import it.polimi.ingsw.network.socket.message.PlaceTotemMessage;
-import it.polimi.ingsw.network.socket.message.TakeCardsMessage;
-import it.polimi.ingsw.network.socket.message.TakeExtraCardMessage;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +40,9 @@ public class TUI implements View {
     private List<MatchResult> leaderboard;
 
     private int myPosition;
+
+    private static final DateTimeFormatter LEADERBOARD_TIMESTAMP_FORMAT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     // =========================================================
     // ANSI COLORS
@@ -452,33 +453,62 @@ public class TUI implements View {
             return;
         }
         System.out.println("\n" + CYAN + BOLD + "  GLOBAL LEADERBOARD (" + leaderboard.get(0).playerCount() + " players)" + RESET);
-        System.out.println(CYAN + "  " + "─".repeat(50) + RESET);
+        System.out.println(CYAN + "  " + "─".repeat(58) + RESET);
 
         System.out.println(BOLD + "  Pos  Player          Score    Date" + RESET);
-        System.out.println(WHITE + "  " + "─".repeat(50) + RESET);
+        System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
 
-        for (int i = 0; i < leaderboard.size(); i++) {
-            MatchResult r = leaderboard.get(i);
-
-            String medal =
-                    i == 0 ? BRIGHT_YELLOW + "🥇" :
-                            i == 1 ? WHITE + "🥈" :
-                            i == 2 ? YELLOW + "🥉" : "  ";
-
-            String color = (i + 1 == myPosition) ? BRIGHT_GREEN : WHITE;
-
-            System.out.printf("  %s %2d.  " + color + "%-14s" + RESET +
-                            "  %5d    %s%n",
-                    medal,
-                    i + 1,
-                    r.nickname(),
-                    r.finalScore(),
-                    r.timestamp().toLocalDate()
-            );
+        int topLimit = Math.min(10, leaderboard.size());
+        for (int i = 0; i < topLimit; i++) {
+            printLeaderboardRow(i);
         }
 
-        System.out.println(WHITE + "  " + "─".repeat(50) + RESET);
+        if (myPosition > topLimit && myPosition <= leaderboard.size()) {
+            System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
+            System.out.println("\n" + CYAN + BOLD + "  YOUR POSITION" + RESET);
+            System.out.println(CYAN + "  " + "─".repeat(58) + RESET);
+            System.out.println(BOLD + "  Pos  Player          Score    Date" + RESET);
+            System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
+
+            int myIndex = myPosition - 1;
+            int start = Math.max(topLimit, myIndex - 2);
+            int end = Math.min(leaderboard.size() - 1, myIndex + 2);
+
+            if (start > topLimit) {
+                System.out.println(WHITE + "  ..." + RESET);
+            }
+
+            for (int i = start; i <= end; i++) {
+                printLeaderboardRow(i);
+            }
+
+            if (end < leaderboard.size() - 1) {
+                System.out.println(WHITE + "  ..." + RESET);
+            }
+        }
+
+        System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
         System.out.println("\n" + BRIGHT_GREEN + "  ➤ Your position: " + myPosition + RESET);
+    }
+
+    private void printLeaderboardRow(int index) {
+        MatchResult r = leaderboard.get(index);
+
+        String medal =
+                index == 0 ? BRIGHT_YELLOW + "🥇" :
+                        index == 1 ? WHITE + "🥈" :
+                        index == 2 ? YELLOW + "🥉" : "  ";
+
+        String color = (index + 1 == myPosition) ? BRIGHT_GREEN : WHITE;
+
+        System.out.printf("  %s %2d.  " + color + "%-14s" + RESET +
+                        "  %5d    %s%n",
+                medal,
+                index + 1,
+                r.nickname(),
+                r.finalScore(),
+                r.timestamp().format(LEADERBOARD_TIMESTAMP_FORMAT)
+        );
     }
 
     @Override

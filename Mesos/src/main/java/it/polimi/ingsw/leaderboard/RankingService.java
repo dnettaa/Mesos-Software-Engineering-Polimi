@@ -51,7 +51,9 @@ public class RankingService {
 
     /**
      * Returns the ranking of players for matches with a given number of players.
-     * Results are sorted in descending order based on final score.
+     * The repository already collapses repeated games by nickname, keeping each
+     * player's best stored score. Results are sorted in descending order based on
+     * final score, with the most recent timestamp used as tie-breaker.
      *
      * @param playerCount the number of players in the match
      * @return a list of {@link MatchResult} sorted by score (highest first)
@@ -60,7 +62,9 @@ public class RankingService {
 
         return repository.findByPlayerCount(playerCount)
                 .stream()
-                .sorted(Comparator.comparingInt(MatchResult::finalScore).reversed())
+                .sorted(Comparator.comparingInt(MatchResult::finalScore)
+                        .reversed()
+                        .thenComparing(MatchResult::timestamp, Comparator.reverseOrder()))
                 .collect(Collectors.toList());
     }
 

@@ -1,5 +1,6 @@
 package it.polimi.ingsw.view.GUI;
 
+import it.polimi.ingsw.leaderboard.MatchResult;
 import it.polimi.ingsw.model.game.DTO.PlayerData;
 import it.polimi.ingsw.model.player.TotemColor;
 import it.polimi.ingsw.view.ClientModel;
@@ -10,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
@@ -18,6 +20,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +35,11 @@ public class GUIEndGameController {
     @FXML private HBox podiumBox;
     @FXML private HBox othersBox;
     @FXML private Label localResultLabel;
+    @FXML private Label globalLeaderboardSubtitle;
+    @FXML private HBox globalLeaderboardBox;
+    @FXML private VBox topLeaderboardBox;
+    @FXML private VBox positionLeaderboardBox;
+    @FXML private ScrollPane endGameScrollPane;
 
     private GUI gui;
 
@@ -44,6 +52,8 @@ public class GUIEndGameController {
         "linear-gradient(to bottom, #c87828, #6a3810)"   // bronze / terracotta
     };
     private static final String[] MEDALS  = {"II", "I", "III"};
+    private static final DateTimeFormatter LEADERBOARD_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final String[] CROWNS  = {"🥈", "👑", "🥉"};
 
     public void setGUI(GUI gui) { this.gui = gui; }
@@ -58,11 +68,27 @@ public class GUIEndGameController {
     public void render() {
         if (gui == null || gui.getClientModel() == null) return;
 
-        ClientModel model = gui.getClientModel();
+        render(
+                gui.getClientModel(),
+                gui.getNickname(),
+                gui.getGlobalLeaderboard(),
+                gui.getGlobalLeaderboardPosition()
+        );
+    }
+
+    /**
+     * Builds the end-game screen from explicit data.
+     * Used by the real GUI and by TestClassGUI without requiring a running match.
+     */
+    public void render(ClientModel model,
+                       String myNick,
+                       List<MatchResult> globalLeaderboard,
+                       int globalPosition) {
+        if (model == null) return;
+
         List<String>         ranking = safeList(model.getRanking());
         Map<String, Integer> finalPP = safeMap(model.getFinalPP());
         Map<String, Integer> bonus   = safeMap(model.getEndGameBonus());
-        String myNick = gui.getNickname();
 
         podiumBox.getChildren().clear();
         othersBox.getChildren().clear();
@@ -111,7 +137,11 @@ public class GUIEndGameController {
                 default -> "You placed #" + myPos + " — your story is not yet written.";
             };
             localResultLabel.setText(tag + "   " + finalPP.getOrDefault(myNick, 0) + " ⭐ Prestige Points");
+        } else {
+            localResultLabel.setText("");
         }
+
+        renderGlobalLeaderboard(safeLeaderboard(globalLeaderboard), globalPosition, myNick);
 
         // ── Staggered reveal: 3rd → 2nd → 1st ──────────────────────────────────
         // displayOrder columns: [0]=2nd place, [1]=1st place, [2]=3rd place
@@ -140,6 +170,150 @@ public class GUIEndGameController {
             });
             pause.play();
         }
+
+        Platform.runLater(() -> {
+            if (endGameScrollPane != null) {
+                endGameScrollPane.setVvalue(0);
+            }
+        });
+    }
+
+    private void renderGlobalLeaderboard(List<MatchResult> leaderboard, int globalPosition, String myNick) {
+        if (globalLeaderboardBox == null || globalLeaderboardSubtitle == null
+                || topLeaderboardBox == null || positionLeaderboardBox == null) {
+            return;
+        }
+
+        topLeaderboardBox.getChildren().clear();
+        positionLeaderboardBox.getChildren().clear();
+
+        if (leaderboard.isEmpty()) {
+            globalLeaderboardSubtitle.setText("Global leaderboard is loading...");
+            Label empty = new Label("No global leaderboard data received yet.");
+            empty.setStyle("-fx-font-size: 12px; -fx-text-fill: #bda875; -fx-font-family: Georgia;");
+            topLeaderboardBox.getChildren().add(empty);
+            return;
+        }
+
+        int playerCount = leaderboard.get(0).playerCount();
+        int localIndex = findLocalLeaderboardIndex(leaderboard, globalPosition, myNick);
+        String positionText = localIndex >= 0
+                ? "Your global position: #" + (localIndex + 1)
+                : "Your global position is not available";
+        globalLeaderboardSubtitle.setText("Global leaderboard for " + playerCount + "-player games - " + positionText);
+
+        int topLimit = Math.min(10, leaderboard.size());
+        topLeaderboardBox.getChildren().add(leaderboardHeader());
+        for (int i = 0; i < topLimit; i++) {
+            topLeaderboardBox.getChildren().add(leaderboardRow(leaderboard, i, localIndex));
+        }
+
+        if (localIndex >= topLimit) {
+            positionLeaderboardBox.getChildren().add(leaderboardHeader());
+
+            int start = Math.max(topLimit, localIndex - 2);
+            int end = Math.min(leaderboard.size() - 1, localIndex + 2);
+
+            if (start > topLimit) {
+                positionLeaderboardBox.getChildren().add(ellipsisLabel());
+            }
+
+            for (int i = start; i <= end; i++) {
+                positionLeaderboardBox.getChildren().add(leaderboardRow(leaderboard, i, localIndex));
+            }
+
+            if (end < leaderboard.size() - 1) {
+                positionLeaderboardBox.getChildren().add(ellipsisLabel());
+            }
+        } else {
+            Label message = new Label(localIndex >= 0
+                    ? "You are already in the TOP 10."
+                    : "Position is not available.");
+            message.setWrapText(true);
+            message.setMaxWidth(Double.MAX_VALUE);
+            message.setAlignment(Pos.CENTER);
+            message.setStyle("-fx-font-size: 13px; -fx-font-family: Georgia; -fx-text-fill: #bda875; -fx-padding: 28 10;");
+            positionLeaderboardBox.getChildren().add(message);
+        }
+    }
+
+    private int findLocalLeaderboardIndex(List<MatchResult> leaderboard, int globalPosition, String myNick) {
+        if (globalPosition > 0 && globalPosition <= leaderboard.size()) {
+            return globalPosition - 1;
+        }
+
+        if (myNick == null) {
+            return -1;
+        }
+
+        for (int i = 0; i < leaderboard.size(); i++) {
+            if (myNick.equals(leaderboard.get(i).nickname())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private HBox leaderboardHeader() {
+        HBox header = leaderboardRow("#", "Player", "Score", "Date", false);
+        header.setStyle("-fx-background-color: rgba(200,134,10,0.22); -fx-background-radius: 6; -fx-padding: 5 9;");
+        return header;
+    }
+
+    private HBox leaderboardRow(List<MatchResult> leaderboard, int index, int localIndex) {
+        MatchResult result = leaderboard.get(index);
+        return leaderboardRow(
+                String.valueOf(index + 1),
+                result.nickname(),
+                String.valueOf(result.finalScore()),
+                result.timestamp() == null ? "-" : result.timestamp().format(LEADERBOARD_DATE_FORMAT),
+                index == localIndex
+        );
+    }
+
+    private Label ellipsisLabel() {
+        Label label = new Label("...");
+        label.setMaxWidth(Double.MAX_VALUE);
+        label.setAlignment(Pos.CENTER);
+        label.setStyle("-fx-font-size: 13px; -fx-font-family: Georgia; -fx-text-fill: #bda875;");
+        return label;
+    }
+
+    private HBox leaderboardRow(String rank, String player, String score, String date, boolean highlight) {
+        HBox row = new HBox(10);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setMinHeight(28);
+        row.setMaxWidth(Double.MAX_VALUE);
+        row.setStyle(
+                "-fx-background-color: " + (highlight ? "rgba(200,134,10,0.34)" : "rgba(22,10,4,0.42)") + "; " +
+                "-fx-background-radius: 6; " +
+                "-fx-border-color: " + (highlight ? "#c8860a" : "rgba(180,130,60,0.18)") + "; " +
+                "-fx-border-radius: 6; -fx-border-width: 1; -fx-padding: 4 9;"
+        );
+
+        row.getChildren().addAll(
+                leaderboardCell(rank, 42, Pos.CENTER, true),
+                leaderboardCell(player, 190, Pos.CENTER_LEFT, true),
+                leaderboardCell(score, 70, Pos.CENTER_RIGHT, true),
+                leaderboardCell(date, 170, Pos.CENTER_RIGHT, false)
+        );
+        return row;
+    }
+
+    private Label leaderboardCell(String text, double width, Pos alignment, boolean bold) {
+        Label label = new Label(text == null ? "" : text);
+        label.setMinWidth(width);
+        label.setPrefWidth(width);
+        label.setMaxWidth(width);
+        label.setAlignment(alignment);
+        label.setWrapText(false);
+        label.setStyle(
+                "-fx-font-size: 12px; " +
+                "-fx-font-family: Georgia; " +
+                "-fx-font-weight: " + (bold ? "bold" : "normal") + "; " +
+                "-fx-text-fill: #fde8b0;"
+        );
+        return label;
     }
 
     // ── Podium column builder ─────────────────────────────────────────────────
@@ -303,6 +477,10 @@ public class GUIEndGameController {
 
     private List<String> safeList(List<String> list) {
         return list == null ? new ArrayList<>() : list;
+    }
+
+    private List<MatchResult> safeLeaderboard(List<MatchResult> list) {
+        return list == null ? List.of() : list;
     }
 
     private Map<String, Integer> safeMap(Map<String, Integer> map) {

@@ -19,7 +19,9 @@ public interface MatchResultRepository {
     void save(MatchResult result);
 
     /**
-     * Retrieves all match results for a given number of players.
+     * Retrieves leaderboard results for a given number of players.
+     * Return at most one result per nickname, keeping the best
+     * score and using the most recent timestamp for equal scores by the same player.
      *
      * @param playerCount the number of players in the match
      * @return a list of matching results

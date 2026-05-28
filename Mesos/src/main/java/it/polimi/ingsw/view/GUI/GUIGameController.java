@@ -169,6 +169,13 @@ public class GUIGameController {
         hideError();
     }
 
+    @FXML
+    public void onOpenRules() {
+        if (gui != null) {
+            gui.openRulesPdf();
+        }
+    }
+
     // ── Main render ───────────────────────────────────────────────────────────
 
     /**
