@@ -118,6 +118,10 @@
          * @param view the reconnecting virtual view
          */
         public synchronized void reconnectPlayer(String nickname, TotemColor color, VirtualView view) {
+            if (currentPhase == null) {
+                view.onRecoveryCancelled("Recovery has already expired. Please create or join a new lobby.");
+                return;
+            }
             currentPhase.reconnect(this, nickname, color, view);
         }
 
@@ -130,6 +134,8 @@
         public synchronized void declineRecovery(VirtualView view) {
             if (currentPhase != null) {
                 currentPhase.declineRecovery(this, view);
+            } else if (view != null) {
+                view.onRecoveryCancelled("Recovery has already expired. Please create or join a new lobby.");
             }
         }
 

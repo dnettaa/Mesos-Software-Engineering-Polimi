@@ -10,6 +10,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Client-side socket adapter that implements {@link VirtualServer}.
@@ -166,10 +169,23 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             readerThread.start();
 
             if (wasInGame) {
-                if (view.askRecoveryChoice()) {
-                    reconnectToSavedGame();
-                } else {
-                    declineRecovery();
+                ScheduledExecutorService choiceTimeout = Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread t = new Thread(r, "recovery-choice-timeout");
+                    t.setDaemon(true);
+                    return t;
+                });
+                choiceTimeout.schedule(
+                    () -> view.shutdown("Recovery timeout. No response to recovery prompt."),
+                    RECONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS
+                );
+                try {
+                    if (view.askRecoveryChoice()) {
+                        reconnectToSavedGame();
+                    } else {
+                        declineRecovery();
+                    }
+                } finally {
+                    choiceTimeout.shutdownNow();
                 }
                 recovering = false;
             } else {

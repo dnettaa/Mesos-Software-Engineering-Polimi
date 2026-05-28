@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Client-side RMI adapter.
@@ -589,13 +591,26 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
             startHeartbeat();
 
             if(wasInGame){
-                if(view.askRecoveryChoice()){
-                    reconnect(nickname, savedColor);
-                } else {
-                    declineRecovery();
+                ScheduledExecutorService choiceTimeout = Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread t = new Thread(r, "recovery-choice-timeout");
+                    t.setDaemon(true);
+                    return t;
+                });
+                choiceTimeout.schedule(
+                    () -> view.shutdown("Recovery timeout. No response to recovery prompt."),
+                    RECONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS
+                );
+                try {
+                    if(view.askRecoveryChoice()){
+                        reconnect(nickname, savedColor);
+                    } else {
+                        declineRecovery();
+                    }
+                    wasInGame = false;
+                    recovering = false;
+                } finally {
+                    choiceTimeout.shutdownNow();
                 }
-                wasInGame = false;
-                recovering = false;
             } else {
                 view.showRecoveryCancelled("Reconnected to server. Please rejoin the lobby.");
                 recovering = false;
