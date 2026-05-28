@@ -818,8 +818,8 @@ public class GUIGameController {
                 OfferSlotData mySlot = getMySlot(model);
                 int upSel = mySlot != null ? mySlot.upSel() : 0;
                 int downSel = mySlot != null ? mySlot.downSel() : 0;
-                long availUpper = model.getUpperRowCardIDs().stream().filter(id -> !id.startsWith("EV")).count();
-                long availLower = countAffordableLower(model);
+                long availUpper = countAffordable(model, model.getUpperRowCardIDs());
+                long availLower = countAffordable(model, model.getLowerRowCardIDs());
                 int effectiveUp = (int) Math.min(upSel, availUpper);
                 int effectiveDn = (int) Math.min(downSel, availLower);
                 messageLabel.setText("Pick " + upSel + " from upper row, " + downSel + " from lower row.");
@@ -948,8 +948,8 @@ public class GUIGameController {
 
             toggleCardSelection(cardID, upperRow, cardPane);
 
-            long availUpper = model.getUpperRowCardIDs().stream().filter(id -> !id.startsWith("EV")).count();
-            long availLower = countAffordableLower(model);
+            long availUpper = countAffordable(model, model.getUpperRowCardIDs());
+            long availLower = countAffordable(model, model.getLowerRowCardIDs());
             int effectiveUp = (int) Math.min(upSel, availUpper);
             int effectiveDn = (int) Math.min(downSel, availLower);
             if (selectedUpperCards.size() == effectiveUp && selectedLowerCards.size() == effectiveDn) {
@@ -1155,16 +1155,16 @@ public class GUIGameController {
         confirmBtn.setOnAction(e -> confirmPickAction(finalUpper, finalLower, model));
     }
 
-    /** Returns how many lower-row buildings the local player can currently afford,
+    /** Returns how many cards in the given row the local player can currently afford,
      *  accounting for builder discounts from cards already selected this turn. */
-    private long countAffordableLower(ClientModel model) {
+    private long countAffordable(ClientModel model, List<String> rowCardIDs) {
         String me = gui.getNickname();
         PlayerData myData = me != null ? model.getPlayers().get(me) : null;
         if (myData == null) return 0;
         int food = myData.food();
         int discount = myData.tribeCardID().stream().mapToInt(CardCatalog::getBuilderDiscount).sum()
                 + selectedUpperCards.stream().mapToInt(CardCatalog::getBuilderDiscount).sum();
-        return model.getLowerRowCardIDs().stream()
+        return rowCardIDs.stream()
                 .filter(id -> !id.startsWith("EV"))
                 .filter(id -> Math.max(0, CardCatalog.getCost(id) - discount) <= food)
                 .count();

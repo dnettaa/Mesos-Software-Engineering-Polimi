@@ -227,6 +227,11 @@ public class Game implements GameActions{
      *
      * @param player the player returning to the turn order track
      */
+    public boolean hasAffordableUpperCard(Player player) {
+        return board.getUpperRowCards().stream()
+                .anyMatch(c -> c.isPickable() && c.getCostFor(player) <= player.getFood());
+    }
+
     public void applyTurnOrderBonus(Player player){
         int bonus = board.getFoodBonus(player);
 
@@ -294,7 +299,10 @@ public class Game implements GameActions{
 
         int[] action = board.getActionFor(player);
 
-        List<Card> pickableUpper = board.getUpperRowCards().stream().filter(Card::isPickable).toList();
+        List<Card> pickableUpper = board.getUpperRowCards().stream()
+                .filter(Card::isPickable)
+                .filter(c -> c.getCostFor(player) <= player.getFood())
+                .toList();
         List<Card> pickableLower = board.getLowerRowCards().stream()
                 .filter(Card::isPickable)
                 .filter(c -> c.getCostFor(player) <= player.getFood())
