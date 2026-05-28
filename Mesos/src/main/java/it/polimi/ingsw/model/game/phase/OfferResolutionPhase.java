@@ -54,8 +54,10 @@ public class OfferResolutionPhase implements Phase {
         for (Card lowerCard : chosenLower) game.getBoard().removeCardFromLower(lowerCard);
         for (Card card : orderedCards) card.applyTo(player);
 
-        game.getBoard().returnTotemToTurnOrder(player);
-        game.applyTurnOrderBonus(player);
+        if (game.getCurrentRound() < 10) {
+            game.getBoard().returnTotemToTurnOrder(player);
+            game.applyTurnOrderBonus(player);
+        }
 
         game.setCurrentPlayerIndex(game.getCurrentPlayerIndex() + 1);
 
