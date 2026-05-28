@@ -294,8 +294,11 @@ public class Game implements GameActions{
 
         int[] action = board.getActionFor(player);
 
-        List<Card> pickableUpper = board.getUpperRowCards();
-        List<Card> pickableLower = board.getLowerRowCards();
+        List<Card> pickableUpper = board.getUpperRowCards().stream().filter(Card::isPickable).toList();
+        List<Card> pickableLower = board.getLowerRowCards().stream()
+                .filter(Card::isPickable)
+                .filter(c -> c.getCostFor(player) <= player.getFood())
+                .toList();
 
         int actualUpper = Math.min(action[0], pickableUpper.size());
         int actualLower = Math.min(action[1], pickableLower.size());

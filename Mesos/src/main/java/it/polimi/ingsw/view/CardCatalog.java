@@ -24,6 +24,9 @@ public class CardCatalog {
     /** Maps builder card ID → food discount value (0 for non-builder cards). */
     private static final Map<String, Integer> builderDiscounts = new HashMap<>();
 
+    /** Maps building card ID → base food cost (0 for non-building cards). */
+    private static final Map<String, Integer> costs = new HashMap<>();
+
     // Static block to preload all card definitions as soon as the class is loaded into memory.
     static {
         loadJson("/JSON/characters.json");
@@ -51,6 +54,9 @@ public class CardCatalog {
                 }
                 if (obj.has("builderDiscount")) {
                     builderDiscounts.put(id, obj.get("builderDiscount").getAsInt());
+                }
+                if (obj.has("cost")) {
+                    costs.put(id, obj.get("cost").getAsInt());
                 }
             }
         } catch (Exception e) {
@@ -175,5 +181,16 @@ public class CardCatalog {
      */
     public static int getBuilderDiscount(String cardID) {
         return builderDiscounts.getOrDefault(cardID, 0);
+    }
+
+    /**
+     * Returns the base food cost of a building card.
+     * Returns 0 for non-building cards or unknown IDs.
+     *
+     * @param cardID the card identifier
+     * @return base food cost (≥ 0)
+     */
+    public static int getCost(String cardID) {
+        return costs.getOrDefault(cardID, 0);
     }
 }
