@@ -10,6 +10,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Client-side socket adapter that implements {@link VirtualServer}.
@@ -82,11 +85,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             while (running) {
                 ServerMessage msg = (ServerMessage) in.readObject();
 
-                /*
-                 * Game officially started:
-                 * recovery data becomes valid
-                 */
-                if(msg instanceof GameStartedMessage){
+                if (msg instanceof GameStartedMessage) {
                     wasInGame = true;
                 }
 
@@ -101,13 +100,19 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
 
     /**
      * Handles an unexpected server disconnection.
-     * Stops the current connection and starts
-     * the automatic recovery loop.
+     * If the client was waiting in the lobby, returns directly to the welcome screen.
+     * If the client was in a game, starts the automatic recovery loop instead.
      */
     private void handleServerCrash(){
 
         running = false;
         recovering = true;
+
+        if (!wasInGame) {
+            recovering = false;
+            view.goToWelcomeScreen("Server disconnected. Please reconnect.");
+            return;
+        }
 
         view.notifyDisconnection(
                 "Server offline. Waiting for recovery..."
@@ -166,10 +171,23 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             readerThread.start();
 
             if (wasInGame) {
-                if (view.askRecoveryChoice()) {
-                    reconnectToSavedGame();
-                } else {
-                    declineRecovery();
+                ScheduledExecutorService choiceTimeout = Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread t = new Thread(r, "recovery-choice-timeout");
+                    t.setDaemon(true);
+                    return t;
+                });
+                choiceTimeout.schedule(
+                    () -> view.shutdown("Recovery timeout. No response to recovery prompt."),
+                    RECONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS
+                );
+                try {
+                    if (view.askRecoveryChoice()) {
+                        reconnectToSavedGame();
+                    } else {
+                        declineRecovery();
+                    }
+                } finally {
+                    choiceTimeout.shutdownNow();
                 }
                 recovering = false;
             } else {

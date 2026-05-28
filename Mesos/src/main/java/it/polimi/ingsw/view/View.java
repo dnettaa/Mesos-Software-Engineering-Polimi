@@ -106,4 +106,12 @@ public interface View {
     boolean askRecoveryChoice();
 
     void showRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers);
+
+    /**
+     * Returns the client to the initial welcome/connection screen.
+     * Called when the server disconnects while the client is waiting in the lobby.
+     *
+     * @param reason human-readable reason
+     */
+    void goToWelcomeScreen(String reason);
 }
