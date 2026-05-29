@@ -312,13 +312,12 @@ public class TUI implements View {
     private void handleTurnInput(String phase) {
         switch (phase) {
             case "TotemPlacementPhase": {
-                String input = readPromptLine("Select Offer Slot (Enter a letter): ").trim().toUpperCase();
-                if (!isServerConnected()) {
-                    return;
+                String input = "";
+                while (input.isEmpty()) {
+                    input = readPromptLine("Select Offer Slot (Enter a letter): ").trim().toUpperCase();
+                    if (!isServerConnected()) return;
                 }
-                if (!input.isEmpty()) {
-                    virtualServer.placeTotem(nickname, input.charAt(0));
-                }
+                virtualServer.placeTotem(nickname, input.charAt(0));
                 break;
             }
 

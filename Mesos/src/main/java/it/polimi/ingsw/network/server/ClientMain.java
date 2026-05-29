@@ -99,7 +99,7 @@ public class ClientMain {
                 int value = Integer.parseInt(line);
                 if (value >= min && value <= max) return value;
             } catch (NumberFormatException ignored) {}
-            System.out.println(red + "  Please enter " + min + " or " + max + "." + reset);
+            System.out.println(red + "  Please enter a number between " + min + " and " + max + "." + reset);
         }
     }
 }
