@@ -57,6 +57,10 @@ public abstract class Card {
         return 0;
     }
 
+    public int getBuilderDiscount() {
+        return 0;
+    }
+
     /**
      * Removes this card from the given card row.
      * The specific removal logic depends on the concrete type of the card

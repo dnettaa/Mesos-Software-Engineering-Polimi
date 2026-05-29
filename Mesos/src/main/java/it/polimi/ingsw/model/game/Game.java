@@ -299,13 +299,17 @@ public class Game implements GameActions{
 
         int[] action = board.getActionFor(player);
 
+        int pendingBuilderDiscount = chosenUpper.stream()
+                .mapToInt(Card::getBuilderDiscount)
+                .sum();
+
         List<Card> pickableUpper = board.getUpperRowCards().stream()
                 .filter(Card::isPickable)
                 .filter(c -> c.getCostFor(player) <= player.getFood())
                 .toList();
         List<Card> pickableLower = board.getLowerRowCards().stream()
                 .filter(Card::isPickable)
-                .filter(c -> c.getCostFor(player) <= player.getFood())
+                .filter(c -> Math.max(0, c.getCostFor(player) - pendingBuilderDiscount) <= player.getFood())
                 .toList();
 
         int actualUpper = Math.min(action[0], pickableUpper.size());
@@ -328,7 +332,7 @@ public class Game implements GameActions{
             if(!pickableLower.contains(card) || !card.isPickable()){
                 throw new GameException(ErrorCode.CARD_NOT_IN_ROW, "Card not available in lower row");
             }
-            totalCost += card.getCostFor(player);
+            totalCost += Math.max(0, card.getCostFor(player) - pendingBuilderDiscount);
         }
 
         if (totalCost > player.getFood()) {
