@@ -81,6 +81,11 @@ public class GUI extends Application implements View {
         launch(args);
     }
 
+    @Override
+    public void stop() {
+        System.exit(0);
+    }
+
     // ── Singleton ─────────────────────────────────────────────────────────────
 
     /**
