@@ -47,19 +47,19 @@ public class TUI implements View {
     // =========================================================
     // ANSI COLORS
     // =========================================================
-    private static final String RESET   = "\u001B[0m";
-    private static final String BOLD    = "\u001B[1m";
-    private static final String RED     = "\u001B[31m";
-    private static final String GREEN   = "\u001B[32m";
-    private static final String YELLOW  = "\u001B[33m";
-    private static final String BLUE    = "\u001B[34m";
-    private static final String MAGENTA = "\u001B[35m";
-    private static final String CYAN    = "\u001B[36m";
-    private static final String WHITE   = "\u001B[37m";
-    private static final String BRIGHT_YELLOW = "\u001B[93m";
-    private static final String BRIGHT_GREEN  = "\u001B[92m";
-    private static final String BRIGHT_RED    = "\u001B[91m";
-    private static final String BRIGHT_CYAN   = "\u001B[96m";
+    private static final String RESET   = "[0m";
+    private static final String BOLD    = "[1m";
+    private static final String RED     = "[31m";
+    private static final String GREEN   = "[32m";
+    private static final String YELLOW  = "[33m";
+    private static final String BLUE    = "[34m";
+    private static final String MAGENTA = "[35m";
+    private static final String CYAN    = "[36m";
+    private static final String WHITE   = "[37m";
+    private static final String BRIGHT_YELLOW = "[93m";
+    private static final String BRIGHT_GREEN  = "[92m";
+    private static final String BRIGHT_RED    = "[91m";
+    private static final String BRIGHT_CYAN   = "[96m";
 
     /**
      * Constructs a new TUI instance and initializes the input scanner.
@@ -359,6 +359,8 @@ public class TUI implements View {
 
     /**
      * Notifies the user that the connection to the server has been lost.
+     * For recoverable disconnections (server offline, waiting for recovery) the
+     * client waits silently; for all other cases it restarts the lobby prompt.
      *
      * @param reason A string detailing why the disconnection occurred.
      */
@@ -366,7 +368,7 @@ public class TUI implements View {
     public void notifyDisconnection(String reason) {
         System.out.println("\n[DISCONNECTED] " + reason);
         if (!isRecoverableReason(reason)) {
-            System.exit(0);
+            restartLobby();
         }
     }
 
@@ -380,9 +382,18 @@ public class TUI implements View {
 
     @Override
     public void showRecoveryCancelled(String reason) {
-
         System.out.println("\n[RECOVERY] " + reason);
-        run();
+        if (isInGame()) {
+            System.exit(0);
+        } else {
+            restartLobby();
+        }
+    }
+
+    private boolean isInGame() {
+        if (clientModel == null) return false;
+        String phase = clientModel.getCurrentPhaseName();
+        return phase != null && !phase.isEmpty() && !"EndGame".equals(phase);
     }
 
     @Override
@@ -394,7 +405,7 @@ public class TUI implements View {
     @Override
     public void goToWelcomeScreen(String reason) {
         System.out.println("\n[DISCONNECTED] " + reason);
-        System.exit(0);
+        restartLobby();
     }
 
     /**
@@ -405,24 +416,26 @@ public class TUI implements View {
      */
     @Override
     public void showLoginError(String description) {
-        System.out.println("\n\u001B[31m[SETUP ERROR] " + description + "\u001B[0m");
+        System.out.println("\n" + RED + "[SETUP ERROR] " + description + RESET);
         System.out.println("⚠️ Please re-enter your details.\n");
-
-        run();
+        restartLobby();
     }
 
     /**
      * Displays errors regarding rule violations during gameplay.
-     * If it is still the user's turn, it prompts them to input a valid move again.
+     * If it is still the user's turn, prompts for a new move on a fresh thread
+     * so the network reader is not blocked.
      *
      * @param description The human-readable error description from the server's GameController.
      */
     @Override
     public void showGameError(String description) {
-        System.out.println("\u001B[31m[GAME ERROR] " + description + "\u001B[0m");
-        // Re-open input prompt if it is still the local player's turn
-        if (nickname.equals(clientModel.getCurrentPlayerNickname())) {
-            handleTurnInput(clientModel.getCurrentPhaseName());
+        System.out.println(RED + "[GAME ERROR] " + description + RESET);
+        if (nickname != null && nickname.equals(clientModel.getCurrentPlayerNickname())) {
+            String phase = clientModel.getCurrentPhaseName();
+            new Thread(() -> handleTurnInput(phase), "TUI-Input").start();
+        } else {
+            restartLobby();
         }
     }
 
@@ -534,12 +547,9 @@ public class TUI implements View {
     @Override
     public boolean askRecoveryChoice() {
         while (true) {
-
             String input = readPromptLine("Recover previous game? (y/n): ").trim().toLowerCase();
-
             if (input.equals("y") || input.equals("yes")) return true;
             if (input.equals("n") || input.equals("no")) return false;
-
             System.out.println("Please answer y or n.");
         }
     }
@@ -560,5 +570,15 @@ public class TUI implements View {
 
     private boolean isServerConnected() {
         return virtualServer == null || virtualServer.isConnected();
+    }
+
+    /**
+     * Starts the lobby setup loop on a fresh daemon thread so that network
+     * callbacks (called from the reader thread) do not block message processing.
+     */
+    private void restartLobby() {
+        Thread t = new Thread(this::run, "TUI-Input");
+        t.setDaemon(true);
+        t.start();
     }
 }
