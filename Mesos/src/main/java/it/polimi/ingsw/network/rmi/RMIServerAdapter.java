@@ -237,6 +237,24 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
             this.writerThread = new Thread(this::writerLoop, "rmi-writer");
             this.writerThread.setDaemon(true);
             this.writerThread.start();
+            Thread heartbeat = new Thread(this::heartbeatLoop, "rmi-server-heartbeat");
+            heartbeat.setDaemon(true);
+            heartbeat.start();
+        }
+
+        private void heartbeatLoop() {
+            while (connected) {
+                try {
+                    Thread.sleep(5000);
+                    if (connected) clientStub.ping();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                } catch (RemoteException e) {
+                    handleClientFailure();
+                    return;
+                }
+            }
         }
 
         /**
