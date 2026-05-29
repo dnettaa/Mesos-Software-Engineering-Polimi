@@ -68,22 +68,24 @@ public class ClientMain {
             System.out.println(CYAN + "  2)" + RESET + " RMI");
             int choiceConnection = readInt(scanner, "  > ", 1, 2, RED, BOLD, RESET);
 
+            System.out.println();
+            System.out.print(BOLD + "  Server IP [localhost]: " + RESET);
+            String hostInput = scanner.nextLine().trim();
+            String host = hostInput.isEmpty() ? HOST : hostInput;
+
             if (choiceConnection == 1) {
                 VirtualSocketServer socketServer = new VirtualSocketServer(tui);
                 tui.setVirtualServer(socketServer);
-                socketServer.connect(HOST, PORT);
-            } else if (choiceConnection == 2) {
+                socketServer.connect(host, PORT);
+            } else {
                 RMIClientAdapter rmiClient = new RMIClientAdapter(tui);
                 tui.setVirtualServer(rmiClient);
                 try {
-                    rmiClient.connect(HOST, RMI_PORT);
+                    rmiClient.connect(host, RMI_PORT);
                 } catch (Exception e) {
                     System.out.println(RED + "  Connection failed: " + e.getMessage() + RESET);
                     return;
                 }
-            } else {
-                System.out.println(RED + "  Invalid choice." + RESET);
-                return;
             }
 
             tui.run();
