@@ -251,7 +251,7 @@ public class TUI implements View {
         System.out.println(BOLD + "  LOBBY MENU:" + RESET);
         System.out.println(CYAN + "  1)" + RESET + " Create a new Lobby");
         System.out.println(CYAN + "  2)" + RESET + " Join an existing Lobby");
-        int lobbyChoice = Integer.parseInt(readPromptLine(BOLD + "  > " + RESET).trim());
+        int lobbyChoice = readIntPrompt(BOLD + "  > " + RESET, 1, 2);
 
         this.nickname = readPromptLine(BOLD + "\n  Nickname: " + RESET).trim();
 
@@ -267,7 +267,7 @@ public class TUI implements View {
         }
 
         if (lobbyChoice == 1) {
-            int players = Integer.parseInt(readPromptLine(BOLD + "  Number of players (2-5): " + RESET).trim());
+            int players = readIntPrompt(BOLD + "  Number of players (2-5): " + RESET, 2, 5);
             virtualServer.createLobby(nickname, chosenColor, players);
         } else {
             virtualServer.joinLobby(nickname, chosenColor);
@@ -566,6 +566,17 @@ public class TUI implements View {
     private synchronized String readPromptLine(String prompt) {
         System.out.print(prompt);
         return scanner.nextLine();
+    }
+
+    private int readIntPrompt(String prompt, int min, int max) {
+        while (true) {
+            String line = readPromptLine(prompt).trim();
+            try {
+                int value = Integer.parseInt(line);
+                if (value >= min && value <= max) return value;
+            } catch (NumberFormatException ignored) {}
+            System.out.println(RED + "  Please enter a number between " + min + " and " + max + "." + RESET);
+        }
     }
 
     private boolean isServerConnected() {
