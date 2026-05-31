@@ -1,56 +1,58 @@
 package it.polimi.ingsw.model.card;
 
-import it.polimi.ingsw.model.player.Player;
-import it.polimi.ingsw.model.player.Tribe;
 import it.polimi.ingsw.model.game.Era;
+import it.polimi.ingsw.model.player.Player;
+import it.polimi.ingsw.model.player.TotemColor;
+import it.polimi.ingsw.model.player.Tribe;
 import org.junit.jupiter.api.Test;
+
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Tests for Cave Paintings Event resolution and Artist requirements.
+ * Tests {@link CavePaintingsEventCard}, verifying artist requirements, rewards,
+ * and penalties.
+ *
+ * @author Diana
  */
 class CavePaintingsEventCardTest {
 
     /**
-     * Verifies the resolution when the player meets or exceeds the required number of Artists.
-     * The player should receive the reward multiplied by the number of Artists without penalties.
+     * Verifies that a player meeting the artist requirement gains the painting reward.
+     * Setup: a cave-paintings event requires two artists and the player has three.
+     * Action: resolve the event.
+     * Expected behavior: the player gains nine prestige points.
+     * Edge case covered: reward uses actual artist count when the requirement is met.
      */
     @Test
-    void testCavePaintingsSuccess() {
-        // Required: 2 Artists. Penalty: 2 PP. Reward: 3 PP per Artist
+    void resolveEventShouldRewardPlayerMeetingArtistRequirement() {
         CavePaintingsEventCard event = new CavePaintingsEventCard(Era.Era1, "CP1", true, 2, 2, 3);
-        Player player = new Player("P1", null, new Tribe(), 0, 0);
-
-        // Add 3 artists to the tribe (Requirement met)
+        Player player = new Player("P1", TotemColor.RED, new Tribe(), 0, 0);
         new ArtistCard(Era.Era1, "A1").applyTo(player);
         new ArtistCard(Era.Era1, "A2").applyTo(player);
         new ArtistCard(Era.Era1, "A3").applyTo(player);
 
         event.resolveEvent(List.of(player));
 
-        // Expected Reward: 3 Artists * 3 PP = 9 PP
         assertEquals(9, player.getPrestigePoints());
     }
 
     /**
-     * Verifies the resolution when the player does not meet the required number of Artists.
-     * The player should suffer the penalty and receive no rewards.
+     * Verifies that a player below the artist requirement receives the penalty.
+     * Setup: a cave-paintings event requires three artists and the player has one plus ten prestige points.
+     * Action: resolve the event.
+     * Expected behavior: the player loses five prestige points and receives no reward.
+     * Edge case covered: failure path subtracts prestige from an existing positive score.
      */
     @Test
-    void testCavePaintingsFailure() {
-        // Required: 3 Artists. Penalty: 5 PP. Reward: 2 PP per Artist
+    void resolveEventShouldPenalizePlayerBelowArtistRequirement() {
         CavePaintingsEventCard event = new CavePaintingsEventCard(Era.Era1, "CP2", true, 3, 5, 2);
-
-        // Give the player 10 initial PP to test the subtraction clearly
-        Player player = new Player("P1", null, new Tribe(), 0, 10);
-
-        // Add only 1 artist to the tribe (Requirement failed)
+        Player player = new Player("P1", TotemColor.RED, new Tribe(), 0, 10);
         new ArtistCard(Era.Era1, "A1").applyTo(player);
 
         event.resolveEvent(List.of(player));
 
-        // Penalty applied: loses 5 PP. Expected: 10 - 5 = 5 PP
         assertEquals(5, player.getPrestigePoints());
     }
 }
