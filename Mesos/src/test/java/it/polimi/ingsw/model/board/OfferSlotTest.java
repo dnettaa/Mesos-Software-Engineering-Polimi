@@ -1,88 +1,144 @@
 package it.polimi.ingsw.model.board;
 
 import it.polimi.ingsw.model.exception.GameException;
-import it.polimi.ingsw.model.player.*;
+import it.polimi.ingsw.model.player.Player;
+import it.polimi.ingsw.model.player.TotemColor;
+import it.polimi.ingsw.model.player.Tribe;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
-public class OfferSlotTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-    private OfferSlot slotB, slotC, slotE, slotF;
-    private Player p1, p2;
+/**
+ * Tests {@link OfferSlot}, verifying slot configuration, occupation, removal,
+ * and DTO conversion.
+ *
+ * @author Diana
+ */
+class OfferSlotTest {
+
+    private OfferSlot slot;
+    private Player firstPlayer;
+    private Player secondPlayer;
 
     @BeforeEach
-    void setUp(){
-        slotB = new OfferSlot('B', 0, 1, 0);
-        slotC = new OfferSlot('C', 1, 0, 0);
-        slotE = new OfferSlot('E', 1, 1, 0);
-        slotF = new OfferSlot('F', 2, 0, 0);
-
-        p1 = new Player("Alice", TotemColor.RED, new Tribe(), 0, 0);
-        p2 = new Player("Bob", TotemColor.BLUE, new Tribe(), 0, 0);
+    void setUp() {
+        slot = new OfferSlot('B', 0, 1, 2);
+        firstPlayer = new Player("Alice", TotemColor.RED, new Tribe(), 0, 0);
+        secondPlayer = new Player("Bob", TotemColor.BLUE, new Tribe(), 0, 0);
     }
 
+    /**
+     * Verifies that the slot exposes its immutable configuration values.
+     * Setup: a slot configured with id B, zero upper selections, one lower selection, and two food.
+     * Action: read every configuration getter.
+     * Expected behavior: each getter returns the constructor value.
+     * Edge case covered: slot action values must stay stable throughout the game.
+     */
     @Test
-    void testGetSlotID(){
-        assertEquals('B', slotB.getSlotID());
-        assertEquals('C', slotC.getSlotID());
-        assertEquals('E', slotE.getSlotID());
-        assertEquals('F', slotF.getSlotID());
+    void gettersShouldReturnConfiguredSlotValues() {
+        assertEquals('B', slot.getSlotID());
+        assertEquals(0, slot.getUpSel());
+        assertEquals(1, slot.getDownSel());
+        assertEquals(2, slot.getFoodReward());
     }
 
+    /**
+     * Verifies that a new slot starts without an occupant.
+     * Setup: a newly constructed offer slot.
+     * Action: inspect occupation state.
+     * Expected behavior: the slot is free and returns no occupant.
+     * Edge case covered: slots must be available before totem placement.
+     */
     @Test
-    void testGetUpSel(){
-        assertEquals(0, slotB.getUpSel());
-        assertEquals(1, slotC.getUpSel());
-        assertEquals(1, slotE.getUpSel());
-        assertEquals(2, slotF.getUpSel());
+    void newSlotShouldStartUnoccupied() {
+        assertFalse(slot.isOccupied());
+        assertNull(slot.getOccupant());
     }
 
+    /**
+     * Verifies that placing a player occupies the slot.
+     * Setup: a free slot and one player.
+     * Action: place the player on the slot.
+     * Expected behavior: the slot becomes occupied by that exact player.
+     * Edge case covered: occupation state must preserve the player reference for resolution order.
+     */
     @Test
-    void testGetDownSel(){
-        assertEquals(1, slotB.getDownSel());
-        assertEquals(0, slotC.getDownSel());
-        assertEquals(1, slotE.getDownSel());
-        assertEquals(0, slotF.getDownSel());
+    void placeShouldSetOccupant() {
+        slot.place(firstPlayer);
+
+        assertTrue(slot.isOccupied());
+        assertEquals(firstPlayer, slot.getOccupant());
     }
 
+    /**
+     * Verifies that placing a second player on an occupied slot is rejected.
+     * Setup: a slot already occupied by Alice.
+     * Action: Bob attempts to occupy the same slot.
+     * Expected behavior: a {@link GameException} is thrown and Alice remains the occupant.
+     * Edge case covered: offer slots cannot contain more than one totem.
+     */
     @Test
-    void testGetFoodReward(){
-        assertEquals(0, slotB.getFoodReward());
+    void placeShouldThrowWhenSlotIsAlreadyOccupied() {
+        slot.place(firstPlayer);
+
+        assertThrows(GameException.class, () -> slot.place(secondPlayer));
+        assertEquals(firstPlayer, slot.getOccupant());
     }
 
+    /**
+     * Verifies that removing an occupied slot clears the occupant.
+     * Setup: a slot occupied by Alice.
+     * Action: remove the occupant.
+     * Expected behavior: the slot becomes free.
+     * Edge case covered: offer-track reset relies on idempotent slot cleanup.
+     */
     @Test
-    void testIsOccupiedInitiallyFalse(){
-        assertFalse(slotB.isOccupied());
+    void removeShouldClearOccupant() {
+        slot.place(firstPlayer);
+
+        slot.remove();
+
+        assertFalse(slot.isOccupied());
+        assertNull(slot.getOccupant());
     }
 
+    /**
+     * Verifies that removing an already empty slot is safe.
+     * Setup: a slot with no occupant.
+     * Action: call remove.
+     * Expected behavior: the slot remains free without throwing.
+     * Edge case covered: track reset may call remove on empty slots.
+     */
     @Test
-    void testPlace(){
-        slotB.place(p1);
-        assertTrue(slotB.isOccupied());
-        assertEquals(p1, slotB.getOccupant());
+    void removeShouldBeSafeWhenSlotIsEmpty() {
+        slot.remove();
+
+        assertFalse(slot.isOccupied());
+        assertNull(slot.getOccupant());
     }
 
+    /**
+     * Verifies that slot DTOs expose both static action data and current occupant.
+     * Setup: a slot occupied by Alice.
+     * Action: build the DTO representation.
+     * Expected behavior: the DTO contains slot configuration and Alice's nickname.
+     * Edge case covered: network snapshots must not expose direct player references.
+     */
     @Test
-    void testPlaceAlreadyOccupiedThrows(){
-        slotB.place(p1);
-        assertThrows(GameException.class, () -> slotB.place(p2));
-    }
+    void buildOfferSlotDataShouldIncludeConfigurationAndOccupantNickname() {
+        slot.place(firstPlayer);
 
-    @Test
-    void testRemove(){
-        slotE.place(p1);
+        var slotData = slot.buildOfferSlotData();
 
-        slotE.remove();
-
-        assertFalse(slotE.isOccupied());
-        assertNull(slotE.getOccupant());
-    }
-
-    @Test
-    void testRemoveEmptySlot(){
-        slotC.remove();
-        assertFalse(slotC.isOccupied());
-        assertNull(slotC.getOccupant());
+        assertEquals('B', slotData.slotID());
+        assertEquals(0, slotData.upSel());
+        assertEquals(1, slotData.downSel());
+        assertEquals(2, slotData.foodReward());
+        assertEquals("Alice", slotData.occupantNickname());
     }
 }
