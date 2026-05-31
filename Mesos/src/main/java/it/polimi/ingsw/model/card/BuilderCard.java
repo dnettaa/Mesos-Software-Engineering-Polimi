@@ -27,6 +27,7 @@ public class BuilderCard extends CharacterCard{
      *
      * @return the discount value
      */
+    @Override
     public int getBuilderDiscount() {
         return builderDiscount;
     }

@@ -54,12 +54,11 @@ public class ClientMain {
         System.out.println(BOLD + "  SELECT INTERFACE:" + RESET);
         System.out.println(CYAN + "  1)" + RESET + " TUI  —  Text User Interface");
         System.out.println(CYAN + "  2)" + RESET + " GUI  —  Graphic User Interface");
-        System.out.print(BOLD + "  > " + RESET);
-        int choiceInterface = Integer.parseInt(scanner.nextLine().trim());
+        int choiceInterface = readInt(scanner, "  > ", 1, 2, RED, BOLD, RESET);
 
         if (choiceInterface == 2) {
             Application.launch(GUI.class, args);
-        } else if (choiceInterface == 1) {
+        } else {
 
             TUI tui = new TUI();
 
@@ -67,31 +66,42 @@ public class ClientMain {
             System.out.println(BOLD + "  SELECT CONNECTION:" + RESET);
             System.out.println(CYAN + "  1)" + RESET + " Socket");
             System.out.println(CYAN + "  2)" + RESET + " RMI");
-            System.out.print(BOLD + "  > " + RESET);
-            int choiceConnection = Integer.parseInt(scanner.nextLine().trim());
+            int choiceConnection = readInt(scanner, "  > ", 1, 2, RED, BOLD, RESET);
+
+            System.out.println();
+            System.out.print(BOLD + "  Server IP [localhost]: " + RESET);
+            String hostInput = scanner.nextLine().trim();
+            String host = hostInput.isEmpty() ? HOST : hostInput;
 
             if (choiceConnection == 1) {
                 VirtualSocketServer socketServer = new VirtualSocketServer(tui);
                 tui.setVirtualServer(socketServer);
-                socketServer.connect(HOST, PORT);
-            } else if (choiceConnection == 2) {
+                socketServer.connect(host, PORT);
+            } else {
                 RMIClientAdapter rmiClient = new RMIClientAdapter(tui);
                 tui.setVirtualServer(rmiClient);
                 try {
-                    rmiClient.connect(HOST, RMI_PORT);
+                    rmiClient.connect(host, RMI_PORT);
                 } catch (Exception e) {
                     System.out.println(RED + "  Connection failed: " + e.getMessage() + RESET);
                     return;
                 }
-            } else {
-                System.out.println(RED + "  Invalid choice." + RESET);
-                return;
             }
 
             tui.run();
+        }
+    }
 
-        } else {
-            System.out.println(RED + "  Invalid choice." + RESET);
+    private static int readInt(Scanner scanner, String prompt, int min, int max,
+                               String red, String bold, String reset) {
+        while (true) {
+            System.out.print(bold + prompt + reset);
+            String line = scanner.nextLine().trim();
+            try {
+                int value = Integer.parseInt(line);
+                if (value >= min && value <= max) return value;
+            } catch (NumberFormatException ignored) {}
+            System.out.println(red + "  Please enter a number between " + min + " and " + max + "." + reset);
         }
     }
 }

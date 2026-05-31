@@ -27,6 +27,12 @@ public class CardCatalog {
     /** Maps building card ID → base food cost (0 for non-building cards). */
     private static final Map<String, Integer> costs = new HashMap<>();
 
+    /** Maps shaman card ID → shaman symbol count (0 for non-shaman cards). */
+    private static final Map<String, Integer> shamanSymbols = new HashMap<>();
+
+    /** Maps inventor card ID → invention type string (empty for non-inventor cards). */
+    private static final Map<String, String> inventionTypes = new HashMap<>();
+
     // Static block to preload all card definitions as soon as the class is loaded into memory.
     static {
         loadJson("/JSON/characters.json");
@@ -57,6 +63,12 @@ public class CardCatalog {
                 }
                 if (obj.has("cost")) {
                     costs.put(id, obj.get("cost").getAsInt());
+                }
+                if (obj.has("shamanSymbols")) {
+                    shamanSymbols.put(id, obj.get("shamanSymbols").getAsInt());
+                }
+                if (obj.has("inventionType")) {
+                    inventionTypes.put(id, obj.get("inventionType").getAsString());
                 }
             }
         } catch (Exception e) {
@@ -192,5 +204,13 @@ public class CardCatalog {
      */
     public static int getCost(String cardID) {
         return costs.getOrDefault(cardID, 0);
+    }
+
+    public static int getShamanSymbols(String cardID) {
+        return shamanSymbols.getOrDefault(cardID, 0);
+    }
+
+    public static String getInventionType(String cardID) {
+        return inventionTypes.getOrDefault(cardID, "");
     }
 }
