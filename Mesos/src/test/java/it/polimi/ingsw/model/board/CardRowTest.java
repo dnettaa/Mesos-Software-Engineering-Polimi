@@ -44,6 +44,32 @@ class CardRowTest {
     }
 
     /**
+     * Verifies that card-row reads preserve the rendering order required by the
+     * lower row: all tribe cards are returned before all building cards.
+     * Setup: cards are added in an interleaved order, alternating tribe and building cards.
+     * Action: read the row through {@link CardRow#getAllCards()}.
+     * Expected behavior: the resulting list contains every tribe card first, then every building card.
+     * Regression covered: lower-row rendering must not show buildings before remaining tribe cards.
+     */
+    @Test
+    void getAllCardsShouldReturnTribeCardsBeforeBuildingsForLowerRowRendering() {
+        TribeCard firstTribeCard = new HunterCard(Era.Era1, "CH01", false);
+        TribeCard secondTribeCard = new BuilderCard(Era.Era1, "CH02", 1, 0);
+        BuildingCard firstBuildingCard = new EndBonusCard(Era.Era1, "BU01", 0, 0, 5);
+        BuildingCard secondBuildingCard = new EndBonusCard(Era.Era1, "BU02", 0, 0, 3);
+
+        cardRow.addBuildingCard(firstBuildingCard);
+        cardRow.addTribeCard(firstTribeCard);
+        cardRow.addBuildingCard(secondBuildingCard);
+        cardRow.addTribeCard(secondTribeCard);
+
+        List<Card> allCards = cardRow.getAllCards();
+
+        assertEquals(List.of("CH01", "CH02", "BU01", "BU02"),
+                allCards.stream().map(Card::getId).toList());
+    }
+
+    /**
      * Verifies that the row correctly filters Characters (pickable) and Events (not pickable).
      */
     @Test
