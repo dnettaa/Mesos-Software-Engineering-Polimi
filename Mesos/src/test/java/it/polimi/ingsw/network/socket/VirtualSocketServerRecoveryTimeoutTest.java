@@ -39,23 +39,25 @@ class VirtualSocketServerRecoveryTimeoutTest {
      * crash during an active match.
      * Setup: start the real server, connect a real client, and reach an active match.
      * Action: terminate the server process while the client is in game.
-     * Expected behavior: the client enters recovery handling and completes the timeout path after about 20 seconds.
+     * Expected behavior: the client enters recovery handling, waits up to about 20 seconds,
+     * and returns to the recovery-cancelled path if the server does not come back.
      * Edge case covered: unexpected server death during active gameplay.
      */
     @Test
     @Disabled("Integration scenario: requires real server/client processes and controlled server termination.")
-    void clientShouldCompleteRecoveryTimeoutPathAfterServerDiesDuringActiveMatch() {
+    void clientShouldReturnToRecoveryCancelledPathWhenServerDoesNotRecoverWithinTimeout() {
         /*
          * This scenario should be automated only in an integration-test setup that can:
          * 1. start ServerMain in a separate process;
          * 2. connect at least one client with a test View;
          * 3. drive the match until a GameStartedMessage is received;
          * 4. terminate the server process;
-         * 5. assert that the client reaches the recovery timeout path after approximately 20 seconds.
+         * 5. assert that the client reaches showRecoveryCancelled(...) after approximately 20 seconds
+         *    when the server does not return.
          *
-         * Current production behavior calls showRecoveryCancelled(...) when the server does not
-         * return before the reconnect deadline. If the required behavior is full client termination,
-         * production code should be reviewed before enabling this as an automated test.
+         * If the server returns before the reconnect deadline, the client should ask whether to
+         * reconnect to the saved game. If the server does not return, the client should not terminate
+         * automatically; it should return to a safe initial flow through showRecoveryCancelled(...).
          */
     }
 }

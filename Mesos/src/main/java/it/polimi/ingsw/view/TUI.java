@@ -383,17 +383,7 @@ public class TUI implements View {
     @Override
     public void showRecoveryCancelled(String reason) {
         System.out.println("\n[RECOVERY] " + reason);
-        if (isInGame()) {
-            System.exit(0);
-        } else {
-            restartLobby();
-        }
-    }
-
-    private boolean isInGame() {
-        if (clientModel == null) return false;
-        String phase = clientModel.getCurrentPhaseName();
-        return phase != null && !phase.isEmpty() && !"EndGame".equals(phase);
+        restartLobby();
     }
 
     @Override
