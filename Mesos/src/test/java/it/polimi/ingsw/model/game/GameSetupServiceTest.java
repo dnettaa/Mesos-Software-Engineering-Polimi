@@ -1,71 +1,64 @@
 package it.polimi.ingsw.model.game;
 
+import it.polimi.ingsw.model.board.Board;
 import it.polimi.ingsw.model.card.TribeCard;
 import it.polimi.ingsw.model.card.building.BuildingCard;
-import it.polimi.ingsw.model.player.*;
-import it.polimi.ingsw.model.board.*;
-
+import it.polimi.ingsw.model.player.Player;
+import it.polimi.ingsw.model.player.TotemColor;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Test class for {@link GameSetupService}.
- * This class verifies the correct initialization of a {@link Game}
- * and all its core components, including players, board, and initial
- * visible card rows.
- *
- * @author Andrea Markvukaj
+ * Tests game creation and initial board setup through {@link GameSetupService}.
  */
 class GameSetupServiceTest {
 
     private final GameSetupService service = new GameSetupService();
 
-    /**
-     * Utility method to generate a player selection map.
-     */
-    private Map<String, TotemColor> createPlayers(int n) {
-        Map<String, TotemColor> map = new LinkedHashMap<>();
+    private Map<String, TotemColor> createPlayers(int playerCount) {
+        Map<String, TotemColor> players = new LinkedHashMap<>();
         TotemColor[] colors = TotemColor.values();
 
-        for (int i = 0; i < n; i++) {
-            map.put("P" + i, colors[i]);
+        for (int i = 0; i < playerCount; i++) {
+            players.put("P" + i, colors[i]);
         }
 
-        return map;
+        return players;
     }
 
     /**
-     * Verifies that a new Game instance is created.
+     * Setup: three nicknames and colors are provided to the setup service.
+     * Action: create a new game.
+     * Expected behavior: the game and all player tribes are initialized.
+     * Edge case: setup must not leave players with null tribe references.
      */
     @Test
-    void testCreateNewGame_notNull() {
+    void createNewGameShouldInitializePlayersAndTribes() {
         Game game = service.createNewGame(createPlayers(3), 1);
+
         assertNotNull(game);
-    }
-
-    /**
-     * Verifies that all players are correctly initialized with a tribe.
-     */
-    @Test
-    void testPlayersInitialization() {
-        Game game = service.createNewGame(createPlayers(3), 1);
-
         assertEquals(3, game.getPlayers().size());
-
-        for (Player p : game.getPlayers()) {
-            assertNotNull(p.getTribe());
+        for (Player player : game.getPlayers()) {
+            assertNotNull(player.getTribe());
         }
     }
 
     /**
-     * Verifies exact initial food distribution according to rules.
-     * Sorted check avoids dependency on shuffle order.
+     * Setup: a five-player game is created.
+     * Action: read and sort all initial food values.
+     * Expected behavior: the configured starting food distribution is applied.
+     * Edge case: sorting removes dependency on randomized player order.
      */
     @Test
-    void testInitialFoodDistribution() {
+    void createNewGameShouldApplyInitialFoodDistribution() {
         Game game = service.createNewGame(createPlayers(5), 1);
 
         List<Integer> foods = game.getPlayers()
@@ -78,94 +71,57 @@ class GameSetupServiceTest {
     }
 
     /**
-     * Verifies that the Board is properly initialized.
+     * Setup: a three-player game is created.
+     * Action: inspect the board and turn-order structures.
+     * Expected behavior: board, turn order track, and placement order are available.
+     * Edge case: the placement order must contain every player exactly once.
      */
     @Test
-    void testBoardInitialization() {
-        Board board = service.createNewGame(createPlayers(3), 1).getBoard();
+    void createNewGameShouldInitializeBoardAndTurnOrderStructures() {
+        Game game = service.createNewGame(createPlayers(3), 1);
+        Board board = game.getBoard();
 
         assertNotNull(board);
         assertNotNull(board.getTurnOrderTrack());
         assertNotNull(board.getPlacementOrder());
+        assertEquals(game.getPlayers().size(), board.getPlacementOrder().size());
     }
 
     /**
-     * Verifies that the lower row contains exactly (numPlayers + 1) cards.
+     * Setup: a three-player game is created from fresh decks.
+     * Action: inspect lower-row and upper-row visible cards.
+     * Expected behavior: the lower row has player count plus one cards, and the upper row has player count plus four tribe cards.
+     * Edge case: building cards are also present in the upper row without reducing the tribe-card quota.
      */
     @Test
-    void testLowerRowSize() {
-        int n = 3;
-        Board board = service.createNewGame(createPlayers(n), 1).getBoard();
+    void createNewGameShouldPopulateVisibleRowsWithExpectedCardCounts() {
+        int playerCount = 3;
+        Board board = service.createNewGame(createPlayers(playerCount), 1).getBoard();
 
-        assertEquals(n + 1, board.getLowerRowCards().size());
-    }
-
-    /**
-     * Verifies that the upper row contains exactly (numPlayers + 4) tribe cards.
-     */
-    @Test
-    void testUpperRowTribeCardCount() {
-        int n = 3;
-        Board board = service.createNewGame(createPlayers(n), 1).getBoard();
-
-        long tribeCards = board.getUpperRowCards().stream()
-                .filter(c -> c instanceof TribeCard)
+        long upperTribeCards = board.getUpperRowCards().stream()
+                .filter(card -> card instanceof TribeCard)
                 .count();
+        boolean hasUpperBuilding = board.getUpperRowCards().stream()
+                .anyMatch(card -> card instanceof BuildingCard);
 
-        assertEquals(n + 4, tribeCards);
+        assertEquals(playerCount + 1, board.getLowerRowCards().size());
+        assertEquals(playerCount + 4, upperTribeCards);
+        assertTrue(hasUpperBuilding);
     }
 
     /**
-     * Verifies that building cards are present in the upper row.
+     * Setup: a new game is created.
+     * Action: inspect event rows and the tribe deck after initial setup.
+     * Expected behavior: no event is in the lower row, upper events are accessible, and the tribe deck still has cards.
+     * Edge case: setup should not consume or expose event collections incorrectly.
      */
     @Test
-    void testBuildingsAddedToUpperRow() {
-        Board board = service.createNewGame(createPlayers(3), 1).getBoard();
-
-        boolean hasBuilding = board.getUpperRowCards().stream()
-                .anyMatch(c -> c instanceof BuildingCard);
-
-        assertTrue(hasBuilding);
-    }
-
-    /**
-     * Verifies that no event cards are placed in the lower row.
-     */
-    @Test
-    void testNoEventsInLowerRow() {
+    void createNewGameShouldExposeConsistentEventRowsAndRemainingDeck() {
         Board board = service.createNewGame(createPlayers(3), 1).getBoard();
 
         assertTrue(board.getLowerRowEvents().isEmpty());
-    }
-
-    /**
-     * Verifies that accessing upper row events does not return null.
-     */
-    @Test
-    void testUpperRowEventsNotNull() {
-        Board board = service.createNewGame(createPlayers(3), 1).getBoard();
-
         assertNotNull(board.getUpperRowEvents());
-    }
-
-    /**
-     * Verifies that the turn order track contains all players.
-     */
-    @Test
-    void testTurnOrderTrackPlayers() {
-        int n = 4;
-        Board board = service.createNewGame(createPlayers(n), 1).getBoard();
-
-        assertEquals(n, board.getPlacementOrder().size());
-    }
-
-    /**
-     * Verifies that the tribe deck is not empty after setup.
-     */
-    @Test
-    void testTribeDeckNotEmpty() {
-        Board board = service.createNewGame(createPlayers(3), 1).getBoard();
-
         assertTrue(board.getTribeDeckRemaining() > 0);
+        assertFalse(board.getUpperRowCards().isEmpty());
     }
 }

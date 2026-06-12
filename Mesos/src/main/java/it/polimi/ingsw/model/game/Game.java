@@ -291,11 +291,12 @@ public class Game implements GameActions{
      * @param player the player taking cards
      * @param chosenUpper cards chosen from the upper row
      * @param chosenLower cards chosen from the lower row
+     * @param orderedCards selected cards in the order chosen by the player
      * @throws GameException with {@link ErrorCode#INVALID_SELECTION} if the number of chosen cards does not match the slot action
      * @throws GameException with {@link ErrorCode#CARD_NOT_IN_ROW} if any chosen card is not pickable or not in the specified row
      * @throws GameException with {@link ErrorCode#INSUFFICIENT_FOOD} if the player does not have enough food to pay for the chosen buildings
      */
-    public void validateChosenCards(Player player, List<Card> chosenUpper, List<Card> chosenLower){
+    public void validateChosenCards(Player player, List<Card> chosenUpper, List<Card> chosenLower, List<Card> orderedCards){
 
         int[] action = board.getActionFor(player);
 
@@ -319,24 +320,41 @@ public class Game implements GameActions{
             throw new GameException(ErrorCode.INVALID_SELECTION, "Wrong number of chosen cards");
         }
 
-        int totalCost = 0;
+        List<Card> selectedCards = new ArrayList<>(chosenUpper);
+        selectedCards.addAll(chosenLower);
+
+        if (orderedCards.size() != selectedCards.size()
+                || !orderedCards.containsAll(selectedCards)
+                || !selectedCards.containsAll(orderedCards)) {
+            throw new GameException(ErrorCode.INVALID_SELECTION, "Ordered cards must match selected cards");
+        }
 
         for(Card card: chosenUpper){
             if(!pickableUpper.contains(card) || !card.isPickable()){
                 throw new GameException(ErrorCode.CARD_NOT_IN_ROW, "Card not available in upper row");
             }
-            totalCost += card.getCostFor(player);
         }
 
         for(Card card: chosenLower){
             if(!pickableLower.contains(card) || !card.isPickable()){
                 throw new GameException(ErrorCode.CARD_NOT_IN_ROW, "Card not available in lower row");
             }
-            totalCost += Math.max(0, card.getCostFor(player) - pendingBuilderDiscount);
         }
 
-        if (totalCost > player.getFood()) {
-            throw new GameException(ErrorCode.INSUFFICIENT_FOOD, "Not enough food for buildings");
+        int simulatedFood = player.getFood();
+        int initialBuildingDiscount = player.getTribe().getBuildingDiscount();
+        int simulatedBuildingDiscount = initialBuildingDiscount;
+
+        for (Card card : orderedCards) {
+            int sameTurnDiscount = simulatedBuildingDiscount - initialBuildingDiscount;
+            int orderedCost = Math.max(0, card.getCostFor(player) - sameTurnDiscount);
+
+            if (orderedCost > simulatedFood) {
+                throw new GameException(ErrorCode.INSUFFICIENT_FOOD, "Not enough food for buildings");
+            }
+
+            simulatedFood -= orderedCost;
+            simulatedBuildingDiscount += card.getBuilderDiscount();
         }
     }
 
