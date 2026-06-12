@@ -1,55 +1,62 @@
 package it.polimi.ingsw.model.card;
 
-import it.polimi.ingsw.model.player.Player;
-import it.polimi.ingsw.model.player.Tribe;
 import it.polimi.ingsw.model.game.Era;
+import it.polimi.ingsw.model.player.Player;
+import it.polimi.ingsw.model.player.TotemColor;
+import it.polimi.ingsw.model.player.Tribe;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
 import java.util.List;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests for Sustenance Event food consumption and penalties.
+ * Tests {@link SustenanceEventCard}, verifying food payment, penalties, and
+ * event ordering classification.
+ *
+ * @author Diana
  */
 class SustenanceEventCardTest {
-    @Test
-    void testSustenancePenalty() {
-        // 3 PP penalty per unpaid food
-        SustenanceEventCard event = new SustenanceEventCard(Era.Era1, "SU1", false, 3);
-        Player player = new Player("P1", null, new Tribe(), 1, 10); // Starts with 1 food
 
-        // Add 3 characters that DO NOT provide sustenance discounts -> Cost is 3 food
+    /**
+     * Verifies that unpaid sustenance food produces prestige penalties.
+     * Setup: a player has three characters, one food, and ten prestige points.
+     * Action: resolve a sustenance event with penalty three per unpaid food.
+     * Expected behavior: the player spends one food, leaves two unpaid, and loses six prestige points.
+     * Edge case covered: partial payment consumes all available food before applying penalties.
+     */
+    @Test
+    void resolveEventShouldSpendFoodAndApplyPenaltyForUnpaidSustenance() {
+        SustenanceEventCard event = new SustenanceEventCard(Era.Era1, "SU1", false, 3);
+        Player player = new Player("P1", TotemColor.RED, new Tribe(), 1, 10);
         new HunterCard(Era.Era1, "H1", false).applyTo(player);
         new ShamanCard(Era.Era1, "S1", 1).applyTo(player);
         new ShamanCard(Era.Era1, "S2", 1).applyTo(player);
 
         event.resolveEvent(List.of(player));
 
-        // Cost 3, Discount 0, Paid 1, Unpaid 2. Penalty = 2 * 3 = 6 PP.
-        // 10 - 6 = 4 PP.
         assertEquals(0, player.getFood());
         assertEquals(4, player.getPrestigePoints());
     }
+
     /**
-     * Verifies that the SustenanceEventCard correctly adds itself to the
-     * sustenance events list and ignores the normal events list.
+     * Verifies that sustenance events classify themselves into the sustenance list.
+     * Setup: empty normal and sustenance event lists.
+     * Action: add a sustenance event to the event lists.
+     * Expected behavior: the normal list stays empty and the sustenance list receives the event.
+     * Edge case covered: event resolution processes sustenance after normal events.
      */
-
     @Test
-    void testAddToList() {
-        // Setup
+    void addToListShouldAppendEventToSustenanceListOnly() {
         SustenanceEventCard event = new SustenanceEventCard(Era.Era1, "SU1", false, 3);
+        List<EventCard> normalEvents = new ArrayList<>();
+        List<EventCard> sustenanceEvents = new ArrayList<>();
 
-        List<EventCard> normalEvents = new java.util.ArrayList<>();
-        List<EventCard> sustenanceEvents = new java.util.ArrayList<>();
-
-        // Execution
         event.addToList(normalEvents, sustenanceEvents);
 
-        // Verification
         assertTrue(normalEvents.isEmpty());
-
-        assertEquals(1, sustenanceEvents.size());
-
-        assertEquals(event, sustenanceEvents.getFirst());
+        assertEquals(List.of(event), sustenanceEvents);
     }
 }

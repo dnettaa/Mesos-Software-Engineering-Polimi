@@ -134,7 +134,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             while (!running) {
 
                 if (System.currentTimeMillis() >= deadline) {
-                    view.shutdown("Recovery timeout expired. Server did not come back online.");
+                    view.showRecoveryCancelled("Recovery timeout expired. Server did not come back online.");
                     return;
                 }
 

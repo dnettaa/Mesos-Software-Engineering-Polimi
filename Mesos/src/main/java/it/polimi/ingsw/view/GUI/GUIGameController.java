@@ -510,34 +510,44 @@ public class GUIGameController {
         PlayerData me = model.getPlayers().get(gui.getNickname());
         if (me == null) return;
 
-        myFoodLabel.setText("🍖  " + me.food());
+        setLabelIcon(myFoodLabel, "/GUI-resources/stats/food.png", 20);
+        myFoodLabel.setText("  " + me.food());
         myFoodLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #5c3a00;");
-        myPPLabel.setText("⭐  " + me.prestigePoints());
+        setLabelIcon(myPPLabel, "/GUI-resources/stats/points.png", 20);
+        myPPLabel.setText("  " + me.prestigePoints());
         myPPLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #7a4a00;");
 
         myTribeBox.getChildren().clear();
 
         Map<String, List<String>> byType = groupCardsByType(me.tribeCardID());
-        int totalCards   = me.tribeCardID() != null ? me.tribeCardID().size() : 0;
-        int distinctTypes = (int) CHAR_TYPES.stream().filter(t -> !byType.getOrDefault(t, List.of()).isEmpty()).count();
-        int gatherers    = byType.getOrDefault("GATHERER", List.of()).size();
-        int fullSets     = computeFullSets(byType);
-        int buildings    = me.buildingID() != null ? me.buildingID().size() : 0;
-        int builderDisc  = byType.getOrDefault("BUILDER", List.of()).stream()
+        int buildings     = me.buildingID() != null ? me.buildingID().size() : 0;
+        int builderDisc   = byType.getOrDefault("BUILDER", List.of()).stream()
                 .mapToInt(CardCatalog::getBuilderDiscount).sum();
+        int shamanStars   = byType.getOrDefault("SHAMAN", List.of()).stream()
+                .mapToInt(CardCatalog::getShamanSymbols).sum();
+        long distinctInvs = byType.getOrDefault("INVENTOR", List.of()).stream()
+                .map(CardCatalog::getInventionType).filter(t -> !t.isEmpty()).distinct().count();
 
-        // Quick stats chips
-        HBox chipRow = new HBox(5);
-        chipRow.setAlignment(Pos.CENTER_LEFT);
-        chipRow.setPadding(new Insets(0, 0, 6, 0));
-        chipRow.getChildren().add(makeStatChip(totalCards + " cards"));
-        chipRow.getChildren().add(makeStatChip(distinctTypes + "/6 types"));
-        if (fullSets > 0)    chipRow.getChildren().add(makeStatChip(fullSets + " sets"));
-        if (gatherers > 0)   chipRow.getChildren().add(makeStatChip("🌿 -" + (gatherers * 3) + "🍖"));
-        if (builderDisc > 0) chipRow.getChildren().add(makeStatChip("⚒ -" + builderDisc + "🍖"));
-        myTribeBox.getChildren().add(chipRow);
+        // Section 1: all 6 character types, always shown (×0 if none)
+        FlowPane typesPane = new FlowPane(10, 6);
+        typesPane.setPadding(new Insets(0, 0, 4, 0));
+        for (String type : CHAR_TYPES) {
+            int count = byType.getOrDefault(type, List.of()).size();
+            typesPane.getChildren().add(makeIconStat(typeIconPath(type), "×" + count));
+        }
+        myTribeBox.getChildren().add(typesPane);
 
-        // Per-type rows: label column on the left, stacked card images on the right
+        // Section 2: inventions, shaman stars, building discount — always shown
+        Separator sep = new Separator();
+        sep.setPadding(new Insets(4, 0, 4, 0));
+        HBox derivedRow = new HBox(12);
+        derivedRow.setAlignment(Pos.CENTER_LEFT);
+        derivedRow.getChildren().add(makeIconStat("/GUI-resources/stats/inventions.png", String.valueOf(distinctInvs)));
+        derivedRow.getChildren().add(makeIconStat("/GUI-resources/stats/shamanStars.png", String.valueOf(shamanStars)));
+        derivedRow.getChildren().add(makeIconStat("/GUI-resources/stats/buildingSale.png", "-" + builderDisc));
+        myTribeBox.getChildren().addAll(sep, derivedRow);
+
+        // Per-type rows: icon + label on left, stacked card images on right
         for (String type : CHAR_TYPES) {
             List<String> cards = byType.getOrDefault(type, List.of());
             if (cards.isEmpty()) continue;
@@ -550,11 +560,19 @@ public class GUIGameController {
             labelCol.setAlignment(Pos.TOP_LEFT);
             labelCol.setMinWidth(68);
             labelCol.setMaxWidth(68);
-            Label iconLbl = new Label(typeEmoji(type));
-            iconLbl.setStyle("-fx-font-size: 16px;");
+            Image typeImg = loadImage(typeIconPath(type));
+            if (typeImg != null) {
+                ImageView iv = new ImageView(typeImg);
+                iv.setFitWidth(20); iv.setFitHeight(20); iv.setPreserveRatio(true);
+                labelCol.getChildren().add(iv);
+            } else {
+                Label iconLbl = new Label(typeEmoji(type));
+                iconLbl.setStyle("-fx-font-size: 16px;");
+                labelCol.getChildren().add(iconLbl);
+            }
             Label nameLbl = new Label(capitalize(type) + " ×" + cards.size());
             nameLbl.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #3b1e00; -fx-wrap-text: true;");
-            labelCol.getChildren().addAll(iconLbl, nameLbl);
+            labelCol.getChildren().add(nameLbl);
 
             typeRow.getChildren().addAll(labelCol, createCardStack(cards, 46.0));
             myTribeBox.getChildren().add(typeRow);
@@ -562,8 +580,8 @@ public class GUIGameController {
 
         // Buildings row
         if (buildings > 0) {
-            Separator sep = new Separator();
-            sep.setPadding(new Insets(4, 0, 4, 0));
+            Separator buildSep = new Separator();
+            buildSep.setPadding(new Insets(4, 0, 4, 0));
             HBox buildRow = new HBox(10);
             buildRow.setAlignment(Pos.TOP_LEFT);
             buildRow.setPadding(new Insets(2, 0, 2, 0));
@@ -577,7 +595,7 @@ public class GUIGameController {
             buildName.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #3b1e00; -fx-wrap-text: true;");
             buildLbl.getChildren().addAll(buildIcon, buildName);
             buildRow.getChildren().addAll(buildLbl, createCardStack(me.buildingID(), 46.0));
-            myTribeBox.getChildren().addAll(sep, buildRow);
+            myTribeBox.getChildren().addAll(buildSep, buildRow);
         }
     }
 
@@ -592,10 +610,12 @@ public class GUIGameController {
 
             boolean isActive = player.nickname().equals(model.getCurrentPlayerNickname());
             Map<String, List<String>> byType = groupCardsByType(player.tribeCardID());
-            int totalCards    = player.tribeCardID() != null ? player.tribeCardID().size() : 0;
-            int distinctTypes = (int) CHAR_TYPES.stream().filter(t -> !byType.getOrDefault(t, List.of()).isEmpty()).count();
-            int buildings     = player.buildingID() != null ? player.buildingID().size() : 0;
-            int fullSets      = computeFullSets(byType);
+            int builderDisc   = byType.getOrDefault("BUILDER", List.of()).stream()
+                    .mapToInt(CardCatalog::getBuilderDiscount).sum();
+            int shamanStars   = byType.getOrDefault("SHAMAN", List.of()).stream()
+                    .mapToInt(CardCatalog::getShamanSymbols).sum();
+            long distinctInvs = byType.getOrDefault("INVENTOR", List.of()).stream()
+                    .map(CardCatalog::getInventionType).filter(t -> !t.isEmpty()).distinct().count();
 
             VBox card = new VBox(5);
             card.setPadding(new Insets(8, 10, 8, 10));
@@ -624,21 +644,30 @@ public class GUIGameController {
             // Resource row
             HBox resRow = new HBox(14);
             resRow.setAlignment(Pos.CENTER_LEFT);
-            Label foodLbl = new Label("🍖  " + player.food());
+            Label foodLbl = new Label("  " + player.food());
             foodLbl.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #5c3a21;");
-            Label ppLbl = new Label("⭐  " + player.prestigePoints());
+            setLabelIcon(foodLbl, "/GUI-resources/stats/food.png", 16);
+            Label ppLbl = new Label("  " + player.prestigePoints());
             ppLbl.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #5c3a21;");
+            setLabelIcon(ppLbl, "/GUI-resources/stats/points.png", 16);
             resRow.getChildren().addAll(foodLbl, ppLbl);
 
-            // Tribe stat chips
-            HBox badgeRow = new HBox(5);
-            badgeRow.setAlignment(Pos.CENTER_LEFT);
-            badgeRow.getChildren().add(makeStatChip(totalCards + " cards"));
-            badgeRow.getChildren().add(makeStatChip(distinctTypes + "/6 types"));
-            if (fullSets > 0)  badgeRow.getChildren().add(makeStatChip(fullSets + " sets"));
-            if (buildings > 0) badgeRow.getChildren().add(makeStatChip(buildings + " bldg"));
+            // Character type counts (all 6, always shown)
+            FlowPane typesPane = new FlowPane(8, 4);
+            typesPane.setPadding(new Insets(2, 0, 0, 0));
+            for (String type : CHAR_TYPES) {
+                int count = byType.getOrDefault(type, List.of()).size();
+                typesPane.getChildren().add(makeIconStat(typeIconPath(type), "×" + count));
+            }
 
-            card.getChildren().addAll(nameRow, resRow, badgeRow);
+            // Derived stats (always shown)
+            HBox derivedRow = new HBox(10);
+            derivedRow.setAlignment(Pos.CENTER_LEFT);
+            derivedRow.getChildren().add(makeIconStat("/GUI-resources/stats/inventions.png", String.valueOf(distinctInvs)));
+            derivedRow.getChildren().add(makeIconStat("/GUI-resources/stats/shamanStars.png", String.valueOf(shamanStars)));
+            derivedRow.getChildren().add(makeIconStat("/GUI-resources/stats/buildingSale.png", "-" + builderDisc));
+
+            card.getChildren().addAll(nameRow, resRow, typesPane, derivedRow);
 
             // Entire card is clickable; glow on hover to signal interactivity
             card.setCursor(javafx.scene.Cursor.HAND);
@@ -705,29 +734,39 @@ public class GUIGameController {
 
         // Resources
         HBox resRow = new HBox(18);
-        Label resFood = new Label("🍖  " + player.food());
+        Label resFood = new Label("  " + player.food());
         resFood.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #5c3a00;");
-        Label resPP = new Label("⭐  " + player.prestigePoints());
+        setLabelIcon(resFood, "/GUI-resources/stats/food.png", 18);
+        Label resPP = new Label("  " + player.prestigePoints());
         resPP.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #7a4a00;");
+        setLabelIcon(resPP, "/GUI-resources/stats/points.png", 18);
         resRow.getChildren().addAll(resFood, resPP);
         content.getChildren().add(resRow);
 
-        // Stat chips
         Map<String, List<String>> byType = groupCardsByType(player.tribeCardID());
-        int totalCards    = player.tribeCardID() != null ? player.tribeCardID().size() : 0;
-        int distinctTypes = (int) CHAR_TYPES.stream().filter(t -> !byType.getOrDefault(t, List.of()).isEmpty()).count();
-        int gatherers     = byType.getOrDefault("GATHERER", List.of()).size();
-        int fullSets      = computeFullSets(byType);
         int buildings     = player.buildingID() != null ? player.buildingID().size() : 0;
+        int builderDisc   = byType.getOrDefault("BUILDER", List.of()).stream()
+                .mapToInt(CardCatalog::getBuilderDiscount).sum();
+        int shamanStars   = byType.getOrDefault("SHAMAN", List.of()).stream()
+                .mapToInt(CardCatalog::getShamanSymbols).sum();
+        long distinctInvs = byType.getOrDefault("INVENTOR", List.of()).stream()
+                .map(CardCatalog::getInventionType).filter(t -> !t.isEmpty()).distinct().count();
 
-        HBox chipRow = new HBox(6);
-        chipRow.setAlignment(Pos.CENTER_LEFT);
-        chipRow.getChildren().add(makeStatChip(totalCards + " cards"));
-        chipRow.getChildren().add(makeStatChip(distinctTypes + "/6 types"));
-        if (fullSets > 0)  chipRow.getChildren().add(makeStatChip(fullSets + " sets"));
-        if (gatherers > 0) chipRow.getChildren().add(makeStatChip("🌿 -" + (gatherers * 3)));
-        if (buildings > 0) chipRow.getChildren().add(makeStatChip(buildings + " bldg"));
-        content.getChildren().addAll(chipRow, new Separator());
+        // Character type counts (all 6, always shown)
+        FlowPane typesPane = new FlowPane(10, 6);
+        typesPane.setPadding(new Insets(0, 0, 2, 0));
+        for (String type : CHAR_TYPES) {
+            int count = byType.getOrDefault(type, List.of()).size();
+            typesPane.getChildren().add(makeIconStat(typeIconPath(type), "×" + count));
+        }
+
+        // Derived stats (always shown)
+        HBox derivedRow = new HBox(12);
+        derivedRow.setAlignment(Pos.CENTER_LEFT);
+        derivedRow.getChildren().add(makeIconStat("/GUI-resources/stats/inventions.png", String.valueOf(distinctInvs)));
+        derivedRow.getChildren().add(makeIconStat("/GUI-resources/stats/shamanStars.png", String.valueOf(shamanStars)));
+        derivedRow.getChildren().add(makeIconStat("/GUI-resources/stats/buildingSale.png", "-" + builderDisc));
+        content.getChildren().addAll(typesPane, derivedRow, new Separator());
 
         // 2-column grid of type sections, each with stacked card images
         GridPane typeGrid = new GridPane();
@@ -791,13 +830,23 @@ public class GUIGameController {
         section.setStyle("-fx-background-color: rgba(0,0,0,0.04); -fx-background-radius: 8;");
         HBox typeHeader = new HBox(5);
         typeHeader.setAlignment(Pos.CENTER_LEFT);
-        String emoji = type.equals("BUILDING") ? "🏛" : typeEmoji(type);
         String label = type.equals("BUILDING") ? "Buildings" : capitalize(type);
-        Label icon = new Label(emoji);
-        icon.setStyle("-fx-font-size: 14px;");
+        String iconPath = typeIconPath(type);
+        if (!iconPath.isEmpty()) {
+            Image typeImg = loadImage(iconPath);
+            if (typeImg != null) {
+                ImageView iv = new ImageView(typeImg);
+                iv.setFitWidth(16); iv.setFitHeight(16); iv.setPreserveRatio(true);
+                typeHeader.getChildren().add(iv);
+            }
+        } else {
+            Label icon = new Label("🏛");
+            icon.setStyle("-fx-font-size: 14px;");
+            typeHeader.getChildren().add(icon);
+        }
         Label typeName = new Label(label + " ×" + cards.size());
         typeName.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #3b1e00;");
-        typeHeader.getChildren().addAll(icon, typeName);
+        typeHeader.getChildren().add(typeName);
         section.getChildren().addAll(typeHeader, createCardStack(cards, cardWidth));
         return section;
     }
@@ -1902,6 +1951,44 @@ public class GUIGameController {
             container.getChildren().add(img);
         }
         return container;
+    }
+
+    /** Returns the classpath path of the stats icon for the given character type. */
+    private String typeIconPath(String type) {
+        return switch (type) {
+            case "HUNTER"   -> "/GUI-resources/stats/hunter.png";
+            case "SHAMAN"   -> "/GUI-resources/stats/shaman.png";
+            case "BUILDER"  -> "/GUI-resources/stats/builder.png";
+            case "INVENTOR" -> "/GUI-resources/stats/inventor.png";
+            case "ARTIST"   -> "/GUI-resources/stats/artist.png";
+            case "GATHERER" -> "/GUI-resources/stats/collector.png";
+            default         -> "";
+        };
+    }
+
+    /** Creates a compact icon + number widget for the stats row. */
+    private HBox makeIconStat(String iconPath, String text) {
+        HBox box = new HBox(4);
+        box.setAlignment(Pos.CENTER_LEFT);
+        Image img = loadImage(iconPath);
+        if (img != null) {
+            ImageView iv = new ImageView(img);
+            iv.setFitWidth(18); iv.setFitHeight(18); iv.setPreserveRatio(true);
+            box.getChildren().add(iv);
+        }
+        Label lbl = new Label(text);
+        lbl.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #3b1e00;");
+        box.getChildren().add(lbl);
+        return box;
+    }
+
+    /** Sets a loaded image as the graphic of a Label, silently skipped if the image is missing. */
+    private void setLabelIcon(Label label, String iconPath, double size) {
+        Image img = loadImage(iconPath);
+        if (img == null) return;
+        ImageView iv = new ImageView(img);
+        iv.setFitWidth(size); iv.setFitHeight(size); iv.setPreserveRatio(true);
+        label.setGraphic(iv);
     }
 
     /** Creates a compact chip label for tribe stat summaries. */

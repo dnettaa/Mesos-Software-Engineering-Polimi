@@ -305,7 +305,11 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
         connected = false;
         recovering = false;
         disconnectionNotified = true;
-        view.shutdown(reason);
+        if (wasInGame) {
+            view.shutdown(reason);
+        } else {
+            view.goToWelcomeScreen(reason);
+        }
     }
 
     /**
@@ -566,7 +570,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
                 long deadline = System.currentTimeMillis() + RECONNECT_TIMEOUT_SECONDS * 1000L;
                 while (!connected) {
                     if (System.currentTimeMillis() >= deadline) {
-                        view.shutdown("Recovery timeout expired. Server did not come back online.");
+                        view.showRecoveryCancelled("Recovery timeout expired. Server did not come back online.");
                         return;
                     }
                     try {
