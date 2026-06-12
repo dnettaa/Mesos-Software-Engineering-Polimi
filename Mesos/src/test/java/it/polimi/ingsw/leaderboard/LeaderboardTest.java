@@ -4,8 +4,10 @@ import it.polimi.ingsw.model.game.DTO.GameEndedDTO;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -23,8 +25,8 @@ class LeaderboardTest {
      * a sorted leaderboard for the selected player count.
      * Setup: three two-player game results are recorded through {@link RankingService}.
      * Action: request the two-player ranking and Roberto's position.
-     * Expected behavior: the ranking is sorted by final score and Roberto is placed after higher-scoring players.
-     * Edge case covered: repeated recordings from different matches are aggregated in one leaderboard query.
+     * Expected behavior: the ranking keeps each player's best score and Roberto is placed after higher-scoring players.
+     * Edge case covered: repeated recordings by the same player are collapsed to the player's best result.
      */
     @Test
     void leaderboardShouldRecordMultipleGamesAndReturnSortedRanking() {
@@ -49,9 +51,9 @@ class LeaderboardTest {
         List<MatchResult> ranking = service.getRanking(2);
         int robertoPosition = service.getPlayerPosition("Roberto", 2);
 
-        assertEquals(List.of("Riccardo", "Paolo", "Roberto", "Roberto", "Giuseppe"),
+        assertEquals(List.of("Riccardo", "Paolo", "Roberto", "Giuseppe"),
                 ranking.stream().map(MatchResult::nickname).toList());
-        assertEquals(List.of(100, 50, 43, 30, -12),
+        assertEquals(List.of(100, 50, 43, -12),
                 ranking.stream().map(MatchResult::finalScore).toList());
         assertEquals(3, robertoPosition);
     }
@@ -73,7 +75,20 @@ class LeaderboardTest {
         public List<MatchResult> findByPlayerCount(int playerCount) {
             return results.stream()
                     .filter(result -> result.playerCount() == playerCount)
+                    .collect(Collectors.toMap(
+                            MatchResult::nickname,
+                            result -> result,
+                            (first, second) -> betterResult(first, second)
+                    ))
+                    .values()
+                    .stream()
                     .toList();
+        }
+
+        private MatchResult betterResult(MatchResult first, MatchResult second) {
+            return Comparator.comparingInt(MatchResult::finalScore)
+                    .thenComparing(MatchResult::timestamp)
+                    .compare(first, second) >= 0 ? first : second;
         }
     }
 }
