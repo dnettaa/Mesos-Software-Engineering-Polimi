@@ -2,7 +2,7 @@ package it.polimi.ingsw.config;
 
 /**
  * Simple configuration class used to map database connection
- * parameters from dbconfig.json via Gson.
+ * parameters from env variables.
  *
  * @author Andrea Markvukaj
  */
