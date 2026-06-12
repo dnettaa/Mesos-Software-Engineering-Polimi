@@ -39,7 +39,7 @@ public class OfferResolutionPhase implements Phase {
 
         game.validateState();
         game.validateActivePlayerOfferResolution(player);
-        game.validateChosenCards(player, chosenUpper, chosenLower);
+        game.validateChosenCards(player, chosenUpper, chosenLower, orderedCards);
 
         int initialFood = player.getFood();
         int initialPP = player.getPrestigePoints();

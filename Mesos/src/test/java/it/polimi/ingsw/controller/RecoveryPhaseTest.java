@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests the controller recovery phase used after loading a saved game.
@@ -148,7 +148,7 @@ class RecoveryPhaseTest {
         recoveryPhase.acceptRecovery(controller, "Diana", TotemColor.RED, dianaView);
         recoveryPhase.acceptRecovery(controller, "Luca", TotemColor.BLUE, lucaView);
 
-        assertInstanceOf(InGamePhase.class, controller.getCurrentPhase());
+        assertTrue(controller.getCurrentPhase() instanceof InGamePhase);
         assertEquals(2, controller.getViews().size());
         assertEquals(1, dianaView.gameStartedCount);
         assertEquals(1, lucaView.gameStartedCount);

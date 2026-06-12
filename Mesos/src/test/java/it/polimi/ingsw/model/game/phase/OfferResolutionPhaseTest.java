@@ -15,6 +15,8 @@ import it.polimi.ingsw.model.card.TribeCard;
 import it.polimi.ingsw.model.card.building.BuildingCard;
 import it.polimi.ingsw.model.card.building.EndBonusCard;
 import it.polimi.ingsw.model.card.building.ExtraPickCard;
+import it.polimi.ingsw.model.exception.ErrorCode;
+import it.polimi.ingsw.model.exception.GameException;
 import it.polimi.ingsw.model.game.Era;
 import it.polimi.ingsw.model.game.Game;
 import it.polimi.ingsw.model.game.GameState;
@@ -30,6 +32,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -101,6 +104,40 @@ class OfferResolutionPhaseTest {
         assertEquals(0, diana.getFood());
         assertTrue(diana.getTribe().getBuildings().contains(building));
         assertEquals(2, diana.getTribe().getBuildingDiscount());
+        assertEquals("OfferResolutionPhase", game.getCurrentPhaseName());
+    }
+
+    /**
+     * Verifies that a building cannot be selected before a same-turn builder
+     * when the building is affordable only after the builder discount.
+     * Setup: Diana has 1 food, selects one builder with discount 2 and one cost-3 building.
+     * Action: cards are submitted in building-then-builder order.
+     * Expected behavior: the selection is rejected because the building is not affordable before the builder applies.
+     * Regression covered: same-turn builder discounts must not make earlier buildings valid.
+     */
+    @Test
+    void takeCardsShouldRejectBuildingBeforeBuilderWhenFullPriceIsUnaffordable() {
+        Player diana = createPlayer("Diana", TotemColor.RED, 1);
+        Player luca = createPlayer("Luca", TotemColor.BLUE, 0);
+        BuilderCard builder = new BuilderCard(Era.Era1, "CH_BUILDER", 2, 0);
+        EndBonusCard building = new EndBonusCard(Era.Era1, "BU_UNAFFORDABLE_FIRST", 3, 0, 0);
+        Game game = createOfferResolutionGame(
+                List.of(diana, luca),
+                List.of(builder),
+                List.of(building),
+                List.of(new OfferSlot('A', 1, 1, 0), new OfferSlot('B', 0, 0, 0)),
+                1,
+                0
+        );
+
+        GameException exception = assertThrows(GameException.class, () ->
+                game.takeCards("Diana", List.of("CH_BUILDER"), List.of("BU_UNAFFORDABLE_FIRST"),
+                        List.of("BU_UNAFFORDABLE_FIRST", "CH_BUILDER")));
+
+        assertEquals(ErrorCode.INSUFFICIENT_FOOD, exception.getCode());
+        assertEquals(1, diana.getFood());
+        assertTrue(diana.getTribe().getBuildings().isEmpty());
+        assertEquals(0, diana.getTribe().getBuildingDiscount());
         assertEquals("OfferResolutionPhase", game.getCurrentPhaseName());
     }
 

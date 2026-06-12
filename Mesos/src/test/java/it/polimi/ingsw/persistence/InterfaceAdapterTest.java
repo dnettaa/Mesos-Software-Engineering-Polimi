@@ -7,7 +7,6 @@ import com.google.gson.JsonParseException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -56,7 +55,7 @@ class InterfaceAdapterTest {
 
         TestPayload restored = gson.fromJson(json, TestPayload.class);
 
-        assertInstanceOf(NumberPayload.class, restored);
+        assertTrue(restored instanceof NumberPayload);
         NumberPayload restoredPayload = (NumberPayload) restored;
         assertEquals("prestige", restoredPayload.name);
         assertEquals(12, restoredPayload.amount);
