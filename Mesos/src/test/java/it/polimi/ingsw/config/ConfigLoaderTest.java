@@ -1,79 +1,50 @@
 package it.polimi.ingsw.config;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * Tests database configuration loading from the {@code dbconfig.json} file used
+ * Tests database configuration loading from the environment variables used
  * by the application startup flow.
  *
  * @author Diana
  */
 class ConfigLoaderTest {
 
-    private static final Path CONFIG_PATH = Path.of("dbconfig.json");
-
-    private byte[] originalConfigContent;
-    private boolean originalConfigExisted;
-
-    @BeforeEach
-    void setUp() throws IOException {
-        originalConfigExisted = Files.exists(CONFIG_PATH);
-        originalConfigContent = originalConfigExisted ? Files.readAllBytes(CONFIG_PATH) : null;
-        Files.deleteIfExists(CONFIG_PATH);
-    }
-
-    @AfterEach
-    void tearDown() throws IOException {
-        Files.deleteIfExists(CONFIG_PATH);
-
-        if (originalConfigExisted) {
-            Files.write(CONFIG_PATH, originalConfigContent);
-        }
-    }
-
     /**
      * Verifies that the configuration loader falls back safely when the database
-     * configuration file is absent.
-     * Setup: no {@code dbconfig.json} file exists in the working directory.
+     * environment variables are absent.
+     * Setup: no database environment variables are provided.
      * Action: load the database configuration.
      * Expected behavior: the loader returns {@code null}.
      * Edge case covered: running the application without local database credentials must not crash.
      */
     @Test
-    void loadShouldReturnNullWhenConfigurationFileIsMissing() {
-        DBConfiguration configuration = ConfigLoader.load();
+    void loadShouldReturnNullWhenRequiredEnvironmentVariablesAreMissing() {
+        DBConfiguration configuration = ConfigLoader.load(Map.of());
 
         assertNull(configuration);
     }
 
     /**
-     * Verifies that a valid JSON configuration file is mapped to a
+     * Verifies that valid environment variables are mapped to a
      * {@link DBConfiguration} instance.
-     * Setup: {@code dbconfig.json} contains URL, user, and password properties.
+     * Setup: environment values contain URL, user, and password properties.
      * Action: load the database configuration.
-     * Expected behavior: all public configuration fields contain the values from the JSON file.
-     * Edge case covered: Gson field mapping must match the property names expected by production startup code.
+     * Expected behavior: all public configuration fields contain the values from the environment.
+     * Edge case covered: environment variable names must match the keys expected by production startup code.
      */
     @Test
-    void loadShouldMapValidConfigurationFile() throws IOException {
-        Files.writeString(CONFIG_PATH, """
-                {
-                  "dbUrl": "jdbc:postgresql://localhost:5432/mesos",
-                  "dbUser": "mesos_user",
-                  "dbPassword": "secret"
-                }
-                """);
-
-        DBConfiguration configuration = ConfigLoader.load();
+    void loadShouldMapValidEnvironmentVariables() {
+        DBConfiguration configuration = ConfigLoader.load(Map.of(
+                "DB_URL", "jdbc:postgresql://localhost:5432/mesos",
+                "DB_USER", "mesos_user",
+                "DB_PASSWORD", "secret"
+        ));
 
         assertEquals("jdbc:postgresql://localhost:5432/mesos", configuration.dbUrl);
         assertEquals("mesos_user", configuration.dbUser);
@@ -81,17 +52,18 @@ class ConfigLoaderTest {
     }
 
     /**
-     * Verifies that malformed JSON is treated as an unavailable configuration.
-     * Setup: {@code dbconfig.json} exists but contains invalid JSON syntax.
+     * Verifies that partial database environment configuration is treated as unavailable.
+     * Setup: only some required database environment variables are provided.
      * Action: load the database configuration.
-     * Expected behavior: the loader catches the parse failure and returns {@code null}.
-     * Edge case covered: a corrupted local configuration file must not prevent the application from starting.
+     * Expected behavior: the loader returns {@code null}.
+     * Edge case covered: incomplete credentials must not create an unusable database configuration.
      */
     @Test
-    void loadShouldReturnNullWhenConfigurationFileIsInvalid() throws IOException {
-        Files.writeString(CONFIG_PATH, "{ invalid json");
-
-        DBConfiguration configuration = ConfigLoader.load();
+    void loadShouldReturnNullWhenOnlySomeEnvironmentVariablesAreSet() {
+        DBConfiguration configuration = ConfigLoader.load(Map.of(
+                "DB_URL", "jdbc:postgresql://localhost:5432/mesos",
+                "DB_USER", "mesos_user"
+        ));
 
         assertNull(configuration);
     }
