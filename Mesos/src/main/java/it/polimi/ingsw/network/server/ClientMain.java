@@ -49,11 +49,11 @@ public class ClientMain {
         System.out.println("  ╚═╝     ╚═╝╚══════╝╚══════╝ ╚═════╝ ╚══════╝");
         System.out.println(RESET);
         System.out.println(CYAN + "          A prehistoric civilization game" + RESET);
-        System.out.println(WHITE + "  " + "─".repeat(48) + RESET);
+        System.out.println(WHITE + "  " + "-".repeat(48) + RESET);
         System.out.println();
         System.out.println(BOLD + "  SELECT INTERFACE:" + RESET);
-        System.out.println(CYAN + "  1)" + RESET + " TUI  —  Text User Interface");
-        System.out.println(CYAN + "  2)" + RESET + " GUI  —  Graphic User Interface");
+        System.out.println(CYAN + "  1)" + RESET + " TUI  --Text User Interface");
+        System.out.println(CYAN + "  2)" + RESET + " GUI  --Graphic User Interface");
         int choiceInterface = readInt(scanner, "  > ", 1, 2, RED, BOLD, RESET);
 
         if (choiceInterface == 2) {
