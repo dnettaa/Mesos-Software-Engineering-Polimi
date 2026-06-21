@@ -10,6 +10,8 @@ import java.util.List;
  * <p>
  * This interface contains domain-specific methods. RMI clients call these
  * methods directly instead of sending generic network messages.
+ *
+ * @author Diana
  */
 public interface ServerRMI extends Remote{
 
