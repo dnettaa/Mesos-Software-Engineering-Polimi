@@ -70,11 +70,29 @@ public class RecoveryPhase implements ControllerPhase {
         }
     }
 
+    /**
+     * Handles a legacy reconnect request by treating it as recovery acceptance.
+     *
+     * @param controller the main game controller
+     * @param nickname the player's original nickname
+     * @param color the player's original totem color
+     * @param view the reconnecting virtual view
+     */
     @Override
     public synchronized void reconnect(GameController controller, String nickname, TotemColor color, VirtualView view) {
         acceptRecovery(controller, nickname, color, view);
     }
 
+    /**
+     * Accepts a player's saved-game recovery request.
+     * The reconnecting client automatically sends the saved nickname and totem color,
+     * which must match the restored snapshot. When all players are back, the game resumes.
+     *
+     * @param controller the main game controller
+     * @param nickname the saved nickname sent by the reconnecting client
+     * @param color the saved totem color sent by the reconnecting client
+     * @param view the reconnecting virtual view
+     */
     @Override
     public synchronized void acceptRecovery(GameController controller, String nickname, TotemColor color, VirtualView view) {
         GameStateSnapshot snapshot = game.buildSnapshot();
@@ -127,6 +145,10 @@ public class RecoveryPhase implements ControllerPhase {
         }
     }
 
+    /**
+     * Sends the current recovery status to all players who already reconnected.
+     * The update contains both accepted players and players still missing from recovery.
+     */
     private void notifyRecoveryUpdate() {
         GameStateSnapshot snapshot = game.buildSnapshot();
 
@@ -151,6 +173,13 @@ public class RecoveryPhase implements ControllerPhase {
         }
     }
 
+    /**
+     * Cancels saved-game recovery and discards the persisted save.
+     * All connected or newly declining views are notified, then the controller is reset.
+     *
+     * @param controller the main game controller
+     * @param view the virtual view that declined recovery, or null when recovery expires
+     */
     @Override
     public synchronized void declineRecovery(GameController controller, VirtualView view) {
         if (finished) return;
