@@ -393,6 +393,7 @@ public class TUI implements View {
      */
     @Override
     public void showRecoveryCancelled(String reason) {
+        clientModel.reset();
         System.out.println("\n[RECOVERY] " + reason);
         restartLobby();
     }

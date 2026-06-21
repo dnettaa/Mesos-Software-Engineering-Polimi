@@ -35,7 +35,6 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     private String host;
     private int port;
     private TotemColor savedColor;
-    private boolean wasInGame;
     private volatile boolean recovering;
 
     /**
@@ -84,11 +83,6 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         try {
             while (running) {
                 ServerMessage msg = (ServerMessage) in.readObject();
-
-                if (msg instanceof GameStartedMessage) {
-                    wasInGame = true;
-                }
-
                 msg.apply(view);
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -108,7 +102,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         running = false;
         recovering = true;
 
-        if (!wasInGame) {
+        if (!view.getClientModel().isInGame()) {
             recovering = false;
             view.goToWelcomeScreen("Server disconnected. Please reconnect.");
             return;
@@ -170,7 +164,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             Thread readerThread = new Thread(this, "VirtualSocketServer-Reader");
             readerThread.start();
 
-            if (wasInGame) {
+            if (view.getClientModel().isInGame()) {
                 ScheduledExecutorService choiceTimeout = Executors.newSingleThreadScheduledExecutor(r -> {
                     Thread t = new Thread(r, "recovery-choice-timeout");
                     t.setDaemon(true);
@@ -205,9 +199,8 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
      * Clears the local in-game flag so the client returns to the normal lobby flow.
      */
     private void declineRecovery() {
-
+        view.getClientModel().reset();
         write(new DeclineRecoveryMessage());
-        wasInGame = false;
     }
 
     /**
@@ -294,7 +287,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
     public void disconnect(){
 
         running = false;
-        wasInGame = false;
+        view.getClientModel().reset();
         recovering = false;
 
         try{

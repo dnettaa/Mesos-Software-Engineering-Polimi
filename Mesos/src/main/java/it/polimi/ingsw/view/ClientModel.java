@@ -243,6 +243,12 @@ public class ClientModel {
     public Era getCurrentEra() { return currentEra; }
     /** @return The string identifier of the active phase. */
     public String getCurrentPhaseName() { return currentPhaseName; }
+
+    /** @return true if the client is in an active, recoverable game session. */
+    public boolean isInGame() { return currentPhaseName != null && !"EndGame".equals(currentPhaseName); }
+
+    /** Clears the in-game flag so the client is no longer treated as being in a recoverable session. */
+    public void reset() { this.currentPhaseName = null; }
     /** @return The nickname of the active player. */
     public String getCurrentPlayerNickname() { return currentPlayerNickname; }
     /** @return The list of slot IDs representing the offer resolution order. */
