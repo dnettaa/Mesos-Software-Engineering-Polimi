@@ -15,6 +15,12 @@ public class DeclineRecoveryMessage extends ClientMessage {
         super(null);
     }
 
+    /**
+     * Executes the recovery-decline request on the controller.
+     *
+     * @param controller the game controller
+     * @param sender the client view declining recovery
+     */
     @Override
     public void execute(GameController controller, VirtualView sender) {
         controller.declineRecovery(sender);

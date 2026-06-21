@@ -5,6 +5,7 @@ import it.polimi.ingsw.view.View;
 
 /**
  * Message sent by the server to confirm that a player successfully joined the lobby.
+ *
  * @author Diana
  */
 
@@ -43,8 +44,6 @@ public class JoinSuccessMessage extends ServerMessage{
 
     /**
      * Applies this message to the given view.
-     *
-     * @param view the view that must show the join confirmation
      */
     @Override
     public void apply(View view){

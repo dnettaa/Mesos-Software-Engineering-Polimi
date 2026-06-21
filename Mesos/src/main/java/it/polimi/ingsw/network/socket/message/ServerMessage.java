@@ -8,6 +8,7 @@ import it.polimi.ingsw.view.View;
  * Each concrete server message knows how to apply itself to the local View.
  * This allows the network layer to dispatch messages without using switch
  * statements or instanceof checks.
+ *
  * @author Diana
  */
 

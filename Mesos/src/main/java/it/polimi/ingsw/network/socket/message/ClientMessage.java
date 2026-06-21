@@ -9,6 +9,7 @@ import it.polimi.ingsw.controller.GameController;
  * Each concrete client message knows how to apply itself to the server-side
  * controller. This avoids the use of switch statements or instanceof checks
  * when handling client requests.
+ *
  * @author Diana
  */
 

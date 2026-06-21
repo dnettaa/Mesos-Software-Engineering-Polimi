@@ -17,6 +17,9 @@ public class RecoveryCancelledMessage extends ServerMessage {
         this.reason = reason;
     }
 
+    /**
+     * Applies this message to the given view.
+     */
     @Override
     public void apply(View view) {
         view.showRecoveryCancelled(reason);

@@ -7,6 +7,7 @@ import java.io.Serializable;
  * <p>
  * Messages are serializable because they must be transferable through both
  * Socket object streams and RMI method calls.
+ *
  * @author Diana
  */
 

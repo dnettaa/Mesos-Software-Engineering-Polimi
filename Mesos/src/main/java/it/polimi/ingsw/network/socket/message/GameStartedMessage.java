@@ -24,6 +24,9 @@ public class GameStartedMessage extends ServerMessage {
         return snapshot;
     }
 
+    /**
+     * Applies this message to the given view.
+     */
     @Override
     public void apply(View view) {
         view.getClientModel().applyGameStarted(snapshot);
