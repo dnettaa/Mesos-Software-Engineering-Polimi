@@ -16,7 +16,6 @@ import java.util.List;
  *
  * @author Vadym Kitsul
  */
-
 public class Player {
 
     private final String nickname;
@@ -32,7 +31,6 @@ public class Player {
      * @param nickname   The name chosen by the player.
      * @param totemColor The totem color assigned to the player.
      */
-
     public Player(String nickname, TotemColor totemColor, Tribe tribe, int food, int prestigePoints) {
         this.nickname = nickname;
         this.totemColor = totemColor;
@@ -45,7 +43,6 @@ public class Player {
      * Returns the player's nickname.
      * @return The player's nickname.
      */
-
     public String getNickname() {
         return nickname;
     }
@@ -55,7 +52,6 @@ public class Player {
      *
      * @return The totem color.
      */
-
     public TotemColor getTotemColor() {
         return totemColor;
     }
@@ -64,7 +60,6 @@ public class Player {
      * Returns the tribe associated with the player, containing their characters and buildings.
      * @return The {@link Tribe} instance of the player.
      */
-
     public Tribe getTribe() {
         return tribe;
     }
@@ -73,7 +68,6 @@ public class Player {
      * Returns the amount of food currently owned by the player.
      * @return The number of food tokens of the player.
      */
-
     public int getFood() {
         return food;
     }
@@ -82,7 +76,6 @@ public class Player {
      * Returns the current Prestige Points (PP) of the player.
      * @return The player's Prestige Points (can be negative).
      */
-
     public int getPrestigePoints() {
         return prestigePoints;
     }
@@ -91,7 +84,6 @@ public class Player {
      * Adds a specific amount of food to the player's reserve.
      * @param amount The amount of food to add (must be greater than 0).
      */
-
     public void addFood(int amount) {
         if (amount > 0) {
             this.food += amount;
