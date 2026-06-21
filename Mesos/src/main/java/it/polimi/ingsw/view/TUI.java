@@ -372,6 +372,12 @@ public class TUI implements View {
         }
     }
 
+    /**
+     * Checks whether the disconnection reason allows the client to wait for saved-game recovery.
+     *
+     * @param reason the disconnection reason received from the network layer
+     * @return true if the reason refers to a recoverable server interruption, false otherwise
+     */
     private boolean isRecoverableReason(String reason) {
         if (reason == null) return false;
         String lower = reason.toLowerCase();
@@ -380,18 +386,33 @@ public class TUI implements View {
                 || lower.contains("server lost");
     }
 
+    /**
+     * Notifies the user that saved-game recovery was canceled and restarts the lobby flow.
+     *
+     * @param reason the reason why recovery was canceled
+     */
     @Override
     public void showRecoveryCancelled(String reason) {
         System.out.println("\n[RECOVERY] " + reason);
         restartLobby();
     }
 
+    /**
+     * Displays the shutdown reason and terminates the client process.
+     *
+     * @param reason the reason shown before closing the client
+     */
     @Override
     public void shutdown(String reason) {
         System.out.println("\n[CLIENT] " + reason);
         System.exit(0);
     }
 
+    /**
+     * Returns the user to the welcome flow after a disconnection.
+     *
+     * @param reason the disconnection reason to display
+     */
     @Override
     public void goToWelcomeScreen(String reason) {
         System.out.println("\n[DISCONNECTED] " + reason);
@@ -534,6 +555,11 @@ public class TUI implements View {
         );
     }
 
+    /**
+     * Asks the user whether to recover a previously saved game.
+     *
+     * @return true if the user accepts recovery, false otherwise
+     */
     @Override
     public boolean askRecoveryChoice() {
         while (true) {
@@ -544,6 +570,12 @@ public class TUI implements View {
         }
     }
 
+    /**
+     * Displays the current saved-game recovery status.
+     *
+     * @param reconnectedPlayers nicknames of the players who already reconnected
+     * @param missingPlayers nicknames of the players still missing from recovery
+     */
     @Override
     public void showRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
         System.out.println("\n[RECOVERY] Accepted players: " + String.join(", ", reconnectedPlayers));
@@ -553,11 +585,25 @@ public class TUI implements View {
         }
     }
 
+    /**
+     * Reads a full line from standard input after printing a prompt.
+     *
+     * @param prompt the text shown before reading input
+     * @return the line entered by the user
+     */
     private synchronized String readPromptLine(String prompt) {
         System.out.print(prompt);
         return scanner.nextLine();
     }
 
+    /**
+     * Reads an integer value within the given bounds, repeating the prompt until valid input is entered.
+     *
+     * @param prompt the text shown before reading input
+     * @param min the minimum accepted value
+     * @param max the maximum accepted value
+     * @return the valid integer entered by the user
+     */
     private int readIntPrompt(String prompt, int min, int max) {
         while (true) {
             String line = readPromptLine(prompt).trim();
@@ -569,6 +615,11 @@ public class TUI implements View {
         }
     }
 
+    /**
+     * Checks whether the view can still send requests to the server.
+     *
+     * @return true if no server is bound yet or the bound server is connected
+     */
     private boolean isServerConnected() {
         return virtualServer == null || virtualServer.isConnected();
     }

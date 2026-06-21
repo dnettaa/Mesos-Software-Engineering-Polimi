@@ -15,6 +15,8 @@ import java.util.Map;
  * It is completely passive and contains no game logic. It is updated incrementally
  * via delta messages from the server, ensuring efficient network usage.
  * </p>
+ *
+ * @author Luca Grecchi
  */
 public class ClientModel {
     private int currentRound;
