@@ -200,6 +200,10 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         }
     }
 
+    /**
+     * Sends a request to the server to decline saved-game recovery.
+     * Clears the local in-game flag so the client returns to the normal lobby flow.
+     */
     private void declineRecovery() {
 
         write(new DeclineRecoveryMessage());
@@ -301,6 +305,11 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         view.notifyDisconnection("Disconnected from server");
     }
 
+    /**
+     * Returns whether the socket connection is currently usable for gameplay commands.
+     *
+     * @return true if the client is running, not recovering, and the socket is open
+     */
     @Override
     public boolean isConnected() {
         return running && !recovering && socket != null && socket.isConnected() && !socket.isClosed();

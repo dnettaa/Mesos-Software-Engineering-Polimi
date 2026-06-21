@@ -8,22 +8,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 /**
  * Service class responsible for managing leaderboard logic.
- * This class acts as the business layer between the game model and the persistence layer
- * ({@link MatchResultRepository}).
+ * This class acts as the business layer between the game model and the SQL persistence layer.
  * It provides methods to:
  *     Record the results of a completed game.
  *     Retrieve rankings filtered by number of players.
  *     Compute the position of a specific player in the ranking.
- * The ranking is based on the final score of each player, computed as the sum of
- * final prestige points and end-game bonuses.
+ * The ranking is based on the final prestige points of each player.
  *
  * @author Andrea Markvukaj
  */
 public class RankingService {
 
-    private final MatchResultRepository repository;
+    private final SqlMatchResultRepository repository;
 
-    public RankingService(MatchResultRepository repository) {
+    public RankingService(SqlMatchResultRepository repository) {
         this.repository = repository;
     }
 

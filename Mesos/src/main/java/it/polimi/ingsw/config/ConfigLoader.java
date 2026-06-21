@@ -15,6 +15,7 @@ public class ConfigLoader {
     }
 
     static DBConfiguration load(Map<String, String> environment) {
+
         String url  = environment.get("DB_URL");
         String user = environment.get("DB_USER");
         String pass = environment.get("DB_PASSWORD");
@@ -25,9 +26,10 @@ public class ConfigLoader {
         }
 
         DBConfiguration config = new DBConfiguration();
-        config.dbUrl      = url;
-        config.dbUser     = user;
+        config.dbUrl = url;
+        config.dbUser = user;
         config.dbPassword = pass;
+
         return config;
     }
 }

@@ -23,6 +23,9 @@ public class CardsTakenMessage extends ServerMessage {
         return dto;
     }
 
+    /**
+     * Applies this message to the given view.
+     */
     @Override
     public void apply(View view) {
         view.getClientModel().applyCardsTaken(dto);

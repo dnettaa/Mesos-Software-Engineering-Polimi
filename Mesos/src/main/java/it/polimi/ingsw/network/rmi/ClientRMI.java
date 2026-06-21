@@ -149,13 +149,12 @@ public interface ClientRMI extends Remote{
             throws RemoteException;
 
     /**
-     * Remotely notifies the client with the global leaderboard.
+     * Remotely notifies the client that the global leaderboard is available.
      *
-     * @param ranking  ordered list of match results
+     * @param ranking ordered list of match results
      * @param position position of the client player
      * @throws RemoteException if the remote invocation fails
      */
-
     void onLeaderboard(List<MatchResult> ranking, int position)
             throws RemoteException;
 }

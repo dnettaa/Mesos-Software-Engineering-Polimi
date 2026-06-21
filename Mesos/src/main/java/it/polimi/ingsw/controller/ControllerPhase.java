@@ -67,8 +67,9 @@ public interface ControllerPhase {
     void onDisconnect(String nickname);
 
     /**
-     * Handles a player's reconnection request after
-     * a server crash recovery.
+     * Handles a player's reconnection request after a server crash recovery.
+     * The default implementation rejects the action when recovery is not allowed
+     * in the current controller phase.
      *
      * @param controller the main game controller
      * @param nickname the player's original nickname
@@ -79,10 +80,28 @@ public interface ControllerPhase {
         throw new IllegalStateException("Reconnect not allowed in current phase");
     }
 
+    /**
+     * Handles a player's request to accept saved-game recovery.
+     * The default implementation rejects the action when recovery is not allowed
+     * in the current controller phase.
+     *
+     * @param controller the main game controller
+     * @param nickname the player's original nickname
+     * @param color the player's original totem color
+     * @param view the reconnecting virtual view
+     */
     default void acceptRecovery(GameController controller, String nickname, TotemColor color, VirtualView view) {
         throw new IllegalStateException("Recovery accept not allowed in current phase");
     }
 
+    /**
+     * Handles a player's request to decline saved-game recovery.
+     * The default implementation rejects the action when recovery is not allowed
+     * in the current controller phase.
+     *
+     * @param controller the main game controller
+     * @param view the virtual view declining recovery
+     */
     default void declineRecovery(GameController controller, VirtualView view) {
         throw new IllegalStateException("Recovery decline not allowed in current phase");
     }

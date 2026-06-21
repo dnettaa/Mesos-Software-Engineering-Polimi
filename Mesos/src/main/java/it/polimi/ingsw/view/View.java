@@ -10,6 +10,8 @@ import it.polimi.ingsw.network.VirtualServer;
 /**
  * The View interface representing the client-side UI.
  * It defines the contract for displaying updates and interacting with the game state.
+ *
+ * @author Luca Grecchi
  */
 public interface View {
 
@@ -103,8 +105,19 @@ public interface View {
      */
     void showLeaderboard(List<MatchResult> ranking, int position);
 
+    /**
+     * Asks the user whether to recover a previously saved game.
+     *
+     * @return true if the user accepts recovery, false otherwise
+     */
     boolean askRecoveryChoice();
 
+    /**
+     * Updates the user with the current saved-game recovery status.
+     *
+     * @param reconnectedPlayers nicknames of the players who already reconnected
+     * @param missingPlayers nicknames of the players still missing from recovery
+     */
     void showRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers);
 
     /**

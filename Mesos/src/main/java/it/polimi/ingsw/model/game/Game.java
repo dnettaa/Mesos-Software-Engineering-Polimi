@@ -132,6 +132,16 @@ public class Game implements GameActions{
         listeners = new ArrayList<>();
     }
 
+    /**
+     * Returns the canonical player instance matching the nickname of a deserialized player reference.
+     * Used while restoring a saved game to ensure all restored references point to the
+     * {@link Player} objects stored in {@link #players}.
+     *
+     * @param playersByNickname map of canonical players indexed by nickname
+     * @param player the deserialized player reference to replace
+     * @return the canonical player instance with the same nickname
+     * @throws IllegalStateException if the saved game contains an unknown player reference
+     */
     private Player requireCanonicalPlayer(Map<String, Player> playersByNickname, Player player) {
         Player canonical = playersByNickname.get(player.getNickname());
         if (canonical == null) {
@@ -232,6 +242,13 @@ public class Game implements GameActions{
                 .anyMatch(c -> c.isPickable() && c.getCostFor(player) <= player.getFood());
     }
 
+    /**
+     * Applies the food bonus or penalty associated with the player's position on the turn order track.
+     * Positive values grant food and trigger building effects, while negative values make the player
+     * spend food or lose prestige points if they cannot pay.
+     *
+     * @param player the player whose turn order bonus or penalty must be resolved
+     */
     public void applyTurnOrderBonus(Player player){
         int bonus = board.getFoodBonus(player);
 

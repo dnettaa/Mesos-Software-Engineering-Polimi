@@ -12,6 +12,8 @@ import java.util.Map;
  * It reads card data from internal JSON resources upon initialization and caches
  * the formatted descriptions in memory for fast retrieval by the UI.
  * </p>
+ *
+ * @author Luca Grecchi
  */
 public class CardCatalog {
 

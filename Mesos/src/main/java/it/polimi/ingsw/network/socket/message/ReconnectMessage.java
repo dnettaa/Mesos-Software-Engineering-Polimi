@@ -7,6 +7,8 @@ import it.polimi.ingsw.network.VirtualView;
 /**
  * Message sent by a client attempting to reconnect
  * to a previously saved game after a server crash.
+ *
+ * @author Andrea Markvukaj
  */
 public class ReconnectMessage extends ClientMessage {
 

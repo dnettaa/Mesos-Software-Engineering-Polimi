@@ -138,7 +138,13 @@ public class SocketClientHandler implements VirtualView, Runnable {
         enqueue(new RecoveryCancelledMessage(reason));
     }
 
-
+    /**
+     * Notifies the client about the current saved-game recovery status.
+     * Wraps the recovery data into a {@link RecoveryUpdateMessage} and enqueues it.
+     *
+     * @param reconnectedPlayers the nicknames of the players who already reconnected
+     * @param missingPlayers the nicknames of the players still missing from recovery
+     */
     @Override
     public void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers) {
         enqueue(new RecoveryUpdateMessage(reconnectedPlayers, missingPlayers));

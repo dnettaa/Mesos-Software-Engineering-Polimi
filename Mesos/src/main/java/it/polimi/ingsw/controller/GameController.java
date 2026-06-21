@@ -126,27 +126,46 @@
             if (currentPhase == null) {
                 view.onRecoveryCancelled("Recovery has already expired. Please create or join a new lobby.");
                 return;
-            }
-            currentPhase.reconnect(this, nickname, color, view);
         }
+        currentPhase.reconnect(this, nickname, color, view);
+    }
 
-        public synchronized void acceptRecovery(String nickname, TotemColor color, VirtualView view) {
-            if (currentPhase != null) {
-                currentPhase.acceptRecovery(this, nickname, color, view);
-            }
+    /**
+     * Handles a player's request to accept saved-game recovery.
+     * Delegates the request to the current controller phase when recovery is active.
+     *
+     * @param nickname the player's original nickname
+     * @param color the player's original totem color
+     * @param view the reconnecting virtual view
+     */
+    public synchronized void acceptRecovery(String nickname, TotemColor color, VirtualView view) {
+        if (currentPhase != null) {
+            currentPhase.acceptRecovery(this, nickname, color, view);
         }
+    }
 
-        public synchronized void declineRecovery(VirtualView view) {
-            if (currentPhase != null) {
-                currentPhase.declineRecovery(this, view);
-            } else if (view != null) {
-                view.onRecoveryCancelled("Recovery has already expired. Please create or join a new lobby.");
-            }
+    /**
+     * Handles a player's request to decline saved-game recovery.
+     * Delegates the request to the current controller phase, or notifies the view
+     * if the recovery phase has already expired.
+     *
+     * @param view the virtual view declining recovery
+     */
+    public synchronized void declineRecovery(VirtualView view) {
+        if (currentPhase != null) {
+            currentPhase.declineRecovery(this, view);
+        } else if (view != null) {
+            view.onRecoveryCancelled("Recovery has already expired. Please create or join a new lobby.");
         }
+    }
 
-        public synchronized void reset() {
-            this.game = null;
-            this.currentPhase = null;
+    /**
+     * Clears the current game, controller phase and registered views.
+     * Used after recovery is declined or canceled to return the controller to its initial state.
+     */
+    public synchronized void reset() {
+        this.game = null;
+        this.currentPhase = null;
             this.views.clear();
         }
 

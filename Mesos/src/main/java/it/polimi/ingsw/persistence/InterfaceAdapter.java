@@ -15,6 +15,8 @@ import java.lang.reflect.Type;
  * </p>
  *
  * @param <T> The type of the interface or abstract class being adapted.
+ *
+ * @author Vadym Kitsul
  */
 public class InterfaceAdapter<T> implements JsonSerializer<T>, JsonDeserializer<T> {
 

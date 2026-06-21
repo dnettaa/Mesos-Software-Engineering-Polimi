@@ -6,7 +6,6 @@ package it.polimi.ingsw.model.player;
  *
  * @author Vadym Kitsul
  */
-
 public enum TotemColor {
     WHITE,
     BLACK,

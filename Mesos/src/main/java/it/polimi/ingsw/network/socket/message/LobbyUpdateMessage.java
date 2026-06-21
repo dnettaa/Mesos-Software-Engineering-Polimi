@@ -9,6 +9,7 @@ import java.util.Map;
 
 /**
  * Message sent by the server to update all clients about the current lobby state.
+ *
  * @author Diana
  */
 
@@ -59,8 +60,6 @@ public class LobbyUpdateMessage extends ServerMessage{
 
     /**
      * Applies this message to the given view.
-     *
-     * @param view the view that must display the lobby update
      */
     @Override
     public void apply(View view){

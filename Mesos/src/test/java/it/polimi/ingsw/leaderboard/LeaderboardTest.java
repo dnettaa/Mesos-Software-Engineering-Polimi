@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests an end-to-end leaderboard flow with multiple recorded games using an
- * in-memory repository. This replaces the old manual database/TUI smoke test
+ * in-memory SQL repository fake. This replaces the old manual database/TUI smoke test
  * with deterministic JUnit assertions.
  *
  * @author Diana
@@ -59,12 +59,16 @@ class LeaderboardTest {
     }
 
     /**
-     * In-memory repository used to test leaderboard behavior without requiring
+     * In-memory SQL repository fake used to test leaderboard behavior without requiring
      * PostgreSQL or TUI rendering.
      */
-    private static class InMemoryMatchResultRepository implements MatchResultRepository {
+    private static class InMemoryMatchResultRepository extends SqlMatchResultRepository {
 
         private final List<MatchResult> results = new ArrayList<>();
+
+        private InMemoryMatchResultRepository() {
+            super("", "", "");
+        }
 
         @Override
         public void save(MatchResult result) {
