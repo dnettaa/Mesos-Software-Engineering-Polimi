@@ -11,7 +11,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Tests the leaderboard business service using an in-memory repository.
+ * Tests the leaderboard business service using an in-memory SQL repository fake.
  * The suite verifies result recording, ranking order, and player-position lookup
  * without depending on a PostgreSQL database.
  *
@@ -153,11 +153,15 @@ class RankingServiceTest {
     }
 
     /**
-     * In-memory repository used to test service behavior without database access.
+     * In-memory SQL repository fake used to test service behavior without database access.
      */
-    private static class InMemoryMatchResultRepository implements MatchResultRepository {
+    private static class InMemoryMatchResultRepository extends SqlMatchResultRepository {
 
         private final List<MatchResult> savedResults = new ArrayList<>();
+
+        private InMemoryMatchResultRepository() {
+            super("", "", "");
+        }
 
         @Override
         public void save(MatchResult result) {

@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * SQL-based implementation of {@link MatchResultRepository}.
+ * Repository responsible for storing and retrieving match results.
  * Persists match results in a PostgreSQL database using JDBC.
  * Handles saving and retrieving results through SQL queries.
  *
  * @author Andrea Markvukaj
  */
-public class SqlMatchResultRepository implements MatchResultRepository {
+public class SqlMatchResultRepository {
 
     private final String url;
     private final String user;
@@ -54,7 +54,6 @@ public class SqlMatchResultRepository implements MatchResultRepository {
      *
      * @param result the match result to store
      */
-    @Override
     public void save(MatchResult result) {
 
         String query = "INSERT INTO match_results (nickname, final_score, player_count, played_at) VALUES (?, ?, ?, ?)";
@@ -83,7 +82,6 @@ public class SqlMatchResultRepository implements MatchResultRepository {
      * @param playerCount the number of players in the match
      * @return a list of matching results
      */
-    @Override
     public List<MatchResult> findByPlayerCount(int playerCount) {
 
         List<MatchResult> results = new ArrayList<>();
