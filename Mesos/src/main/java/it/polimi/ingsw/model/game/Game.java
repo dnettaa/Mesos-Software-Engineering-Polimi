@@ -50,10 +50,6 @@ public class Game implements GameActions{
         this.resolutionOrder = resolutionOrder;
     }
 
-    public int getGameID() {
-        return gameID;
-    }
-
     public List<Player> getPlayers() {
         return players;
     }
@@ -76,10 +72,6 @@ public class Game implements GameActions{
 
     public GameState getState() {
         return state;
-    }
-
-    public Phase getCurrentPhase() {
-        return currentPhase;
     }
 
     public int getCurrentRound() {

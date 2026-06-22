@@ -104,7 +104,7 @@ public class CardRow {
     /**
      * Returns the internal tribe-card list.
      * <p>
-     * This method is intentionally package-private and must only be used
+     * This method exposes the live backing list and must only be used
      * by trusted model classes that need direct access for internal logic.
      *
      * @return the internal tribe-card list
@@ -116,7 +116,7 @@ public class CardRow {
     /**
      * Returns the internal building-card list.
      * <p>
-     * This method is intentionally package-private and must only be used
+     * This method exposes the live backing list and must only be used
      * by trusted model classes that need direct access for internal logic.
      *
      * @return the internal building-card list

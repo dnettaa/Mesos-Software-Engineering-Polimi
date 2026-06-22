@@ -107,10 +107,7 @@ public class OfferSlot {
      * After this operation, the slot becomes free.
      */
     public void remove(){
-        Player removedPlayer = occupant;
-
         occupant = null;
-
     }
 
     /**
