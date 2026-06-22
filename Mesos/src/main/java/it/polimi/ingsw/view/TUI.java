@@ -407,14 +407,19 @@ public class TUI implements View {
     }
 
     /**
-     * Returns the user to the welcome flow after a disconnection.
+     * Handles the loss of the server connection while the client is outside a game
+     * (e.g. waiting in the lobby). The TUI cannot re-establish the connection on its
+     * own — the transport choice and {@code connect()} live in {@code ClientMain} — so
+     * instead of spawning a daemon lobby prompt (which would race the JVM shutdown once
+     * the reader thread dies), it prints a clear message and exits cleanly.
      *
      * @param reason the disconnection reason to display
      */
     @Override
     public void goToWelcomeScreen(String reason) {
-        System.out.println("\n[DISCONNECTED] " + reason);
-        restartLobby();
+        System.out.println("\n" + RED + "[DISCONNECTED] " + reason + RESET);
+        System.out.println(YELLOW + "  The server is no longer reachable. Restart the client to reconnect." + RESET);
+        System.exit(0);
     }
 
     /**
