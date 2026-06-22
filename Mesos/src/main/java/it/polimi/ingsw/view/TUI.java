@@ -341,11 +341,8 @@ public class TUI implements View {
             }
 
             case "ExtraCardPhase": {
-                String extra = "";
-                while (extra.isEmpty()) {
-                    extra = readPromptLine("Select Extra Card ID: ").trim().toUpperCase();
-                    if (!isServerConnected()) return;
-                }
+                String extra = readPromptLine("Select Extra Card ID (or enter to skip): ").trim().toUpperCase();
+                if (!isServerConnected()) return;
                 virtualServer.takeExtraCard(nickname, extra);
                 break;
             }

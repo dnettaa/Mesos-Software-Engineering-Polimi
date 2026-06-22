@@ -878,10 +878,16 @@ public class GUIGameController {
                 int downSel = mySlot != null ? mySlot.downSel() : 0;
                 messageLabel.setText("Pick up to " + upSel + " from the upper row and " + downSel
                         + " from the lower row, then confirm. Characters are mandatory, buildings are optional.");
+                if (confirmSelectionButton != null) confirmSelectionButton.setText("Confirm selection");
                 updateConfirmButton(model);
             }
             case "ExtraCardPhase" -> {
-                messageLabel.setText("Extra card: click any card from the rows.");
+                messageLabel.setText("Extra card: click a card to take it, or skip — it is optional.");
+                if (confirmSelectionButton != null) {
+                    confirmSelectionButton.setText("Skip");
+                    confirmSelectionButton.setDisable(pendingConfirm);
+                }
+                setConfirmButtonVisible(true);
             }
             default -> {
                 messageLabel.setText("Automatic phase. Waiting for the server...");
@@ -1002,6 +1008,7 @@ public class GUIGameController {
             toggleCardSelection(cardID, upperRow, cardPane);
             updateConfirmButton(model);
         } else if ("ExtraCardPhase".equals(phase)) {
+            if (!upperRow) return; // the extra card can only be taken from the upper row
             clearCardSelectionStyles();
             clearSelections();
             selectedExtraCard = cardID;
@@ -1255,10 +1262,23 @@ public class GUIGameController {
     @FXML
     private void onConfirmSelection() {
         ClientModel model = gui != null ? gui.getClientModel() : null;
-        if (model == null || !isMyTurn(model)) return;
-        if (!"OfferResolutionPhase".equals(model.getCurrentPhaseName())) return;
-        if (pendingConfirm || !isOfferSelectionValid(model)) return;
-        showPickConfirmPopup(new ArrayList<>(selectedUpperCards), new ArrayList<>(selectedLowerCards));
+        if (model == null || !isMyTurn(model) || pendingConfirm) return;
+
+        switch (model.getCurrentPhaseName()) {
+            case "OfferResolutionPhase" -> {
+                if (!isOfferSelectionValid(model)) return;
+                showPickConfirmPopup(new ArrayList<>(selectedUpperCards), new ArrayList<>(selectedLowerCards));
+            }
+            case "ExtraCardPhase" -> {
+                // Declining the optional extra card: submit an empty selection.
+                if (currentPickPopup != null) { currentPickPopup.hide(); currentPickPopup = null; }
+                setConfirmButtonVisible(false);
+                clearSelections();
+                clearCardSelectionStyles();
+                gui.getVirtualServer().takeExtraCard(gui.getNickname(), "");
+            }
+            default -> { }
+        }
     }
 
     /** Returns the offer slot currently occupied by the local player, or null if none. */

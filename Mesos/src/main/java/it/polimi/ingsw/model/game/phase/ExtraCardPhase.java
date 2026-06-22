@@ -22,7 +22,7 @@ import it.polimi.ingsw.model.card.Card;
      *
      * @param game the game instance
      * @param player the player taking the extra card
-     * @param card the chosen card from the upper row
+     * @param card the chosen card from the upper row, or {@code null} to decline the extra card
      * @throws GameException with {@link ErrorCode#NOT_YOUR_TURN} if it is not the provided player's turn
      * @throws GameException with {@link ErrorCode#CARD_NOT_IN_ROW} if the chosen card is not pickable or not in the upper row
      * @throws GameException with {@link ErrorCode#INSUFFICIENT_FOOD} if the player does not have enough food to pay for the card
@@ -33,6 +33,24 @@ import it.polimi.ingsw.model.card.Card;
 
         if (!player.equals(game.getPlayers().get(game.getCurrentPlayerIndex()))) {
             throw new GameException(ErrorCode.NOT_YOUR_TURN, "Wrong player!");
+        }
+
+        if (card == null) {
+            game.setCurrentPhase(new EventResolutionPhase());
+
+            ExtraCardTakenDTO skipDto = new ExtraCardTakenDTO(
+                                        player.getNickname(),
+                                        null,
+                                        false,
+                                        false,
+                                        0,
+                                        game.getCurrentPhaseName()
+            );
+
+            game.fireExtraCardTaken(skipDto);
+
+            game.resolveEvents();
+            return;
         }
 
         if (!card.isPickable() || !game.getBoard().getUpperRowCards().contains(card)) {
@@ -49,6 +67,8 @@ import it.polimi.ingsw.model.card.Card;
 
         game.getBoard().removeCardFromUpper(card);
 
+        game.setCurrentPhase(new EventResolutionPhase());
+
         ExtraCardTakenDTO dto = new ExtraCardTakenDTO(
                                     player.getNickname(),
                                     card.getId(),
@@ -60,7 +80,6 @@ import it.polimi.ingsw.model.card.Card;
 
         game.fireExtraCardTaken(dto);
 
-        game.setCurrentPhase(new EventResolutionPhase());
         game.resolveEvents();
     }
 

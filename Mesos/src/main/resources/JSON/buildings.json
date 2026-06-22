@@ -1,52 +1,5 @@
 [
   {
-    "id": "BU01",
-    "era": "Era1",
-    "cost": 4,
-    "prestigePoints": 3,
-    "type": "TRIGGER_SET",
-    "foodBonus": 5
-  },
-  {
-    "id": "BU02",
-    "era": "Era1",
-    "cost": 4,
-    "prestigePoints": 4,
-    "type": "SUSTENANCE_DISCOUNT",
-    "targetCharacterType": "GATHERER"
-  },
-  {
-    "id": "BU03",
-    "era": "Era1",
-    "cost": 5,
-    "prestigePoints": 3,
-    "type": "SUSTENANCE_DISCOUNT",
-    "targetCharacterType": "ARTIST"
-  },
-  {
-    "id": "BU04",
-    "era": "Era1",
-    "cost": 5,
-    "prestigePoints": 2,
-    "type": "SHAMAN_NO_PENALTY"
-  },
-  {
-    "id": "BU05",
-    "era": "Era1",
-    "cost": 3,
-    "prestigePoints": 3,
-    "type": "TURN_ORDER_BONUS",
-    "foodBonus": 1
-  },
-  {
-    "id": "BU06",
-    "era": "Era1",
-    "cost": 3,
-    "prestigePoints": 4,
-    "type": "TRIGGER_INVENTOR",
-    "foodBonus": 3
-  },
-  {
     "id": "BU07",
     "era": "Era2",
     "cost": 7,
@@ -156,8 +109,8 @@
   },
   {
     "id": "BU20",
-    "era": "Era3",
-    "cost": 9,
+    "era": "Era1",
+    "cost": 1,
     "prestigePoints": 3,
     "type": "EXTRA_PICK"
   },

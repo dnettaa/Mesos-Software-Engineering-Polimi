@@ -222,12 +222,16 @@ public class Game implements GameActions{
      * card from the upper row. Transitions to EventResolution phase.
      *
      * @param nickname the player taking the extra card
-     * @param cardID the card chosen from the upper row
+     * @param cardID the card chosen from the upper row, or {@code null}/blank to decline the extra card
      */
     public void takeExtraCard(String nickname, String cardID) {
         Player player = findPlayerByNickname(nickname);
-        List<Card> card = resolveCards(List.of(cardID), board.getUpperRowCards());
-        currentPhase.takeExtraCard(this, player, card.getFirst());
+        if (cardID == null || cardID.isBlank()) {
+            currentPhase.takeExtraCard(this, player, null);
+        } else {
+            List<Card> card = resolveCards(List.of(cardID), board.getUpperRowCards());
+            currentPhase.takeExtraCard(this, player, card.getFirst());
+        }
     }
 
     /**

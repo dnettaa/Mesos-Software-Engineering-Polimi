@@ -348,6 +348,11 @@ public class ClientModel {
      * @param dto The data object describing the extra card acquisition.
      */
     public void applyExtraCardTaken(ExtraCardTakenDTO dto) {
+        if (dto.cardID() == null) {
+            this.currentPhaseName = dto.nextPhaseName();
+            return;
+        }
+
         if (dto.fromUpperRow()) {
             this.removeUpperCard(dto.cardID());
         } else {
