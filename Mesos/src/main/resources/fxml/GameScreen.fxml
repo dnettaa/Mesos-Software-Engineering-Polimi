@@ -125,6 +125,12 @@
                                visible="false" managed="true"
                                wrapText="true" textAlignment="CENTER"
                                styleClass="game-error-label"/>
+
+                        <Button fx:id="confirmSelectionButton"
+                                text="Confirm selection"
+                                visible="false" managed="false"
+                                onAction="#onConfirmSelection"
+                                styleClass="game-confirm-button"/>
                     </VBox>
 
                 </VBox>
