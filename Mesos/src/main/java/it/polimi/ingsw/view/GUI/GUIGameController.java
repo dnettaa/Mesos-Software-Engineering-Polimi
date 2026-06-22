@@ -1313,46 +1313,6 @@ public class GUIGameController {
     }
 
     /**
-     * Animates selected cards flying upward (pick animation), then invokes {@code onComplete}.
-     *
-     * @param cardIDs    card IDs whose nodes should be animated
-     * @param onComplete callback executed after all animations finish
-     */
-    private void animatePickCards(List<String> cardIDs, Runnable onComplete) {
-        if (cardIDs.isEmpty()) {
-            onComplete.run();
-            return;
-        }
-
-        List<Animation> animations = new ArrayList<>();
-        for (String cardID : cardIDs) {
-            StackPane node = cardNodeMap.get(cardID);
-            if (node == null) continue;
-
-            TranslateTransition slide = new TranslateTransition(Duration.millis(350), node);
-            slide.setToY(-200);
-
-            FadeTransition fade = new FadeTransition(Duration.millis(350), node);
-            fade.setToValue(0);
-
-            ScaleTransition scale = new ScaleTransition(Duration.millis(350), node);
-            scale.setToX(1.3);
-            scale.setToY(1.3);
-
-            animations.add(new ParallelTransition(slide, fade, scale));
-        }
-
-        if (animations.isEmpty()) {
-            onComplete.run();
-            return;
-        }
-
-        ParallelTransition all = new ParallelTransition(animations.toArray(new Animation[0]));
-        all.setOnFinished(e -> onComplete.run());
-        all.play();
-    }
-
-    /**
      * Animates card images flying from pre-captured scene positions to the tribe panel.
      * This is called after the server has confirmed the pick, using positions that were
      * stored at confirm time (the original card nodes may no longer exist in the scene).
@@ -2044,37 +2004,6 @@ public class GUIGameController {
         ImageView iv = new ImageView(img);
         iv.setFitWidth(size); iv.setFitHeight(size); iv.setPreserveRatio(true);
         label.setGraphic(iv);
-    }
-
-    /** Creates a compact chip label for tribe stat summaries. */
-    private Label makeStatChip(String text) {
-        Label l = new Label(text);
-        l.setStyle("""
-                -fx-background-color: rgba(122,74,26,0.15);
-                -fx-background-radius: 10;
-                -fx-border-color: rgba(122,74,26,0.35);
-                -fx-border-radius: 10;
-                -fx-border-width: 1;
-                -fx-font-size: 11px;
-                -fx-font-weight: bold;
-                -fx-text-fill: #5c3a00;
-                -fx-padding: 2 7;
-                """);
-        return l;
-    }
-
-    /**
-     * Returns the number of complete sets (one of each of the 6 character types)
-     * in the given type→cards map. Returns 0 if any type is missing.
-     */
-    private int computeFullSets(Map<String, List<String>> byType) {
-        int min = Integer.MAX_VALUE;
-        for (String type : CHAR_TYPES) {
-            int count = byType.getOrDefault(type, List.of()).size();
-            if (count == 0) return 0;
-            min = Math.min(min, count);
-        }
-        return min == Integer.MAX_VALUE ? 0 : min;
     }
 
     /** Capitalizes the first letter and lowercases the rest (e.g. "HUNTER" → "Hunter"). */
