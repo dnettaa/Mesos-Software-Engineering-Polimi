@@ -1,0 +1,174 @@
+[
+  {
+    "id": "BU01",
+    "era": "Era1",
+    "cost": 4,
+    "prestigePoints": 3,
+    "type": "TRIGGER_SET",
+    "foodBonus": 5
+  },
+  {
+    "id": "BU02",
+    "era": "Era1",
+    "cost": 4,
+    "prestigePoints": 4,
+    "type": "SUSTENANCE_DISCOUNT",
+    "targetCharacterType": "GATHERER"
+  },
+  {
+    "id": "BU03",
+    "era": "Era1",
+    "cost": 5,
+    "prestigePoints": 3,
+    "type": "SUSTENANCE_DISCOUNT",
+    "targetCharacterType": "ARTIST"
+  },
+  {
+    "id": "BU04",
+    "era": "Era1",
+    "cost": 5,
+    "prestigePoints": 2,
+    "type": "SHAMAN_NO_PENALTY"
+  },
+  {
+    "id": "BU05",
+    "era": "Era1",
+    "cost": 3,
+    "prestigePoints": 3,
+    "type": "TURN_ORDER_BONUS",
+    "foodBonus": 1
+  },
+  {
+    "id": "BU06",
+    "era": "Era1",
+    "cost": 3,
+    "prestigePoints": 4,
+    "type": "TRIGGER_INVENTOR",
+    "foodBonus": 3
+  },
+  {
+    "id": "BU07",
+    "era": "Era2",
+    "cost": 7,
+    "prestigePoints": 0,
+    "type": "SHAMAN_DOUBLE_REWARD"
+  },
+  {
+    "id": "BU08",
+    "era": "Era2",
+    "cost": 6,
+    "prestigePoints": 4,
+    "type": "SHAMAN_BONUS_ICONS",
+    "bonusIcons": 3
+  },
+  {
+    "id": "BU09",
+    "era": "Era2",
+    "cost": 7,
+    "prestigePoints": 4,
+    "type": "SUSTENANCE_DISCOUNT",
+    "targetCharacterType": "INVENTOR"
+  },
+  {
+    "id": "BU10",
+    "era": "Era2",
+    "cost": 7,
+    "prestigePoints": 2,
+    "type": "HUNT_BONUS",
+    "foodBonus": 1,
+    "prestigeBonus": 1
+  },
+  {
+    "id": "BU11",
+    "era": "Era2",
+    "cost": 6,
+    "prestigePoints": 4,
+    "type": "END_DOUBLE_BUILDER"
+  },
+  {
+    "id": "BU12",
+    "era": "Era2",
+    "cost": 5,
+    "prestigePoints": 6,
+    "type": "PAINTINGS_FOOD",
+    "foodPerArtist": 1
+  },
+  {
+    "id": "BU13",
+    "era": "Era2",
+    "cost": 5,
+    "prestigePoints": 6,
+    "type": "END_SIX_SET"
+  },
+  {
+    "id": "BU14",
+    "era": "Era3",
+    "cost": 8,
+    "prestigePoints": 8,
+    "type": "END_PER_TYPE",
+    "targetType": "HUNTER",
+    "ppPerCard": 3
+  },
+  {
+    "id": "BU15",
+    "era": "Era3",
+    "cost": 7,
+    "prestigePoints": 6,
+    "type": "END_PER_TYPE",
+    "targetType": "GATHERER",
+    "ppPerCard": 4
+  },
+  {
+    "id": "BU16",
+    "era": "Era3",
+    "cost": 7,
+    "prestigePoints": 4,
+    "type": "END_PER_TYPE",
+    "targetType": "SHAMAN",
+    "ppPerCard": 4
+  },
+  {
+    "id": "BU17",
+    "era": "Era3",
+    "cost": 6,
+    "prestigePoints": 3,
+    "type": "END_PER_TYPE",
+    "targetType": "BUILDER",
+    "ppPerCard": 4
+  },
+  {
+    "id": "BU18",
+    "era": "Era3",
+    "cost": 7,
+    "prestigePoints": 4,
+    "type": "END_PER_TYPE",
+    "targetType": "ARTIST",
+    "ppPerCard": 4
+  },
+  {
+    "id": "BU19",
+    "era": "Era3",
+    "cost": 6,
+    "prestigePoints": 6,
+    "type": "END_PER_TYPE",
+    "targetType": "INVENTOR",
+    "ppPerCard": 2
+  },
+  {
+    "id": "BU20",
+    "era": "Era1",
+    "cost": 9,
+    "prestigePoints": 3,
+    "type": "EXTRA_PICK"
+  },
+  {
+    "id": "BU21",
+    "era": "Era3",
+    "cost": 10,
+    "prestigePoints": 0,
+    "type": "END_BONUS",
+    "prestigeBonus": 25
+  }
+
+
+]

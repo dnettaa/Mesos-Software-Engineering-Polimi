@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="it.polimi.ingsw.view.GUI.GUIWelcomeController"
+           prefWidth="1280" prefHeight="800">
+
+    <!-- Full-screen background image, scaled by GUI.java listeners -->
+    <ImageView fx:id="backgroundImage" preserveRatio="false">
+        <image><Image url="/GUI-resources/images/wallpaper_no_logo.png"/></image>
+    </ImageView>
+
+    <!-- Fixed-resolution pane scaled proportionally by GUI.java -->
+    <StackPane fx:id="scalablePane" prefWidth="1280" prefHeight="800"
+               maxWidth="1280" maxHeight="800">
+
+        <!-- Logo, animated by GUIWelcomeController.initialize() -->
+        <ImageView fx:id="logoImage" opacity="0" preserveRatio="true" fitWidth="700">
+            <image><Image url="/GUI-resources/images/logo.png"/></image>
+        </ImageView>
+
+        <!-- Input panel, fades in after the logo animation -->
+        <StackPane fx:id="inputPanel" opacity="0">
+
+            <!-- Background frame image -->
+            <ImageView preserveRatio="true" fitWidth="1150">
+                <image><Image url="/GUI-resources/images/input_screen.png"/></image>
+            </ImageView>
+
+            <!-- Input fields centered inside the frame -->
+            <VBox spacing="25" alignment="CENTER"
+                  style="-fx-padding: 80 60 40 60;">
+
+                <HBox spacing="15" alignment="CENTER">
+                    <Label text="Host:" prefWidth="65" alignment="CENTER_RIGHT"
+                           style="-fx-font-size: 20; -fx-font-weight: bold;"/>
+                    <TextField fx:id="hostField" promptText="localhost" prefWidth="250"/>
+
+                    <!-- Invisible counterweight to keep the row visually centered -->
+                    <Region prefWidth="65"/>
+                </HBox>
+
+                <HBox spacing="40" alignment="CENTER">
+                    <RadioButton fx:id="socketRadio" text="Socket"
+                                 style="-fx-font-size: 18; -fx-font-weight: bold;"/>
+                    <RadioButton fx:id="rmiRadio" text="RMI"
+                                 style="-fx-font-size: 18; -fx-font-weight: bold;"/>
+                </HBox>
+
+                <Button fx:id="connectButton" text="Connect" onAction="#onConnect"
+                        prefWidth="220" prefHeight="45"/>
+
+                <Label fx:id="errorLabel" visible="false"
+                       style="-fx-text-fill: #8b0000; -fx-font-weight: bold; -fx-font-size: 16;"/>
+
+            </VBox>
+        </StackPane>
+    </StackPane>
+</StackPane>

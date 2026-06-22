@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="it.polimi.ingsw.view.GUI.GUIEndGameController"
+           prefWidth="1280" prefHeight="800">
+
+    <!-- Full-screen background stretched by GUI.java -->
+    <ImageView fx:id="backgroundImage" preserveRatio="false">
+        <image>
+            <Image url="/GUI-resources/images/wallpaper.png"/>
+        </image>
+    </ImageView>
+
+    <!-- Atmospheric dark overlay -->
+    <StackPane style="-fx-background-color: rgba(0,0,0,0.54);"/>
+
+    <!-- Fixed-size content pane scaled by GUI.java -->
+    <StackPane fx:id="scalablePane"
+               prefWidth="1280" prefHeight="800"
+               maxWidth="1280" maxHeight="800">
+
+        <ScrollPane fx:id="endGameScrollPane"
+                    fitToWidth="true"
+                    hbarPolicy="NEVER"
+                    vbarPolicy="AS_NEEDED"
+                    prefWidth="1280"
+                    prefHeight="800"
+                    maxWidth="1280"
+                    maxHeight="800"
+                    style="-fx-background-color: transparent; -fx-background: transparent;
+                           -fx-border-color: transparent; -fx-padding: 0;">
+
+        <VBox alignment="TOP_CENTER" spacing="0" minHeight="800">
+
+            <!-- ══════════  STONE TABLET TITLE  ══════════ -->
+            <VBox alignment="CENTER" spacing="3"
+                  style="-fx-padding: 22 80 16 80;
+                         -fx-background-color: rgba(22,10,4,0.82);
+                         -fx-border-color: #c8860a rgba(200,134,10,0.4) rgba(200,134,10,0.4) #c8860a;
+                         -fx-border-width: 0 0 3 0;">
+
+                <Label text="⸻  MESOS  ⸻"
+                       style="-fx-font-size: 12px; -fx-font-family: Georgia; -fx-font-weight: bold;
+                              -fx-text-fill: #c8860a; -fx-letter-spacing: 4;"/>
+
+                <Label text="GAME OVER"
+                       style="-fx-font-size: 76px; -fx-font-family: Georgia; -fx-font-weight: bold;
+                              -fx-text-fill: #fde8b0;
+                              -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.95), 14, 0, 2, 5);"/>
+
+                <Label text="The chronicles of Mesopotamia have been written."
+                       style="-fx-font-size: 13px; -fx-font-family: Georgia; -fx-font-style: italic;
+                              -fx-text-fill: #a08040;"/>
+            </VBox>
+
+            <!-- ══════════  PODIUM  ══════════ -->
+            <!-- Controller builds columns dynamically inside podiumBox -->
+            <HBox fx:id="podiumBox"
+                  alignment="BOTTOM_CENTER"
+                  spacing="16"
+                  VBox.vgrow="ALWAYS"
+                  style="-fx-padding: 0 80 0 80;"/>
+
+            <!-- ══════════  4th+ PLAYERS  ══════════ -->
+            <HBox fx:id="othersBox"
+                  alignment="CENTER"
+                  spacing="10"
+                  VBox.vgrow="NEVER"
+                  style="-fx-padding: 10 0 4 0;"/>
+
+            <!-- ══════════  LOCAL RESULT  ══════════ -->
+            <Label fx:id="localResultLabel"
+                   text=""
+                   wrapText="true"
+                   textAlignment="CENTER"
+                   VBox.vgrow="NEVER"
+                   style="-fx-font-size: 15px; -fx-font-family: Georgia; -fx-font-weight: bold;
+                          -fx-text-fill: #fde8b0;
+                          -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.85), 6, 0, 1, 2);
+                          -fx-padding: 4 0 0 0;"/>
+
+            <!-- Global leaderboard received from the server -->
+            <VBox alignment="CENTER" spacing="6"
+                  VBox.vgrow="NEVER"
+                  style="-fx-padding: 8 0 0 0;">
+                <Label text="GLOBAL LEADERBOARD"
+                       style="-fx-font-size: 18px; -fx-font-family: Georgia; -fx-font-weight: bold;
+                              -fx-text-fill: #fde8b0;
+                              -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.85), 7, 0, 1, 2);"/>
+                <Label fx:id="globalLeaderboardSubtitle"
+                       text="Global leaderboard is loading..."
+                       wrapText="true"
+                       textAlignment="CENTER"
+                       style="-fx-font-size: 11px; -fx-font-family: Georgia;
+                              -fx-text-fill: #bda875;"/>
+
+                <HBox fx:id="globalLeaderboardBox"
+                      alignment="TOP_CENTER"
+                      spacing="16"
+                      maxWidth="1120">
+
+                    <VBox alignment="TOP_CENTER"
+                          spacing="6"
+                          prefWidth="610"
+                          maxWidth="610"
+                          style="-fx-background-color: rgba(22,10,4,0.55);
+                                 -fx-background-radius: 8;
+                                 -fx-border-color: rgba(200,134,10,0.55);
+                                 -fx-border-radius: 8;
+                                 -fx-padding: 8;">
+                        <Label text="TOP 10"
+                               maxWidth="Infinity"
+                               alignment="CENTER_LEFT"
+                               style="-fx-font-size: 12px; -fx-font-family: Georgia; -fx-font-weight: bold;
+                                      -fx-text-fill: #c8860a;"/>
+                        <ScrollPane fitToWidth="true"
+                                    hbarPolicy="NEVER"
+                                    vbarPolicy="AS_NEEDED"
+                                    prefHeight="218"
+                                    maxHeight="218"
+                                    style="-fx-background-color: transparent; -fx-background: transparent;
+                                           -fx-border-color: transparent; -fx-padding: 0;">
+                            <VBox fx:id="topLeaderboardBox"
+                                  spacing="4"
+                                  fillWidth="true"
+                                  style="-fx-background-color: transparent;"/>
+                        </ScrollPane>
+                    </VBox>
+
+                    <VBox alignment="TOP_CENTER"
+                          spacing="6"
+                          prefWidth="490"
+                          maxWidth="490"
+                          style="-fx-background-color: rgba(22,10,4,0.55);
+                                 -fx-background-radius: 8;
+                                 -fx-border-color: rgba(200,134,10,0.55);
+                                 -fx-border-radius: 8;
+                                 -fx-padding: 8;">
+                        <Label text="YOUR POSITION"
+                               maxWidth="Infinity"
+                               alignment="CENTER_LEFT"
+                               style="-fx-font-size: 12px; -fx-font-family: Georgia; -fx-font-weight: bold;
+                                      -fx-text-fill: #c8860a;"/>
+                        <VBox fx:id="positionLeaderboardBox"
+                              spacing="4"
+                              fillWidth="true"
+                              prefHeight="218"
+                              maxHeight="218"
+                              style="-fx-background-color: transparent;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <!-- ══════════  EXIT BUTTON  ══════════ -->
+            <HBox alignment="CENTER" VBox.vgrow="NEVER"
+                  style="-fx-padding: 10 0 16 0;">
+                <Button text="⬡  Return to the sands"
+                        prefWidth="260"
+                        onAction="#onExit"
+                        style="-fx-background-color: linear-gradient(to bottom, #7a4a1a, #3a1e06);
+                               -fx-text-fill: #fde8b0; -fx-font-weight: bold; -fx-font-size: 15px;
+                               -fx-font-family: Georgia;
+                               -fx-border-color: #c8860a; -fx-border-width: 2;
+                               -fx-border-radius: 8; -fx-background-radius: 8;
+                               -fx-cursor: hand; -fx-padding: 11 28;
+                               -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.65), 12, 0, 0, 3);"/>
+            </HBox>
+
+        </VBox>
+        </ScrollPane>
+    </StackPane>
+</StackPane>

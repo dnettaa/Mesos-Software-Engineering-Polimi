@@ -1,0 +1,434 @@
+/* ── Base ──────────────────────────────────────────── */
+.root {
+    -fx-font-family: "Georgia", serif;
+    -fx-background-color: #0d0d1a;
+}
+
+/* ── Text fields ───────────────────────────────────── */
+.text-field {
+    -fx-background-color: #f5f0e4;
+    -fx-text-fill: #2d1800;
+    -fx-prompt-text-fill: #8b6030;
+    -fx-border-color: #8b5c2a;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 14;
+    -fx-font-size: 15px;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.15), 6, 0, 1, 1);
+}
+
+.text-field:focused {
+    -fx-border-color: #c8860a;
+    -fx-background-color: #fffdf5;
+}
+
+/* ── Buttons ───────────────────────────────────────── */
+.button {
+    -fx-background-color: linear-gradient(to bottom, #7a4a1a, #4a2a08);
+    -fx-text-fill: #fde8b0;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-border-color: #2d1800;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-padding: 9 24;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.55), 8, 0, 2, 3);
+}
+
+.button:hover {
+    -fx-background-color: linear-gradient(to bottom, #a06020, #6a3c10);
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.75), 10, 0, 0, 0);
+}
+
+.button:pressed {
+    -fx-translate-y: 2;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.6), 8, 0, 0, 2);
+}
+
+.rules-button {
+    -fx-background-color: rgba(245, 230, 190, 0.92);
+    -fx-text-fill: #3b1e00;
+    -fx-border-color: #7a4a1a;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 7 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 7, 0, 0, 2);
+}
+
+.rules-button:hover {
+    -fx-background-color: #fde8b0;
+}
+
+/* ── Radio buttons ─────────────────────────────────── */
+.radio-button {
+    -fx-text-fill: #2d1800;
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+}
+
+.radio-button .radio {
+    -fx-background-color: #e8dfc8;
+    -fx-border-color: #7a4a1a;
+    -fx-border-radius: 50%;
+    -fx-background-radius: 50%;
+    -fx-padding: 5;
+}
+
+.radio-button:selected .dot {
+    -fx-background-color: #4a2a08;
+    -fx-background-radius: 50%;
+}
+
+/* ── Labels ────────────────────────────────────────── */
+.label {
+    -fx-text-fill: #2d1800;
+}
+
+/* ── ComboBox and Spinner ──────────────────────────── */
+.combo-box, .spinner {
+    -fx-background-color: #f5f0e4;
+    -fx-border-color: #8b5c2a;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.15), 6, 0, 1, 1);
+}
+
+.combo-box .arrow-button,
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: #d8cdb0;
+    -fx-background-radius: 0 8 8 0;
+    -fx-border-color: transparent transparent transparent #8b5c2a;
+}
+
+.combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2d1800;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+/* Remove double border from the Spinner's inner text field */
+.spinner .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-radius: 0;
+    -fx-effect: none;
+    -fx-text-fill: #2d1800;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-padding: 8 10;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #f5f0e4;
+    -fx-border-color: #8b5c2a;
+    -fx-border-width: 2;
+}
+
+/* ── ListView ──────────────────────────────────────── */
+.list-view {
+    -fx-background-color: #e8dfc8;
+    -fx-border-color: #5c3a21;
+    -fx-border-width: 2;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.2), 10, 0, 2, 2);
+}
+
+.list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2d1800;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 14;
+    -fx-border-color: transparent transparent rgba(92, 58, 33, 0.25) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.list-view .list-cell:empty {
+    -fx-border-color: transparent;
+}
+
+.list-view .list-cell:selected {
+    -fx-background-color: rgba(139, 92, 42, 0.35);
+}
+
+/* ========================= GAME SCREEN ========================= */
+
+.game-top-bar {
+    -fx-background-color: rgba(245, 230, 190, 0.94);
+    -fx-background-radius: 12;
+    -fx-padding: 10 18;
+    -fx-border-color: #7a4a1a;
+    -fx-border-radius: 12;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 10, 0, 0, 3);
+}
+
+.game-title-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d1800;
+}
+
+.game-info-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #5c3a21;
+}
+
+.game-small-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7a5030;
+}
+
+.game-player-name-label {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d1800;
+}
+
+.game-section-title {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7a4a1a;
+    -fx-padding: 0 0 2 0;
+}
+
+.game-board-panel {
+    -fx-background-color: rgba(245, 228, 188, 0.82);
+    -fx-background-radius: 12;
+    -fx-padding: 8 10;
+    -fx-border-color: #7a4a1a;
+    -fx-border-radius: 12;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.30), 8, 0, 0, 2);
+}
+
+.game-action-panel {
+    -fx-background-color: rgba(255, 249, 228, 0.96);
+    -fx-background-radius: 12;
+    -fx-padding: 12;
+    -fx-border-color: #c8860a;
+    -fx-border-radius: 12;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(200,134,10,0.40), 14, 0, 0, 2);
+}
+
+.game-side-panel {
+    -fx-background-color: rgba(245, 228, 188, 0.90);
+    -fx-background-radius: 12;
+    -fx-padding: 10;
+    -fx-border-color: #7a4a1a;
+    -fx-border-radius: 12;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 6, 0, 0, 2);
+}
+
+.game-era-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7a4a1a;
+}
+
+.game-phase-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #3b1e00;
+}
+
+.game-message-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d1800;
+}
+
+.game-error-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #a80000;
+    -fx-background-color: rgba(180, 0, 0, 0.10);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(160, 0, 0, 0.55);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 10;
+    -fx-padding: 7 16;
+    -fx-effect: dropshadow(gaussian, rgba(160, 0, 0, 0.25), 10, 0, 0, 2);
+}
+
+.game-confirm-button {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 26;
+}
+
+.game-confirm-button:disabled {
+    -fx-opacity: 0.45;
+}
+
+.game-log-area {
+    -fx-font-size: 11px;
+    -fx-font-family: "Courier New", monospace;
+    -fx-control-inner-background: rgba(255,255,255,0.70);
+    -fx-border-color: #b09070;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.game-transparent-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.game-transparent-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.game-confirm-button {
+    -fx-background-color: linear-gradient(to bottom, #4a8a3a, #2d5c22);
+    -fx-text-fill: #f0f8e8;
+    -fx-border-color: #1e3c14;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 9 24;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 6, 0, 1, 2);
+}
+
+.game-confirm-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #5aaa48, #3d7030);
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 8, 0, 0, 0);
+}
+
+.game-confirm-button:pressed {
+    -fx-translate-y: 2;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.5), 6, 0, 0, 2);
+}
+
+.game-secondary-button {
+    -fx-background-color: linear-gradient(to bottom, #888880, #555550);
+    -fx-text-fill: #f0f0e8;
+    -fx-border-color: #333330;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 9 24;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.45), 5, 0, 1, 2);
+}
+
+.game-secondary-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #aaa8a0, #706e68);
+}
+
+.game-secondary-button:pressed {
+    -fx-translate-y: 2;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,0.5), 5, 0, 0, 2);
+}
+
+/* ========================= END GAME SCREEN ========================= */
+
+.endgame-main-panel {
+    -fx-background-color: rgba(245, 230, 190, 0.96);
+    -fx-background-radius: 20;
+    -fx-padding: 34;
+    -fx-border-color: #7a4a1a;
+    -fx-border-radius: 20;
+    -fx-border-width: 3;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 30, 0, 0, 6);
+}
+
+.endgame-title-label {
+    -fx-font-size: 42px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d1800;
+}
+
+.endgame-winner-label {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #7a4a00;
+}
+
+.endgame-local-result-label {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d1800;
+}
+
+.endgame-table {
+    -fx-font-size: 14px;
+}
+
+/* ========================= RECOVERY OVERLAY ========================= */
+
+.recovery-overlay {
+    -fx-background-color: rgba(45, 45, 45, 0.58);
+}
+
+.recovery-panel {
+    -fx-background-color: rgba(50, 50, 50, 0.58);
+    -fx-background-radius: 8;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: none;
+}
+
+.recovery-title {
+    -fx-font-size: 25px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f2eee5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.72), 5, 0, 0, 1);
+}
+
+.recovery-message {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f0eadf;
+    -fx-text-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.70), 4, 0, 0, 1);
+}
+
+.recovery-details {
+    -fx-font-size: 14px;
+    -fx-text-fill: #ddd6ca;
+    -fx-text-alignment: center;
+    -fx-line-spacing: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.62), 4, 0, 0, 1);
+}
+
+.recovery-primary-button {
+    -fx-background-color: linear-gradient(to bottom, #4d8b42, #2f6528);
+    -fx-text-fill: #f4f7e8;
+    -fx-border-color: #21491c;
+}
+
+.recovery-primary-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #62a955, #3c7933);
+}
+
+.recovery-secondary-button {
+    -fx-background-color: linear-gradient(to bottom, #7e7770, #57504a);
+    -fx-text-fill: #f2eee6;
+    -fx-border-color: #37312c;
+}
+
+.recovery-secondary-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #958d85, #69615a);
+}

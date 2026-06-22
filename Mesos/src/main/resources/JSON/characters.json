@@ -1,0 +1,578 @@
+[
+  {
+    "id": "CH01",
+    "era": "Era1",
+    "type": "HUNTER",
+    "minPlayers": 2,
+    "hunterFoodBonus": true
+  },
+  {
+    "id": "CH02",
+    "era": "Era1",
+    "type": "HUNTER",
+    "minPlayers": 2,
+    "hunterFoodBonus": true
+  },
+  {
+    "id": "CH03",
+    "era": "Era1",
+    "type": "HUNTER",
+    "minPlayers": 2,
+    "hunterFoodBonus": false
+  },
+  {
+    "id": "CH04",
+    "era": "Era1",
+    "type": "HUNTER",
+    "minPlayers": 3,
+    "hunterFoodBonus": false
+  },
+  {
+    "id": "CH05",
+    "era": "Era1",
+    "type": "HUNTER",
+    "minPlayers": 3,
+    "hunterFoodBonus": false
+  },
+  {
+    "id": "CH06",
+    "era": "Era1",
+    "type": "BUILDER",
+    "minPlayers": 2,
+    "builderDiscount": 1,
+    "builderPrestige": 3
+  },
+  {
+    "id": "CH07",
+    "era": "Era1",
+    "type": "BUILDER",
+    "minPlayers": 2,
+    "builderDiscount": 2,
+    "builderPrestige": 0
+  },
+  {
+    "id": "CH08",
+    "era": "Era1",
+    "type": "BUILDER",
+    "minPlayers": 5,
+    "builderDiscount": 2,
+    "builderPrestige": 1
+  },
+  {
+    "id": "CH09",
+    "era": "Era1",
+    "type": "BUILDER",
+    "minPlayers": 2,
+    "builderDiscount": 1,
+    "builderPrestige": 2
+  },
+  {
+    "id": "CH10",
+    "era": "Era1",
+    "type": "GATHERER",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH11",
+    "era": "Era1",
+    "type": "GATHERER",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH12",
+    "era": "Era1",
+    "type": "GATHERER",
+    "minPlayers": 3
+  },
+  {
+    "id": "CH13",
+    "era": "Era1",
+    "type": "GATHERER",
+    "minPlayers": 5
+  },
+  {
+    "id": "CH14",
+    "era": "Era1",
+    "type": "ARTIST",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH15",
+    "era": "Era1",
+    "type": "ARTIST",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH16",
+    "era": "Era1",
+    "type": "ARTIST",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH17",
+    "era": "Era1",
+    "type": "ARTIST",
+    "minPlayers": 3
+  },
+  {
+    "id": "CH18",
+    "era": "Era1",
+    "type": "ARTIST",
+    "minPlayers": 4
+  },
+  {
+    "id": "CH19",
+    "era": "Era1",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_9"
+  },
+  {
+    "id": "CH20",
+    "era": "Era1",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_1"
+  },
+  {
+    "id": "CH21",
+    "era": "Era1",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_2"
+  },
+  {
+    "id": "CH22",
+    "era": "Era1",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_10"
+  },
+  {
+    "id": "CH23",
+    "era": "Era1",
+    "type": "INVENTOR",
+    "minPlayers": 4,
+    "inventionType": "TYPE_6"
+  },
+  {
+    "id": "CH24",
+    "era": "Era1",
+    "type": "INVENTOR",
+    "minPlayers": 4,
+    "inventionType": "TYPE_8"
+  },
+  {
+    "id": "CH25",
+    "era": "Era1",
+    "type": "INVENTOR",
+    "minPlayers": 4,
+    "inventionType": "TYPE_5"
+  },
+  {
+    "id": "CH26",
+    "era": "Era1",
+    "type": "SHAMAN",
+    "minPlayers": 5,
+    "shamanSymbols": 2
+  },
+  {
+    "id": "CH27",
+    "era": "Era1",
+    "type": "SHAMAN",
+    "minPlayers": 2,
+    "shamanSymbols": 2
+  },
+  {
+    "id": "CH28",
+    "era": "Era1",
+    "type": "SHAMAN",
+    "minPlayers": 2,
+    "shamanSymbols": 1
+  },
+  {
+    "id": "CH29",
+    "era": "Era1",
+    "type": "SHAMAN",
+    "minPlayers": 4,
+    "shamanSymbols": 1
+  },
+  {
+    "id": "CH30",
+    "era": "Era2",
+    "type": "HUNTER",
+    "minPlayers": 2,
+    "hunterFoodBonus": false
+  },
+  {
+    "id": "CH31",
+    "era": "Era2",
+    "type": "HUNTER",
+    "minPlayers": 2,
+    "hunterFoodBonus": false
+  },
+  {
+    "id": "CH32",
+    "era": "Era2",
+    "type": "HUNTER",
+    "minPlayers": 3,
+    "hunterFoodBonus": true
+  },
+  {
+    "id": "CH33",
+    "era": "Era2",
+    "type": "HUNTER",
+    "minPlayers": 2,
+    "hunterFoodBonus": true
+  },
+  {
+    "id": "CH34",
+    "era": "Era2",
+    "type": "HUNTER",
+    "minPlayers": 4,
+    "hunterFoodBonus": true
+  },
+  {
+    "id": "CH35",
+    "era": "Era2",
+    "type": "HUNTER",
+    "minPlayers": 5,
+    "hunterFoodBonus": false
+  },
+  {
+    "id": "CH36",
+    "era": "Era2",
+    "type": "BUILDER",
+    "minPlayers": 2,
+    "builderDiscount": 1,
+    "builderPrestige": 4
+  },
+  {
+    "id": "CH37",
+    "era": "Era2",
+    "type": "BUILDER",
+    "minPlayers": 2,
+    "builderDiscount": 2,
+    "builderPrestige": 1
+  },
+  {
+    "id": "CH38",
+    "era": "Era2",
+    "type": "BUILDER",
+    "minPlayers": 3,
+    "builderDiscount": 1,
+    "builderPrestige": 2
+  },
+  {
+    "id": "CH39",
+    "era": "Era2",
+    "type": "BUILDER",
+    "minPlayers": 2,
+    "builderDiscount": 2,
+    "builderPrestige": 3
+  },
+  {
+    "id": "CH40",
+    "era": "Era2",
+    "type": "GATHERER",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH41",
+    "era": "Era2",
+    "type": "GATHERER",
+    "minPlayers": 3
+  },
+  {
+    "id": "CH42",
+    "era": "Era2",
+    "type": "GATHERER",
+    "minPlayers": 4
+  },
+  {
+    "id": "CH43",
+    "era": "Era2",
+    "type": "GATHERER",
+    "minPlayers": 5
+  },
+  {
+    "id": "CH44",
+    "era": "Era2",
+    "type": "ARTIST",
+    "minPlayers": 3
+  },
+  {
+    "id": "CH45",
+    "era": "Era2",
+    "type": "ARTIST",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH46",
+    "era": "Era2",
+    "type": "ARTIST",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH47",
+    "era": "Era2",
+    "type": "ARTIST",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH48",
+    "era": "Era2",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_7"
+  },
+  {
+    "id": "CH49",
+    "era": "Era2",
+    "type": "INVENTOR",
+    "minPlayers": 4,
+    "inventionType": "TYPE_3"
+  },
+  {
+    "id": "CH50",
+    "era": "Era2",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_6"
+  },
+  {
+    "id": "CH51",
+    "era": "Era2",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_8"
+  },
+  {
+    "id": "CH52",
+    "era": "Era2",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_5"
+  },
+  {
+    "id": "CH53",
+    "era": "Era2",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_9"
+  },
+  {
+    "id": "CH54",
+    "era": "Era2",
+    "type": "SHAMAN",
+    "minPlayers": 2,
+    "shamanSymbols": 2
+  },
+  {
+    "id": "CH55",
+    "era": "Era2",
+    "type": "SHAMAN",
+    "minPlayers": 2,
+    "shamanSymbols": 2
+  },
+  {
+    "id": "CH56",
+    "era": "Era2",
+    "type": "SHAMAN",
+    "minPlayers": 5,
+    "shamanSymbols": 1
+  },
+  {
+    "id": "CH57",
+    "era": "Era2",
+    "type": "SHAMAN",
+    "minPlayers": 5,
+    "shamanSymbols": 2
+  },
+  {
+    "id": "CH58",
+    "era": "Era3",
+    "type": "HUNTER",
+    "minPlayers": 5,
+    "hunterFoodBonus": true
+  },
+  {
+    "id": "CH59",
+    "era": "Era3",
+    "type": "HUNTER",
+    "minPlayers": 2,
+    "hunterFoodBonus": false
+  },
+  {
+    "id": "CH60",
+    "era": "Era3",
+    "type": "HUNTER",
+    "minPlayers": 2,
+    "hunterFoodBonus": false
+  },
+  {
+    "id": "CH61",
+    "era": "Era3",
+    "type": "HUNTER",
+    "minPlayers": 2,
+    "hunterFoodBonus": true
+  },
+  {
+    "id": "CH62",
+    "era": "Era3",
+    "type": "BUILDER",
+    "minPlayers": 2,
+    "builderDiscount": 1,
+    "builderPrestige": 5
+  },
+  {
+    "id": "CH63",
+    "era": "Era3",
+    "type": "BUILDER",
+    "minPlayers": 2,
+    "builderDiscount": 2,
+    "builderPrestige": 3
+  },
+  {
+    "id": "CH64",
+    "era": "Era3",
+    "type": "BUILDER",
+    "minPlayers": 5,
+    "builderDiscount": 1,
+    "builderPrestige": 4
+  },
+  {
+    "id": "CH65",
+    "era": "Era3",
+    "type": "BUILDER",
+    "minPlayers": 2,
+    "builderDiscount": 2,
+    "builderPrestige": 2
+  },
+  {
+    "id": "CH66",
+    "era": "Era3",
+    "type": "GATHERER",
+    "minPlayers": 5
+  },
+  {
+    "id": "CH67",
+    "era": "Era3",
+    "type": "GATHERER",
+    "minPlayers": 4
+  },
+  {
+    "id": "CH68",
+    "era": "Era3",
+    "type": "GATHERER",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH69",
+    "era": "Era3",
+    "type": "ARTIST",
+    "minPlayers": 5
+  },
+  {
+    "id": "CH70",
+    "era": "Era3",
+    "type": "ARTIST",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH71",
+    "era": "Era3",
+    "type": "ARTIST",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH72",
+    "era": "Era3",
+    "type": "ARTIST",
+    "minPlayers": 2
+  },
+  {
+    "id": "CH73",
+    "era": "Era3",
+    "type": "INVENTOR",
+    "minPlayers": 4,
+    "inventionType": "TYPE_4"
+  },
+  {
+    "id": "CH74",
+    "era": "Era3",
+    "type": "INVENTOR",
+    "minPlayers": 3,
+    "inventionType": "TYPE_1"
+  },
+  {
+    "id": "CH75",
+    "era": "Era3",
+    "type": "INVENTOR",
+    "minPlayers": 3,
+    "inventionType": "TYPE_2"
+  },
+  {
+    "id": "CH76",
+    "era": "Era3",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_7"
+  },
+  {
+    "id": "CH77",
+    "era": "Era3",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_3"
+  },
+  {
+    "id": "CH78",
+    "era": "Era3",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_4"
+  },
+  {
+    "id": "CH79",
+    "era": "Era3",
+    "type": "INVENTOR",
+    "minPlayers": 2,
+    "inventionType": "TYPE_10"
+  },
+  {
+    "id": "CH80",
+    "era": "Era3",
+    "type": "SHAMAN",
+    "minPlayers": 3,
+    "shamanSymbols": 2
+  },
+  {
+    "id": "CH81",
+    "era": "Era3",
+    "type": "SHAMAN",
+    "minPlayers": 2,
+    "shamanSymbols": 3
+  },
+  {
+    "id": "CH82",
+    "era": "Era3",
+    "type": "SHAMAN",
+    "minPlayers": 2,
+    "shamanSymbols": 2
+  },
+  {
+    "id": "CH83",
+    "era": "Era3",
+    "type": "SHAMAN",
+    "minPlayers": 2,
+    "shamanSymbols": 3
+  },
+  {
+    "id": "CH84",
+    "era": "Era3",
+    "type": "SHAMAN",
+    "minPlayers": 4,
+    "shamanSymbols": 2
+  }
+]

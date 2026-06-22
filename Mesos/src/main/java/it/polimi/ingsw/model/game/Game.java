@@ -1,0 +1,627 @@
+package it.polimi.ingsw.model.game;
+
+import it.polimi.ingsw.model.game.DTO.*;
+import it.polimi.ingsw.model.exception.ErrorCode;
+import it.polimi.ingsw.model.exception.GameException;
+import it.polimi.ingsw.model.game.phase.*;
+import it.polimi.ingsw.model.board.OfferSlot;
+import it.polimi.ingsw.model.board.Board;
+import it.polimi.ingsw.model.card.building.BuildingCard;
+import it.polimi.ingsw.model.player.*;
+import it.polimi.ingsw.model.card.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+/**
+ * Main class representing a Mesos game session.
+ * Manages the game flow, including totem placement, card selection,
+ * event resolution, and end-game scoring.
+ *
+ * @author Luca Grecchi
+ */
+public class Game implements GameActions{
+
+    private final int gameID;
+    private final List<Player> players;
+    private final Board board;
+    private int currentRound;
+    private Phase currentPhase;
+    private GameState state;
+    private List<Player> placementOrder;
+    private int currentPlayerIndex;
+    private List<OfferSlot> resolutionOrder;
+    private transient List<GameListener> listeners = new ArrayList<>();
+
+    public Game(int gameID, List<Player> players, Board board, int currentRound, Phase phase,
+                GameState state, List<Player> placementOrder, int currentPlayerIndex, List<OfferSlot> resolutionOrder)
+    {
+
+        this.gameID = gameID;
+        this.players = players;
+        this.board = board;
+        this.currentRound = currentRound;
+        this.currentPhase = phase;
+        this.state = state;
+        this.placementOrder = placementOrder;
+        this.currentPlayerIndex = currentPlayerIndex;
+        this.resolutionOrder = resolutionOrder;
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public Board getBoard() {
+        return board;
+    }
+
+    public List<OfferSlot> getResolutionOrder() {
+        return resolutionOrder;
+    }
+
+    public int getCurrentPlayerIndex() {
+        return currentPlayerIndex;
+    }
+
+    public List<Player> getPlacementOrder() {
+        return placementOrder;
+    }
+
+    public GameState getState() {
+        return state;
+    }
+
+    public int getCurrentRound() {
+        return currentRound;
+    }
+
+    public void setState(GameState state) {
+        this.state = state;
+    }
+
+    public void setCurrentPlayerIndex(int index) {
+        this.currentPlayerIndex = index;
+    }
+
+    public void setResolutionOrder(List<OfferSlot> order) {
+        this.resolutionOrder = order;
+    }
+
+    public void setCurrentPhase(Phase phase) {
+        this.currentPhase = phase;
+    }
+
+    public void setPlacementOrder(List<Player> order) {
+        this.placementOrder = order;
+    }
+
+    public void setCurrentRound(int round) {
+        this.currentRound = round;
+    }
+
+    /**
+     * Rebuilds object references that are duplicated by JSON deserialization.
+     * After loading a saved game, all board and order references must point to
+     * the canonical player instances stored in {@link #players}.
+     */
+    public void restoreReferencesAfterLoad() {
+        Map<String, Player> playersByNickname = players.stream()
+                .collect(Collectors.toMap(Player::getNickname, player -> player));
+
+        placementOrder = placementOrder.stream()
+                .map(player -> requireCanonicalPlayer(playersByNickname, player))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        board.rebindPlayerReferences(playersByNickname);
+
+        if (resolutionOrder != null && !resolutionOrder.isEmpty()) {
+            resolutionOrder = board.getOfferResolutionOrder();
+        }
+
+        listeners = new ArrayList<>();
+    }
+
+    /**
+     * Returns the canonical player instance matching the nickname of a deserialized player reference.
+     * Used while restoring a saved game to ensure all restored references point to the
+     * {@link Player} objects stored in {@link #players}.
+     *
+     * @param playersByNickname map of canonical players indexed by nickname
+     * @param player the deserialized player reference to replace
+     * @return the canonical player instance with the same nickname
+     * @throws IllegalStateException if the saved game contains an unknown player reference
+     */
+    private Player requireCanonicalPlayer(Map<String, Player> playersByNickname, Player player) {
+        Player canonical = playersByNickname.get(player.getNickname());
+        if (canonical == null) {
+            throw new IllegalStateException("Unknown player in saved game: " + player.getNickname());
+        }
+        return canonical;
+    }
+
+    /**
+     * Places a player's totem on the specified offer slot.
+     * When all players have placed, transitions to OfferResolution phase.
+     *
+     * @param nickname the player placing the totem
+     * @param slotID the ID of the chosen offer slot
+     */
+    public void placeTotem(String nickname, char slotID){
+        Player player = findPlayerByNickname(nickname);
+        currentPhase.placeTotem(this, player, slotID);
+    }
+
+
+    /**
+     * Allows the current player to take cards from the upper and lower rows
+     * based on their offer slot action. Returns the totem to the turn order track.
+     * When all players have resolved, transitions to EventResolution phase.
+     *
+     * @param nickname the player taking cards
+     * @param chosenUpperIDs cards chosen from the upper row
+     * @param chosenLowerIDs cards chosen from the lower row
+     */
+    public void takeCards(String nickname, List<String> chosenUpperIDs, List<String> chosenLowerIDs, List<String> orderedIDs){
+        Player player = findPlayerByNickname(nickname);
+        List<Card> chosenUpper = resolveCards(chosenUpperIDs, board.getUpperRowCards());
+        List<Card> chosenLower = resolveCards(chosenLowerIDs, board.getLowerRowCards());
+
+        Map<String, Card> cardByID = new java.util.HashMap<>();
+        for (Card c : chosenUpper) cardByID.put(c.getId(), c);
+        for (Card c : chosenLower) cardByID.put(c.getId(), c);
+        List<Card> orderedCards = orderedIDs.stream()
+                .map(cardByID::get)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        currentPhase.takeCards(this, player, chosenUpper, chosenLower, orderedCards);
+    }
+
+    /**
+     * Resolves all event cards in the lower row.
+     * On the last round, also resolves events from the upper row.
+     * Sustenance events are always resolved last.
+     * Same-type events are resolved in Era order.
+     * Transitions to EndRound phase.
+     */
+    public void resolveEvents() {
+        currentPhase.resolveEvents(this);
+    }
+
+    /**
+     * Ends the current round. If not the last round, sets up the board
+     * for the next round and transitions to TotemPlacement.
+     * If it's the last round, transitions to EndGame phase.
+     */
+    public void endRound(){
+        currentPhase.endRound(this);
+    }
+
+    /**
+     * Calculates the final scoring for all players and ends the game.
+     * Transitions the game state to Finished.
+     */
+    public void endGame() {
+        currentPhase.endGame(this);
+    }
+
+
+    /**
+     * Allows the player with the ExtraPick building to take an additional
+     * card from the upper row. Transitions to EventResolution phase.
+     *
+     * @param nickname the player taking the extra card
+     * @param cardID the card chosen from the upper row, or {@code null}/blank to decline the extra card
+     */
+    public void takeExtraCard(String nickname, String cardID) {
+        Player player = findPlayerByNickname(nickname);
+        if (cardID == null || cardID.isBlank()) {
+            currentPhase.takeExtraCard(this, player, null);
+        } else {
+            List<Card> card = resolveCards(List.of(cardID), board.getUpperRowCards());
+            currentPhase.takeExtraCard(this, player, card.getFirst());
+        }
+    }
+
+    /**
+     * Applies the turn order bonus or penalty to the player.
+     * If the player lands on a food bonus slot, they receive food.
+     * If the player lands on the last slot, they pay 1 food or lose 2 PP.
+     *
+     * @param player the player returning to the turn order track
+     */
+    public boolean hasAffordableUpperCard(Player player) {
+        return board.getUpperRowCards().stream()
+                .anyMatch(c -> c.isPickable() && c.getCostFor(player) <= player.getFood());
+    }
+
+    /**
+     * Applies the food bonus or penalty associated with the player's position on the turn order track.
+     * Positive values grant food and trigger building effects, while negative values make the player
+     * spend food or lose prestige points if they cannot pay.
+     *
+     * @param player the player whose turn order bonus or penalty must be resolved
+     */
+    public void applyTurnOrderBonus(Player player){
+        int bonus = board.getFoodBonus(player);
+
+        if(bonus > 0){
+            player.addFood(bonus);
+            for(BuildingCard b : player.getTribe().getBuildings()){
+                b.onTurnOrderPlaced(bonus, player);
+            }
+        } else if(bonus < 0){
+            if(player.getFood() >= Math.abs(bonus)){
+                player.spendFood(Math.abs(bonus));
+            } else {
+                player.losePP(2);
+            }
+        }
+    }
+
+    /**
+     * Check if the state is "In progress".
+     *
+     * @throws GameException with {@link ErrorCode#INVALID_PHASE} if the game is not currently in progress
+     */
+    public void validateState(){
+        if (state != GameState.InProgress) {
+            throw new GameException(ErrorCode.INVALID_PHASE, "Game is not in progress!");
+        }
+    }
+
+    /**
+     * Check if the player is the one expected to act during totem placement.
+     *
+     * @param player the player attempting to act
+     * @throws GameException with {@link ErrorCode#NOT_YOUR_TURN} if it is not the provided player's turn to place a totem
+     */
+    public void validateActivePlayerTotemPlacement(Player player){
+        if(!player.equals(placementOrder.get(currentPlayerIndex))){
+            throw new GameException(ErrorCode.NOT_YOUR_TURN, "Wrong player");
+        }
+    }
+
+    /**
+     * Check if the player is the one expected to act during offer resolution.
+     *
+     * @param player the player attempting to act
+     * @throws GameException with {@link ErrorCode#NOT_YOUR_TURN} if it is not the provided player's turn to resolve their offer
+     */
+    public void validateActivePlayerOfferResolution(Player player){
+        if(!player.equals(resolutionOrder.get(currentPlayerIndex).getOccupant())){
+            throw new GameException(ErrorCode.NOT_YOUR_TURN, "Wrong player");
+        }
+    }
+
+    /**
+     * Validates that the chosen cards match the player's offer slot action
+     * and that no Event cards are selected.
+     *
+     * @param player the player taking cards
+     * @param chosenUpper cards chosen from the upper row
+     * @param chosenLower cards chosen from the lower row
+     * @param orderedCards selected cards in the order chosen by the player
+     * @throws GameException with {@link ErrorCode#INVALID_SELECTION} if the number of chosen cards does not match the slot action
+     * @throws GameException with {@link ErrorCode#CARD_NOT_IN_ROW} if any chosen card is not pickable or not in the specified row
+     * @throws GameException with {@link ErrorCode#INSUFFICIENT_FOOD} if the player does not have enough food to pay for the chosen buildings
+     */
+    public void validateChosenCards(Player player, List<Card> chosenUpper, List<Card> chosenLower, List<Card> orderedCards){
+
+        int[] action = board.getActionFor(player);
+
+        validateRowSelection(chosenUpper, board.getUpperRowCards(), board.getUpperRowTribeCards(), action[0]);
+        validateRowSelection(chosenLower, board.getLowerRowCards(), board.getLowerRowTribeCards(), action[1]);
+
+        List<Card> selectedCards = new ArrayList<>(chosenUpper);
+        selectedCards.addAll(chosenLower);
+
+        if (orderedCards.size() != selectedCards.size()
+                || !orderedCards.containsAll(selectedCards)
+                || !selectedCards.containsAll(orderedCards)) {
+            throw new GameException(ErrorCode.INVALID_SELECTION, "Ordered cards must match selected cards");
+        }
+
+        int simulatedFood = player.getFood();
+        int initialBuildingDiscount = player.getTribe().getBuildingDiscount();
+        int simulatedBuildingDiscount = initialBuildingDiscount;
+
+        for (Card card : orderedCards) {
+            int sameTurnDiscount = simulatedBuildingDiscount - initialBuildingDiscount;
+            int orderedCost = Math.max(0, card.getCostFor(player) - sameTurnDiscount);
+
+            if (orderedCost > simulatedFood) {
+                throw new GameException(ErrorCode.INSUFFICIENT_FOOD, "Not enough food for buildings");
+            }
+
+            simulatedFood -= orderedCost;
+            simulatedBuildingDiscount += card.getBuilderDiscount();
+        }
+    }
+
+    /**
+     * Validates the cards chosen from a single row against the player's slot action.
+     * <p>
+     * Character cards are mandatory (they are free) while building cards are optional: the
+     * player may take fewer than {@code action} cards only when no pickable character is left
+     * in the row. Equivalently, the selection must be filled up to {@code action} cards, and
+     * stopping early is allowed solely when every available character has been taken.
+     * Per-card affordability is verified separately, in pick order, by the caller.
+     * <p>
+     * Card types are distinguished using the row's own tribe/building split rather than
+     * {@code instanceof}: a chosen card is a character when it is one of the row's pickable
+     * tribe cards (events are tribe cards but are not pickable; buildings live in a separate list).
+     *
+     * @param chosen the cards chosen from this row
+     * @param rowCards all the cards currently available in this row
+     * @param rowTribeCards the tribe cards (characters and events) currently in this row
+     * @param action the number of cards the slot allows from this row
+     * @throws GameException with {@link ErrorCode#CARD_NOT_IN_ROW} if a chosen card is not pickable or not in the row
+     * @throws GameException with {@link ErrorCode#INVALID_SELECTION} if too many cards are chosen,
+     *         or fewer than {@code action} cards are chosen while a pickable character is left behind
+     */
+    private void validateRowSelection(List<Card> chosen, List<Card> rowCards, List<TribeCard> rowTribeCards, int action) {
+        for (Card card : chosen) {
+            if (!card.isPickable() || !rowCards.contains(card)) {
+                throw new GameException(ErrorCode.CARD_NOT_IN_ROW, "Card not available in row");
+            }
+        }
+
+        if (chosen.size() > action) {
+            throw new GameException(ErrorCode.INVALID_SELECTION, "Too many chosen cards");
+        }
+
+        List<TribeCard> availableCharacters = rowTribeCards.stream()
+                .filter(Card::isPickable)
+                .toList();
+        long chosenCharacters = chosen.stream()
+                .filter(availableCharacters::contains)
+                .count();
+
+        if (chosen.size() < action && chosenCharacters < availableCharacters.size()) {
+            throw new GameException(ErrorCode.INVALID_SELECTION, "You must take all available characters");
+        }
+    }
+
+    /**
+     * Returns the nickname of the player who is currently expected to act.
+     * Delegates to the current phase, which knows which player is active.
+     *
+     * @return the nickname of the active player, or null if no player is expected to act
+     */
+    public String getCurrentPlayerNickname(){
+        return currentPhase.getCurrentPlayerNickname(this);
+    }
+
+    /**
+     * Returns the simple class name of the current game phase.
+     * Used by the client to determine which action to prompt the user for.
+     *
+     * @return the name of the current phase (e.g. "TotemPlacementPhase")
+     */
+    public String getCurrentPhaseName() {
+        return currentPhase.getClass().getSimpleName();
+    }
+
+    /**
+     * Returns whether the game has ended.
+     *
+     * @return true if the game state is Finished, false otherwise
+     */
+    public boolean isGameEnded(){
+        return state == GameState.Finished;
+    }
+
+    /**
+     * Finds and returns the player with the given nickname.
+     *
+     * @param nickname the nickname to search for
+     * @return the matching player
+     * @throws GameException with {@link ErrorCode#UNKNOWN_PLAYER} if no player with that nickname exists
+     */
+    private Player findPlayerByNickname(String nickname){
+        for(Player p: players){
+            if(p.getNickname().equals(nickname)){
+                return p;
+            }
+        }
+        throw new GameException(ErrorCode.UNKNOWN_PLAYER, "Unknown player: " + nickname);
+    }
+
+    /**
+     * Resolves a list of card IDs against a row of available cards.
+     * Returns the matched cards in the same order as the input IDs.
+     *
+     * @param ids the list of card IDs to resolve
+     * @param row the list of available cards to search in
+     * @return the list of matched cards
+     * @throws GameException with {@link ErrorCode#UNKNOWN_CARD} if any ID is not found in the row
+     */
+    private List<Card> resolveCards(List<String> ids, List<Card> row){
+        List<Card> result = new ArrayList<>();
+        for (String id : ids) {
+            boolean found = false;
+            for (Card c : row) {
+                if (c.getId().equals(id)) {
+                    result.add(c);
+                    found = true;
+                    break;
+                }
+            }
+            if(!found){
+                throw new GameException(ErrorCode.UNKNOWN_CARD, "Card not found: " + id);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Builds and returns a complete snapshot of the current game state.
+     * Collects all relevant information from the game and board and packages
+     * it into a neutral GameStateSnapshot to be broadcast to all clients.
+     *
+     * @return a GameStateSnapshot representing the current state of the game
+     */
+    public GameStateSnapshot buildSnapshot() {
+        // placement order
+        List<String> placementNicknames = placementOrder.stream()
+                .map(Player::getNickname)
+                .collect(Collectors.toList());
+
+        // resolution order
+        List<Character> resolutionSlotIDs = resolutionOrder.stream()
+                .map(OfferSlot::getSlotID)
+                .collect(Collectors.toList());
+
+        // turn order
+        List<String> turnOrder = board.getTurnOrderTrack().getPlayersInOrder().stream()
+                .map(Player::getNickname)
+                .collect(Collectors.toList());
+
+        // upperRowCardIDs and lowerRowCardIDs
+        List<String> upperIDs = board.getUpperRowCards().stream()
+                .map(Card::getId)
+                .collect(Collectors.toList());
+
+        List<String> lowerIDs = board.getLowerRowCards().stream()
+                .map(Card::getId)
+                .collect(Collectors.toList());
+
+        // OfferSlotData
+        List<OfferSlotData> offerSlots = board.buildOfferSlotsData();
+
+        // PlayerData
+        List<PlayerData> playersData = players.stream()
+                .map(Player::buildPlayerData)
+                .collect(Collectors.toList());
+
+        return new GameStateSnapshot(
+                this.currentRound,
+                this.board.getCurrentEra(),
+                this.getCurrentPhaseName(),
+                this.getCurrentPlayerNickname(),
+                placementNicknames,
+                resolutionSlotIDs,
+                turnOrder,
+                this.board.getTribeDeckRemaining(),
+                upperIDs,
+                lowerIDs,
+                offerSlots,
+                playersData
+        );
+    }
+
+    /**
+     * Registers a new listener to receive notifications about game events.
+     *
+     * @param listener the {@link GameListener} to be added
+     */
+    @Override
+    public void addListener(GameListener listener) {
+        if (this.listeners == null) {
+            this.listeners = new ArrayList<>();
+        }
+        this.listeners.add(listener);
+    }
+
+    /**
+     * Unregisters a previously added listener so it no longer receives game events.
+     *
+     * @param listener the {@link GameListener} to be removed
+     */
+    @Override
+    public void removeListener(GameListener listener) {
+        listeners.remove(listener);
+    }
+
+    /**
+     * Starts the game by building the initial state snapshot and notifying all listeners.
+     * This triggers the first broadcast of the complete game state to the clients.
+     */
+    @Override
+    public void startGame() {
+        GameStateSnapshot snapshot = buildSnapshot();
+        fireGameStarted(snapshot);
+    }
+
+
+    /**
+     * Notifies all registered listeners that the game has officially started.
+     *
+     * @param snapshot the {@link GameStateSnapshot} containing the complete initial state of the game
+     */
+    public void fireGameStarted(GameStateSnapshot snapshot) {
+        for (GameListener listener : listeners) {
+            listener.onGameStarted(snapshot);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that a player has placed their totem on an offer slot.
+     *
+     * @param dto the {@link TotemPlacedDTO} containing the details of the totem placement
+     */
+    public void fireTotemPlaced(TotemPlacedDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onTotemPlaced(dto);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that a player has taken their chosen cards.
+     *
+     * @param dto the {@link CardsTakenDTO} containing the details of the taken cards and related state changes
+     */
+    public void fireCardsTaken(CardsTakenDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onCardsTaken(dto);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that a player has taken an extra card.
+     *
+     * @param dto the {@link ExtraCardTakenDTO} containing the details of the extra card taken
+     */
+    public void fireExtraCardTaken(ExtraCardTakenDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onExtraCardTaken(dto);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that a game event (e.g., Sustenance, Hunting) has been resolved.
+     *
+     * @param dto the {@link EventResolvedDTO} containing the outcome of the event for all affected players
+     */
+    public void fireEventResolved(EventResolvedDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onEventResolved(dto);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that the current round has ended.
+     *
+     * @param dto the {@link RoundEndedDTO} containing the details of the round transition
+     */
+    public void fireRoundEnded(RoundEndedDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onRoundEnded(dto);
+        }
+    }
+
+    /**
+     * Notifies all registered listeners that the game has ended and final scoring has been calculated.
+     *
+     * @param dto the {@link GameEndedDTO} containing the final scores and rankings
+     */
+    public void fireGameEnded(GameEndedDTO dto) {
+        for (GameListener listener : listeners) {
+            listener.onGameEnded(dto);
+        }
+    }
+}

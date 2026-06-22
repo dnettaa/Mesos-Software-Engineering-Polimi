@@ -85,3 +85,11 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
+
+# Local configuration (DO NOT COMMIT)
+dbconfig.json
+
+
+target/
+/src/main/resources/GUI-resources/
+.DS_Store
