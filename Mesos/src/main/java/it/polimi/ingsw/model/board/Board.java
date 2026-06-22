@@ -2,6 +2,7 @@ package it.polimi.ingsw.model.board;
 
 import it.polimi.ingsw.model.game.DTO.OfferSlotData;
 import it.polimi.ingsw.model.card.Card;
+import it.polimi.ingsw.model.card.TribeCard;
 import it.polimi.ingsw.model.card.EventCard;
 import it.polimi.ingsw.model.game.DTO.RoundEndedDTO;
 import it.polimi.ingsw.model.game.Era;
@@ -74,6 +75,24 @@ public class Board {
      */
     public List<Card> getLowerRowCards(){
         return lowerRow.getAllCards();
+    }
+
+    /**
+     * Returns the tribe cards (characters and events) currently in the upper row.
+     *
+     * @return a defensive copy of the upper row tribe cards
+     */
+    public List<TribeCard> getUpperRowTribeCards(){
+        return upperRow.getTribeCards();
+    }
+
+    /**
+     * Returns the tribe cards (characters and events) currently in the lower row.
+     *
+     * @return a defensive copy of the lower row tribe cards
+     */
+    public List<TribeCard> getLowerRowTribeCards(){
+        return lowerRow.getTribeCards();
     }
 
     /**

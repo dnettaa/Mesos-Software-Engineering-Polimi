@@ -723,6 +723,7 @@ public class GUI extends Application implements View {
     @Override
     public void showRecoveryCancelled(String reason) {
         Platform.runLater(() -> {
+            clientModel.reset();
             clearRecoveryOverlay();
             showLobbyScreen();
             if (lobbyController != null && reason != null && !reason.isBlank()) {

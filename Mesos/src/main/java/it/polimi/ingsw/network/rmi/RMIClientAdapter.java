@@ -53,7 +53,6 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
     private String host;
     private int port;
     private TotemColor savedColor;
-    private boolean wasInGame;
     private Thread heartbeatThread;
     private static final Set<String> LOGIN_ERROR_CODES = Set.of(
             "NICKNAME_TAKEN",
@@ -305,7 +304,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
         connected = false;
         recovering = false;
         disconnectionNotified = true;
-        if (wasInGame) {
+        if (view.getClientModel().isInGame()) {
             view.shutdown(reason);
         } else {
             view.goToWelcomeScreen(reason);
@@ -320,7 +319,6 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onRecoveryCancelled(String reason) throws RemoteException {
-        wasInGame = false;
         view.showRecoveryCancelled(reason);
     }
 
@@ -338,7 +336,6 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onGameStarted(GameStateSnapshot snapshot) throws RemoteException{
-        wasInGame = true;
         applyAndRender(() -> view.getClientModel().applyGameStarted(snapshot));
     }
 
@@ -409,7 +406,6 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      */
     @Override
     public void onGameEnded(GameEndedDTO dto) throws RemoteException{
-        wasInGame = false;
         applyAndRender(() -> view.getClientModel().applyGameEnded(dto));
     }
 
@@ -465,7 +461,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
         connected = false;
         recovering = true;
 
-        if (!wasInGame) {
+        if (!view.getClientModel().isInGame()) {
             recovering = false;
             view.goToWelcomeScreen("Server disconnected. Please reconnect.");
             return;
@@ -522,8 +518,8 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
             return;
         }
         try{
+            view.getClientModel().reset();
             serverStub.declineRecovery(this);
-            wasInGame = false;
         } catch(RemoteException e){
             handleRemoteFailure("Connection with the RMI server lost while declining recovery.");
         }
@@ -603,7 +599,7 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
             disconnectionNotified = false;
             startHeartbeat();
 
-            if(wasInGame){
+            if(view.getClientModel().isInGame()){
                 ScheduledExecutorService choiceTimeout = Executors.newSingleThreadScheduledExecutor(r -> {
                     Thread t = new Thread(r, "recovery-choice-timeout");
                     t.setDaemon(true);
@@ -619,7 +615,6 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
                     } else {
                         declineRecovery();
                     }
-                    wasInGame = false;
                     recovering = false;
                 } finally {
                     choiceTimeout.shutdownNow();

@@ -50,10 +50,6 @@ public class Game implements GameActions{
         this.resolutionOrder = resolutionOrder;
     }
 
-    public int getGameID() {
-        return gameID;
-    }
-
     public List<Player> getPlayers() {
         return players;
     }
@@ -76,10 +72,6 @@ public class Game implements GameActions{
 
     public GameState getState() {
         return state;
-    }
-
-    public Phase getCurrentPhase() {
-        return currentPhase;
     }
 
     public int getCurrentRound() {
@@ -222,12 +214,16 @@ public class Game implements GameActions{
      * card from the upper row. Transitions to EventResolution phase.
      *
      * @param nickname the player taking the extra card
-     * @param cardID the card chosen from the upper row
+     * @param cardID the card chosen from the upper row, or {@code null}/blank to decline the extra card
      */
     public void takeExtraCard(String nickname, String cardID) {
         Player player = findPlayerByNickname(nickname);
-        List<Card> card = resolveCards(List.of(cardID), board.getUpperRowCards());
-        currentPhase.takeExtraCard(this, player, card.getFirst());
+        if (cardID == null || cardID.isBlank()) {
+            currentPhase.takeExtraCard(this, player, null);
+        } else {
+            List<Card> card = resolveCards(List.of(cardID), board.getUpperRowCards());
+            currentPhase.takeExtraCard(this, player, card.getFirst());
+        }
     }
 
     /**
@@ -317,25 +313,8 @@ public class Game implements GameActions{
 
         int[] action = board.getActionFor(player);
 
-        int pendingBuilderDiscount = chosenUpper.stream()
-                .mapToInt(Card::getBuilderDiscount)
-                .sum();
-
-        List<Card> pickableUpper = board.getUpperRowCards().stream()
-                .filter(Card::isPickable)
-                .filter(c -> c.getCostFor(player) <= player.getFood())
-                .toList();
-        List<Card> pickableLower = board.getLowerRowCards().stream()
-                .filter(Card::isPickable)
-                .filter(c -> Math.max(0, c.getCostFor(player) - pendingBuilderDiscount) <= player.getFood())
-                .toList();
-
-        int actualUpper = Math.min(action[0], pickableUpper.size());
-        int actualLower = Math.min(action[1], pickableLower.size());
-
-        if(actualUpper != chosenUpper.size() || actualLower != chosenLower.size()){
-            throw new GameException(ErrorCode.INVALID_SELECTION, "Wrong number of chosen cards");
-        }
+        validateRowSelection(chosenUpper, board.getUpperRowCards(), board.getUpperRowTribeCards(), action[0]);
+        validateRowSelection(chosenLower, board.getLowerRowCards(), board.getLowerRowTribeCards(), action[1]);
 
         List<Card> selectedCards = new ArrayList<>(chosenUpper);
         selectedCards.addAll(chosenLower);
@@ -344,18 +323,6 @@ public class Game implements GameActions{
                 || !orderedCards.containsAll(selectedCards)
                 || !selectedCards.containsAll(orderedCards)) {
             throw new GameException(ErrorCode.INVALID_SELECTION, "Ordered cards must match selected cards");
-        }
-
-        for(Card card: chosenUpper){
-            if(!pickableUpper.contains(card) || !card.isPickable()){
-                throw new GameException(ErrorCode.CARD_NOT_IN_ROW, "Card not available in upper row");
-            }
-        }
-
-        for(Card card: chosenLower){
-            if(!pickableLower.contains(card) || !card.isPickable()){
-                throw new GameException(ErrorCode.CARD_NOT_IN_ROW, "Card not available in lower row");
-            }
         }
 
         int simulatedFood = player.getFood();
@@ -372,6 +339,50 @@ public class Game implements GameActions{
 
             simulatedFood -= orderedCost;
             simulatedBuildingDiscount += card.getBuilderDiscount();
+        }
+    }
+
+    /**
+     * Validates the cards chosen from a single row against the player's slot action.
+     * <p>
+     * Character cards are mandatory (they are free) while building cards are optional: the
+     * player may take fewer than {@code action} cards only when no pickable character is left
+     * in the row. Equivalently, the selection must be filled up to {@code action} cards, and
+     * stopping early is allowed solely when every available character has been taken.
+     * Per-card affordability is verified separately, in pick order, by the caller.
+     * <p>
+     * Card types are distinguished using the row's own tribe/building split rather than
+     * {@code instanceof}: a chosen card is a character when it is one of the row's pickable
+     * tribe cards (events are tribe cards but are not pickable; buildings live in a separate list).
+     *
+     * @param chosen the cards chosen from this row
+     * @param rowCards all the cards currently available in this row
+     * @param rowTribeCards the tribe cards (characters and events) currently in this row
+     * @param action the number of cards the slot allows from this row
+     * @throws GameException with {@link ErrorCode#CARD_NOT_IN_ROW} if a chosen card is not pickable or not in the row
+     * @throws GameException with {@link ErrorCode#INVALID_SELECTION} if too many cards are chosen,
+     *         or fewer than {@code action} cards are chosen while a pickable character is left behind
+     */
+    private void validateRowSelection(List<Card> chosen, List<Card> rowCards, List<TribeCard> rowTribeCards, int action) {
+        for (Card card : chosen) {
+            if (!card.isPickable() || !rowCards.contains(card)) {
+                throw new GameException(ErrorCode.CARD_NOT_IN_ROW, "Card not available in row");
+            }
+        }
+
+        if (chosen.size() > action) {
+            throw new GameException(ErrorCode.INVALID_SELECTION, "Too many chosen cards");
+        }
+
+        List<TribeCard> availableCharacters = rowTribeCards.stream()
+                .filter(Card::isPickable)
+                .toList();
+        long chosenCharacters = chosen.stream()
+                .filter(availableCharacters::contains)
+                .count();
+
+        if (chosen.size() < action && chosenCharacters < availableCharacters.size()) {
+            throw new GameException(ErrorCode.INVALID_SELECTION, "You must take all available characters");
         }
     }
 

@@ -112,61 +112,61 @@ public class TUI implements View {
     public void render() {
         if (clientModel == null) return;
 
-        // ── GAME OVER ──────────────────────────────────────────────────────────
+        // -- GAME OVER ----------------------------------------------------------
         if ("EndGame".equals(clientModel.getCurrentPhaseName())) {
-            System.out.println("\n" + YELLOW + BOLD + "  " + "═".repeat(50) + RESET);
-            System.out.println(YELLOW + BOLD + "          🏆  GAME OVER!  🏆" + RESET);
-            System.out.println(YELLOW + BOLD + "  " + "═".repeat(50) + RESET);
+            System.out.println("\n" + YELLOW + BOLD + "  " + "=".repeat(50) + RESET);
+            System.out.println(YELLOW + BOLD + "          *** GAME OVER! ***" + RESET);
+            System.out.println(YELLOW + BOLD + "  " + "=".repeat(50) + RESET);
 
             List<String> ranking = clientModel.getRanking();
             Map<String, Integer> finalPP = clientModel.getFinalPP();
             Map<String, Integer> bonus = clientModel.getEndGameBonus();
 
             System.out.println(BOLD + "\n  Pos  Player          Base PP   Bonus   TOTAL" + RESET);
-            System.out.println(WHITE + "  " + "─".repeat(47) + RESET);
+            System.out.println(WHITE + "  " + "-".repeat(47) + RESET);
             for (int i = 0; i < ranking.size(); i++) {
                 String player = ranking.get(i);
                 int total = finalPP.get(player);
                 int endBonus = bonus.getOrDefault(player, 0);
                 int base = total - endBonus;
-                String medal = i == 0 ? BRIGHT_YELLOW + "🥇" : i == 1 ? WHITE + "🥈" : YELLOW + "🥉";
+                String medal = i == 0 ? BRIGHT_YELLOW + "[1]" : i == 1 ? WHITE + "[2]" : YELLOW + "[3]";
                 String col = i == 0 ? BRIGHT_YELLOW : i == 1 ? WHITE : YELLOW;
                 System.out.printf("  %s %d.  " + col + "%-14s" + RESET + "  %5d    %5d    " + BOLD + "%5d" + RESET + "%n",
                         medal, i + 1, player, base, endBonus, total);
             }
-            System.out.println(WHITE + "  " + "─".repeat(47) + RESET);
+            System.out.println(WHITE + "  " + "-".repeat(47) + RESET);
             return;
         }
 
-        // ── HEADER ─────────────────────────────────────────────────────────────
-        System.out.println("\n" + CYAN + BOLD + "  " + "═".repeat(58) + RESET);
+        // -- HEADER -------------------------------------------------------------
+        System.out.println("\n" + CYAN + BOLD + "  " + "=".repeat(58) + RESET);
         System.out.println("  ROUND: " + BRIGHT_YELLOW + BOLD + clientModel.getCurrentRound() + RESET
                 + "   ERA: " + BRIGHT_GREEN + BOLD + clientModel.getCurrentEra() + RESET
                 + "   PHASE: " + BRIGHT_CYAN + BOLD + clientModel.getCurrentPhaseName() + RESET);
-        System.out.println(CYAN + BOLD + "  " + "═".repeat(58) + RESET);
+        System.out.println(CYAN + BOLD + "  " + "=".repeat(58) + RESET);
 
-        // ── TURN ORDER ─────────────────────────────────────────────────────────
+        // -- TURN ORDER ---------------------------------------------------------
         System.out.print(BOLD + "\n  TURN ORDER: " + RESET);
         List<String> turnOrder = clientModel.getTurnOrder();
         for (int i = 0; i < turnOrder.size(); i++) {
             String p = turnOrder.get(i);
             if (p.equals(nickname)) System.out.print(BRIGHT_GREEN + BOLD + "[" + p + "]" + RESET);
             else System.out.print(WHITE + p + RESET);
-            if (i < turnOrder.size() - 1) System.out.print(CYAN + " → " + RESET);
+            if (i < turnOrder.size() - 1) System.out.print(CYAN + " -> " + RESET);
         }
         System.out.println("   " + WHITE + "Tribe deck: " + RESET + YELLOW + clientModel.getTribeDeckRemaining() + RESET);
 
-        // ── TOP ROW ────────────────────────────────────────────────────────────
-        System.out.println("\n" + BRIGHT_YELLOW + BOLD + "  ▶ TOP ROW" + RESET);
-        System.out.println(BRIGHT_YELLOW + "  " + "─".repeat(58) + RESET);
+        // -- TOP ROW ------------------------------------------------------------
+        System.out.println("\n" + BRIGHT_YELLOW + BOLD + "  >TOP ROW" + RESET);
+        System.out.println(BRIGHT_YELLOW + "  " + "-".repeat(58) + RESET);
         drawCardRow(clientModel.getUpperRowCardIDs(), BRIGHT_YELLOW);
-        System.out.println(BRIGHT_YELLOW + "  " + "─".repeat(58) + RESET);
+        System.out.println(BRIGHT_YELLOW + "  " + "-".repeat(58) + RESET);
 
-        // ── OFFER TRACK ────────────────────────────────────────────────────────
+        // -- OFFER TRACK --------------------------------------------------------
         System.out.println(MAGENTA + BOLD + "\n  OFFER TRACK" + RESET);
-        System.out.println(MAGENTA + "  " + "─".repeat(48) + RESET);
-        System.out.println(MAGENTA + "  Slot    ↑ Upper    ↓ Lower    +Food    Occupant" + RESET);
-        System.out.println(MAGENTA + "  " + "─".repeat(48) + RESET);
+        System.out.println(MAGENTA + "  " + "-".repeat(48) + RESET);
+        System.out.println(MAGENTA + "  Slot    ^ Upper    v Lower    +Food    Occupant" + RESET);
+        System.out.println(MAGENTA + "  " + "-".repeat(48) + RESET);
         for (OfferSlotData slot : clientModel.getOfferSlots()) {
             boolean occupied = slot.occupantNickname() != null && !slot.occupantNickname().isEmpty();
             String occColor = occupied ? BRIGHT_GREEN : RED;
@@ -177,35 +177,35 @@ public class TUI implements View {
                     + "          " + slot.foodReward()
                     + "        " + occColor + occText + RESET);
         }
-        System.out.println(MAGENTA + "  " + "─".repeat(48) + RESET);
+        System.out.println(MAGENTA + "  " + "-".repeat(48) + RESET);
 
-        // ── BOTTOM ROW ─────────────────────────────────────────────────────────
-        System.out.println("\n" + BLUE + BOLD + "  ▶ BOTTOM ROW" + RESET);
-        System.out.println(BLUE + "  " + "─".repeat(58) + RESET);
+        // -- BOTTOM ROW ---------------------------------------------------------
+        System.out.println("\n" + BLUE + BOLD + "  >BOTTOM ROW" + RESET);
+        System.out.println(BLUE + "  " + "-".repeat(58) + RESET);
         drawCardRow(clientModel.getLowerRowCardIDs(), BLUE);
-        System.out.println(BLUE + "  " + "─".repeat(58) + RESET);
+        System.out.println(BLUE + "  " + "-".repeat(58) + RESET);
 
-        // ── PLAYERS ────────────────────────────────────────────────────────────
+        // -- PLAYERS ------------------------------------------------------------
         System.out.println(WHITE + BOLD + "\n  PLAYERS" + RESET);
-        System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
+        System.out.println(WHITE + "  " + "-".repeat(58) + RESET);
         for (PlayerData p : clientModel.getPlayers().values()) {
             boolean isYou     = p.nickname().equals(nickname);
             boolean isCurrent = p.nickname().equals(clientModel.getCurrentPlayerNickname());
             String nameColor  = isYou ? BRIGHT_GREEN : WHITE;
-            String marker     = isCurrent ? BRIGHT_YELLOW + " ◄ TURN" + RESET : "";
+            String marker     = isCurrent ? BRIGHT_YELLOW + " << TURN" + RESET : "";
             System.out.println("  " + nameColor + BOLD + String.format("%-12s", p.nickname()) + RESET
-                    + " │ 🍖 " + YELLOW + p.food() + RESET
-                    + "  │ ⭐ " + BRIGHT_CYAN + p.prestigePoints() + RESET
-                    + "  │ 👥 " + p.tribeCardID().size() + " cards"
-                    + "  │ 🏛  " + p.buildingID().size() + " buildings" + marker);
+                    + " | Food: " + YELLOW + p.food() + RESET
+                    + "  | PP: " + BRIGHT_CYAN + p.prestigePoints() + RESET
+                    + "  | Tribe: " + p.tribeCardID().size() + " cards"
+                    + "  | Bldg: " + p.buildingID().size() + " buildings" + marker);
             if (!p.tribeCardID().isEmpty())
                 System.out.println("    " + CYAN + "Tribe:     " + RESET + String.join(", ", p.tribeCardID()));
             if (!p.buildingID().isEmpty())
                 System.out.println("    " + MAGENTA + "Buildings: " + RESET + String.join(", ", p.buildingID()));
         }
-        System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
+        System.out.println(WHITE + "  " + "-".repeat(58) + RESET);
 
-        // ── ACTION PROMPT ──────────────────────────────────────────────────────
+        // -- ACTION PROMPT ------------------------------------------------------
         if (clientModel.getCurrentPlayerNickname() != null) {
             if (nickname.equals(clientModel.getCurrentPlayerNickname())) {
                 System.out.println("\n" + BRIGHT_GREEN + BOLD + "  *** IT IS YOUR TURN! ***" + RESET);
@@ -245,7 +245,7 @@ public class TUI implements View {
      * select a Totem color, and either create or join a game lobby.
      */
     public void run() {
-        System.out.println(CYAN + BOLD + "\n  ── LOBBY ──────────────────────────────────────" + RESET);
+        System.out.println(CYAN + BOLD + "\n  -- LOBBY --------------------------------------" + RESET);
         System.out.println();
 
         System.out.println(BOLD + "  LOBBY MENU:" + RESET);
@@ -341,11 +341,8 @@ public class TUI implements View {
             }
 
             case "ExtraCardPhase": {
-                String extra = "";
-                while (extra.isEmpty()) {
-                    extra = readPromptLine("Select Extra Card ID: ").trim().toUpperCase();
-                    if (!isServerConnected()) return;
-                }
+                String extra = readPromptLine("Select Extra Card ID (or enter to skip): ").trim().toUpperCase();
+                if (!isServerConnected()) return;
                 virtualServer.takeExtraCard(nickname, extra);
                 break;
             }
@@ -393,6 +390,7 @@ public class TUI implements View {
      */
     @Override
     public void showRecoveryCancelled(String reason) {
+        clientModel.reset();
         System.out.println("\n[RECOVERY] " + reason);
         restartLobby();
     }
@@ -428,7 +426,7 @@ public class TUI implements View {
     @Override
     public void showLoginError(String description) {
         System.out.println("\n" + RED + "[SETUP ERROR] " + description + RESET);
-        System.out.println("⚠️ Please re-enter your details.\n");
+        System.out.println("[!] Please re-enter your details.\n");
         restartLobby();
     }
 
@@ -468,7 +466,7 @@ public class TUI implements View {
             int food = foodDelta.getOrDefault(player, 0);
             String ppStr = pp >= 0 ? "+" + pp : String.valueOf(pp);
             String foodStr = food >= 0 ? "+" + food : String.valueOf(food);
-            System.out.printf("  %-12s → PP: %s  Food: %s%n", player, ppStr, foodStr);
+            System.out.printf("  %-12s -> PP: %s  Food: %s%n", player, ppStr, foodStr);
         }
     }
 
@@ -497,10 +495,10 @@ public class TUI implements View {
             return;
         }
         System.out.println("\n" + CYAN + BOLD + "  GLOBAL LEADERBOARD (" + leaderboard.get(0).playerCount() + " players)" + RESET);
-        System.out.println(CYAN + "  " + "─".repeat(58) + RESET);
+        System.out.println(CYAN + "  " + "-".repeat(58) + RESET);
 
         System.out.println(BOLD + "  Pos  Player          Score    Date" + RESET);
-        System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
+        System.out.println(WHITE + "  " + "-".repeat(58) + RESET);
 
         int topLimit = Math.min(10, leaderboard.size());
         for (int i = 0; i < topLimit; i++) {
@@ -508,11 +506,11 @@ public class TUI implements View {
         }
 
         if (myPosition > topLimit && myPosition <= leaderboard.size()) {
-            System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
+            System.out.println(WHITE + "  " + "-".repeat(58) + RESET);
             System.out.println("\n" + CYAN + BOLD + "  YOUR POSITION" + RESET);
-            System.out.println(CYAN + "  " + "─".repeat(58) + RESET);
+            System.out.println(CYAN + "  " + "-".repeat(58) + RESET);
             System.out.println(BOLD + "  Pos  Player          Score    Date" + RESET);
-            System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
+            System.out.println(WHITE + "  " + "-".repeat(58) + RESET);
 
             int myIndex = myPosition - 1;
             int start = Math.max(topLimit, myIndex - 2);
@@ -531,17 +529,17 @@ public class TUI implements View {
             }
         }
 
-        System.out.println(WHITE + "  " + "─".repeat(58) + RESET);
-        System.out.println("\n" + BRIGHT_GREEN + "  ➤ Your position: " + myPosition + RESET);
+        System.out.println(WHITE + "  " + "-".repeat(58) + RESET);
+        System.out.println("\n" + BRIGHT_GREEN + "  > Your position: " + myPosition + RESET);
     }
 
     private void printLeaderboardRow(int index) {
         MatchResult r = leaderboard.get(index);
 
         String medal =
-                index == 0 ? BRIGHT_YELLOW + "🥇" :
-                        index == 1 ? WHITE + "🥈" :
-                        index == 2 ? YELLOW + "🥉" : "  ";
+                index == 0 ? BRIGHT_YELLOW + "[1]" :
+                        index == 1 ? WHITE + "[2]" :
+                        index == 2 ? YELLOW + "[3]" : "   ";
 
         String color = (index + 1 == myPosition) ? BRIGHT_GREEN : WHITE;
 

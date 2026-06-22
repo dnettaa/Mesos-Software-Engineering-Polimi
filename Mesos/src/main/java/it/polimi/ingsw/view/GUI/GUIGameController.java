@@ -69,6 +69,7 @@ public class GUIGameController {
     // ── Action area ───────────────────────────────────────────────────────────
     @FXML private Label messageLabel;
     @FXML private Label errorLabel;
+    @FXML private Button confirmSelectionButton;
 
     private GUI gui;
 
@@ -858,6 +859,7 @@ public class GUIGameController {
      */
     private void renderActionArea(ClientModel model) {
         hideError();
+        setConfirmButtonVisible(false);
 
         if (!isMyTurn(model)) {
             messageLabel.setText("Waiting for " + safeText(model.getCurrentPlayerNickname()) + "...");
@@ -874,17 +876,18 @@ public class GUIGameController {
                 OfferSlotData mySlot = getMySlot(model);
                 int upSel = mySlot != null ? mySlot.upSel() : 0;
                 int downSel = mySlot != null ? mySlot.downSel() : 0;
-                long availUpper = countAffordable(model, model.getUpperRowCardIDs());
-                long availLower = countAffordable(model, model.getLowerRowCardIDs());
-                int effectiveUp = (int) Math.min(upSel, availUpper);
-                int effectiveDn = (int) Math.min(downSel, availLower);
-                messageLabel.setText("Pick " + upSel + " from upper row, " + downSel + " from lower row.");
-                if (effectiveUp == 0 && effectiveDn == 0 && currentPickPopup == null) {
-                    Platform.runLater(() -> showPickConfirmPopup(List.of(), List.of()));
-                }
+                messageLabel.setText("Pick up to " + upSel + " from the upper row and " + downSel
+                        + " from the lower row, then confirm. Characters are mandatory, buildings are optional.");
+                if (confirmSelectionButton != null) confirmSelectionButton.setText("Confirm selection");
+                updateConfirmButton(model);
             }
             case "ExtraCardPhase" -> {
-                messageLabel.setText("Extra card: click any card from the rows.");
+                messageLabel.setText("Extra card: click a card to take it, or skip — it is optional.");
+                if (confirmSelectionButton != null) {
+                    confirmSelectionButton.setText("Skip");
+                    confirmSelectionButton.setDisable(pendingConfirm);
+                }
+                setConfirmButtonVisible(true);
             }
             default -> {
                 messageLabel.setText("Automatic phase. Waiting for the server...");
@@ -1003,15 +1006,9 @@ public class GUIGameController {
             if (!upperRow && !selectedLowerCards.contains(cardID) && selectedLowerCards.size() >= downSel) return;
 
             toggleCardSelection(cardID, upperRow, cardPane);
-
-            long availUpper = countAffordable(model, model.getUpperRowCardIDs());
-            long availLower = countAffordable(model, model.getLowerRowCardIDs());
-            int effectiveUp = (int) Math.min(upSel, availUpper);
-            int effectiveDn = (int) Math.min(downSel, availLower);
-            if (selectedUpperCards.size() == effectiveUp && selectedLowerCards.size() == effectiveDn) {
-                showPickConfirmPopup(new ArrayList<>(selectedUpperCards), new ArrayList<>(selectedLowerCards));
-            }
+            updateConfirmButton(model);
         } else if ("ExtraCardPhase".equals(phase)) {
+            if (!upperRow) return; // the extra card can only be taken from the upper row
             clearCardSelectionStyles();
             clearSelections();
             selectedExtraCard = cardID;
@@ -1207,23 +1204,81 @@ public class GUIGameController {
             currentPickPopup = null;
             clearSelections();
             clearCardSelectionStyles();
+            if (model != null && "OfferResolutionPhase".equals(model.getCurrentPhaseName()) && isMyTurn(model)) {
+                updateConfirmButton(model);
+            }
         });
         confirmBtn.setOnAction(e -> confirmPickAction(finalUpper, finalLower, model));
     }
 
-    /** Returns how many cards in the given row the local player can currently afford,
-     *  accounting for builder discounts from cards already selected this turn. */
-    private long countAffordable(ClientModel model, List<String> rowCardIDs) {
-        String me = gui.getNickname();
-        PlayerData myData = me != null ? model.getPlayers().get(me) : null;
-        if (myData == null) return 0;
-        int food = myData.food();
-        int discount = myData.tribeCardID().stream().mapToInt(CardCatalog::getBuilderDiscount).sum()
-                + selectedUpperCards.stream().mapToInt(CardCatalog::getBuilderDiscount).sum();
-        return rowCardIDs.stream()
-                .filter(id -> !id.startsWith("EV"))
-                .filter(id -> Math.max(0, CardCatalog.getCost(id) - discount) <= food)
-                .count();
+    /** Shows or hides the confirm-selection button (both visible and managed). */
+    private void setConfirmButtonVisible(boolean visible) {
+        if (confirmSelectionButton != null) {
+            confirmSelectionButton.setVisible(visible);
+            confirmSelectionButton.setManaged(visible);
+        }
+    }
+
+    /**
+     * Shows the confirm-selection button and enables it only when the current
+     * offer-resolution selection is valid (see {@link #isOfferSelectionValid}).
+     */
+    private void updateConfirmButton(ClientModel model) {
+        setConfirmButtonVisible(true);
+        if (confirmSelectionButton != null) {
+            confirmSelectionButton.setDisable(pendingConfirm || !isOfferSelectionValid(model));
+        }
+    }
+
+    /**
+     * Mirrors the server-side pick rule: the selection is valid when, for each row,
+     * the player either fills the whole slot action or has taken every available
+     * character, since characters are mandatory and buildings are optional.
+     */
+    private boolean isOfferSelectionValid(ClientModel model) {
+        OfferSlotData mySlot = getMySlot(model);
+        if (mySlot == null) return false;
+        return rowSelectionComplete(selectedUpperCards, model.getUpperRowCardIDs(), mySlot.upSel())
+                && rowSelectionComplete(selectedLowerCards, model.getLowerRowCardIDs(), mySlot.downSel());
+    }
+
+    /**
+     * Returns true when a single row selection respects the pick rule: at most
+     * {@code action} cards, and fewer than {@code action} only if no character
+     * (ID prefix {@code "CH"}) is left unselected in the row — buildings may always be skipped.
+     */
+    private boolean rowSelectionComplete(List<String> selected, List<String> rowCardIDs, int action) {
+        if (selected.size() > action) return false;
+        if (selected.size() == action) return true;
+        long availableChars = rowCardIDs.stream().filter(id -> id.startsWith("CH")).count();
+        long chosenChars = selected.stream().filter(id -> id.startsWith("CH")).count();
+        return chosenChars >= availableChars;
+    }
+
+    /**
+     * FXML handler for the confirm-selection button: opens the pick summary popup
+     * for the current selection, from which the player finalises or goes back.
+     */
+    @FXML
+    private void onConfirmSelection() {
+        ClientModel model = gui != null ? gui.getClientModel() : null;
+        if (model == null || !isMyTurn(model) || pendingConfirm) return;
+
+        switch (model.getCurrentPhaseName()) {
+            case "OfferResolutionPhase" -> {
+                if (!isOfferSelectionValid(model)) return;
+                showPickConfirmPopup(new ArrayList<>(selectedUpperCards), new ArrayList<>(selectedLowerCards));
+            }
+            case "ExtraCardPhase" -> {
+                // Declining the optional extra card: submit an empty selection.
+                if (currentPickPopup != null) { currentPickPopup.hide(); currentPickPopup = null; }
+                setConfirmButtonVisible(false);
+                clearSelections();
+                clearCardSelectionStyles();
+                gui.getVirtualServer().takeExtraCard(gui.getNickname(), "");
+            }
+            default -> { }
+        }
     }
 
     /** Returns the offer slot currently occupied by the local player, or null if none. */
@@ -1255,46 +1310,6 @@ public class GUIGameController {
     private void animateDeselect(StackPane cardPane) {
         cardPane.setStyle("");
         cardPane.setEffect(null);
-    }
-
-    /**
-     * Animates selected cards flying upward (pick animation), then invokes {@code onComplete}.
-     *
-     * @param cardIDs    card IDs whose nodes should be animated
-     * @param onComplete callback executed after all animations finish
-     */
-    private void animatePickCards(List<String> cardIDs, Runnable onComplete) {
-        if (cardIDs.isEmpty()) {
-            onComplete.run();
-            return;
-        }
-
-        List<Animation> animations = new ArrayList<>();
-        for (String cardID : cardIDs) {
-            StackPane node = cardNodeMap.get(cardID);
-            if (node == null) continue;
-
-            TranslateTransition slide = new TranslateTransition(Duration.millis(350), node);
-            slide.setToY(-200);
-
-            FadeTransition fade = new FadeTransition(Duration.millis(350), node);
-            fade.setToValue(0);
-
-            ScaleTransition scale = new ScaleTransition(Duration.millis(350), node);
-            scale.setToX(1.3);
-            scale.setToY(1.3);
-
-            animations.add(new ParallelTransition(slide, fade, scale));
-        }
-
-        if (animations.isEmpty()) {
-            onComplete.run();
-            return;
-        }
-
-        ParallelTransition all = new ParallelTransition(animations.toArray(new Animation[0]));
-        all.setOnFinished(e -> onComplete.run());
-        all.play();
     }
 
     /**
@@ -1989,37 +2004,6 @@ public class GUIGameController {
         ImageView iv = new ImageView(img);
         iv.setFitWidth(size); iv.setFitHeight(size); iv.setPreserveRatio(true);
         label.setGraphic(iv);
-    }
-
-    /** Creates a compact chip label for tribe stat summaries. */
-    private Label makeStatChip(String text) {
-        Label l = new Label(text);
-        l.setStyle("""
-                -fx-background-color: rgba(122,74,26,0.15);
-                -fx-background-radius: 10;
-                -fx-border-color: rgba(122,74,26,0.35);
-                -fx-border-radius: 10;
-                -fx-border-width: 1;
-                -fx-font-size: 11px;
-                -fx-font-weight: bold;
-                -fx-text-fill: #5c3a00;
-                -fx-padding: 2 7;
-                """);
-        return l;
-    }
-
-    /**
-     * Returns the number of complete sets (one of each of the 6 character types)
-     * in the given type→cards map. Returns 0 if any type is missing.
-     */
-    private int computeFullSets(Map<String, List<String>> byType) {
-        int min = Integer.MAX_VALUE;
-        for (String type : CHAR_TYPES) {
-            int count = byType.getOrDefault(type, List.of()).size();
-            if (count == 0) return 0;
-            min = Math.min(min, count);
-        }
-        return min == Integer.MAX_VALUE ? 0 : min;
     }
 
     /** Capitalizes the first letter and lowercases the rest (e.g. "HUNTER" → "Hunter"). */

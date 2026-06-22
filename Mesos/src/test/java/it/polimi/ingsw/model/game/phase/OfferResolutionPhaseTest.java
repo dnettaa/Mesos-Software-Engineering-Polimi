@@ -10,6 +10,7 @@ import it.polimi.ingsw.model.board.TurnOrderTrack;
 import it.polimi.ingsw.model.card.BuilderCard;
 import it.polimi.ingsw.model.card.Card;
 import it.polimi.ingsw.model.card.CavePaintingsEventCard;
+import it.polimi.ingsw.model.card.HunterCard;
 import it.polimi.ingsw.model.card.EventCard;
 import it.polimi.ingsw.model.card.TribeCard;
 import it.polimi.ingsw.model.card.building.BuildingCard;
@@ -31,6 +32,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -250,6 +252,223 @@ class OfferResolutionPhaseTest {
         assertTrue(game.getBoard().getTurnOrderTrack().getPlayersInOrder().isEmpty());
         assertEquals(1, game.getCurrentPlayerIndex());
         assertEquals("OfferResolutionPhase", game.getCurrentPhaseName());
+    }
+
+    /**
+     * Verifies that buildings are optional: with upSel 2 over one character and one
+     * affordable building, the player may take just the character and skip the building.
+     * Setup: Diana has 5 food, upper row holds one character and one cost-2 building, upSel 2.
+     * Action: Diana takes only the character.
+     * Expected behavior: no exception, the building stays in the row, no food is spent.
+     * Rule covered: a pickable character is mandatory but an affordable building can be skipped.
+     */
+    @Test
+    void takeCardsShouldAllowSkippingOptionalBuildingWhenCharacterIsTaken() {
+        Player diana = createPlayer("Diana", TotemColor.RED, 5);
+        Player luca = createPlayer("Luca", TotemColor.BLUE, 0);
+        HunterCard character = new HunterCard(Era.Era1, "CH_PLAIN", false);
+        EndBonusCard building = new EndBonusCard(Era.Era1, "BU_OPTIONAL", 2, 0, 0);
+        Game game = createOfferResolutionGame(
+                List.of(diana, luca),
+                List.of(character, building),
+                List.of(),
+                List.of(new OfferSlot('A', 2, 0, 0), new OfferSlot('B', 0, 0, 0)),
+                1,
+                0
+        );
+
+        assertDoesNotThrow(() -> game.takeCards("Diana", List.of("CH_PLAIN"), List.of(),
+                List.of("CH_PLAIN")));
+
+        assertEquals(5, diana.getFood());
+        assertFalse(game.getBoard().getUpperRowCards().contains(character));
+        assertTrue(game.getBoard().getUpperRowCards().contains(building));
+        assertEquals(1, game.getCurrentPlayerIndex());
+    }
+
+    /**
+     * Verifies that a character cannot be left behind while the action is not fully used.
+     * Setup: Diana has 5 food, upper row holds one character and one cost-2 building, upSel 2.
+     * Action: Diana takes only the building, leaving the character unselected.
+     * Expected behavior: the selection is rejected with {@link ErrorCode#INVALID_SELECTION}.
+     * Rule covered: stopping below the slot action is allowed only when no character is left.
+     */
+    @Test
+    void takeCardsShouldRejectTakingBuildingWhileLeavingAvailableCharacter() {
+        Player diana = createPlayer("Diana", TotemColor.RED, 5);
+        Player luca = createPlayer("Luca", TotemColor.BLUE, 0);
+        HunterCard character = new HunterCard(Era.Era1, "CH_PLAIN", false);
+        EndBonusCard building = new EndBonusCard(Era.Era1, "BU_AFFORDABLE", 2, 0, 0);
+        Game game = createOfferResolutionGame(
+                List.of(diana, luca),
+                List.of(character, building),
+                List.of(),
+                List.of(new OfferSlot('A', 2, 0, 0), new OfferSlot('B', 0, 0, 0)),
+                1,
+                0
+        );
+
+        GameException exception = assertThrows(GameException.class, () ->
+                game.takeCards("Diana", List.of("BU_AFFORDABLE"), List.of(),
+                        List.of("BU_AFFORDABLE")));
+
+        assertEquals(ErrorCode.INVALID_SELECTION, exception.getCode());
+        assertEquals(5, diana.getFood());
+        assertEquals(0, game.getCurrentPlayerIndex());
+        assertEquals("OfferResolutionPhase", game.getCurrentPhaseName());
+    }
+
+    /**
+     * Verifies that the slot action may be filled entirely with buildings, skipping a character.
+     * Setup: Diana has 5 food, upper row holds one character and two cost-2 buildings, upSel 2.
+     * Action: Diana takes both buildings and leaves the character.
+     * Expected behavior: no exception, both buildings are paid (food 5 to 1), the character stays in the row.
+     * Rule covered: a character may be skipped as long as every action slot is filled.
+     */
+    @Test
+    void takeCardsShouldAllowFillingActionWithBuildingsSkippingCharacter() {
+        Player diana = createPlayer("Diana", TotemColor.RED, 5);
+        Player luca = createPlayer("Luca", TotemColor.BLUE, 0);
+        HunterCard character = new HunterCard(Era.Era1, "CH_PLAIN", false);
+        EndBonusCard firstBuilding = new EndBonusCard(Era.Era1, "BU_ONE", 2, 0, 0);
+        EndBonusCard secondBuilding = new EndBonusCard(Era.Era1, "BU_TWO", 2, 0, 0);
+        Game game = createOfferResolutionGame(
+                List.of(diana, luca),
+                List.of(character, firstBuilding, secondBuilding),
+                List.of(),
+                List.of(new OfferSlot('A', 2, 0, 0), new OfferSlot('B', 0, 0, 0)),
+                1,
+                0
+        );
+
+        assertDoesNotThrow(() -> game.takeCards("Diana", List.of("BU_ONE", "BU_TWO"), List.of(),
+                List.of("BU_ONE", "BU_TWO")));
+
+        assertEquals(1, diana.getFood());
+        assertTrue(game.getBoard().getUpperRowCards().contains(character));
+        assertEquals(1, game.getCurrentPlayerIndex());
+    }
+
+    /**
+     * Verifies that taking fewer cards than the action is rejected when a character is left unselected.
+     * Setup: Diana has 0 food, upper row holds two characters, upSel 2.
+     * Action: Diana takes only one of the two characters.
+     * Expected behavior: the selection is rejected with {@link ErrorCode#INVALID_SELECTION}.
+     * Rule covered: when no buildings are wanted, the action must be filled with characters.
+     */
+    @Test
+    void takeCardsShouldRejectFewerCardsWhenCharacterIsLeftUnselected() {
+        Player diana = createPlayer("Diana", TotemColor.RED, 0);
+        Player luca = createPlayer("Luca", TotemColor.BLUE, 0);
+        HunterCard firstCharacter = new HunterCard(Era.Era1, "CH_ONE", false);
+        HunterCard secondCharacter = new HunterCard(Era.Era1, "CH_TWO", false);
+        Game game = createOfferResolutionGame(
+                List.of(diana, luca),
+                List.of(firstCharacter, secondCharacter),
+                List.of(),
+                List.of(new OfferSlot('A', 2, 0, 0), new OfferSlot('B', 0, 0, 0)),
+                1,
+                0
+        );
+
+        GameException exception = assertThrows(GameException.class, () ->
+                game.takeCards("Diana", List.of("CH_ONE"), List.of(), List.of("CH_ONE")));
+
+        assertEquals(ErrorCode.INVALID_SELECTION, exception.getCode());
+        assertEquals(0, game.getCurrentPlayerIndex());
+        assertEquals("OfferResolutionPhase", game.getCurrentPhaseName());
+    }
+
+    /**
+     * Verifies that selecting more cards than the slot action allows is rejected.
+     * Setup: Diana has 0 food, upper row holds two characters, upSel 1.
+     * Action: Diana tries to take both characters.
+     * Expected behavior: the selection is rejected with {@link ErrorCode#INVALID_SELECTION}.
+     * Rule covered: a row selection may never exceed the slot action.
+     */
+    @Test
+    void takeCardsShouldRejectMoreCardsThanSlotAction() {
+        Player diana = createPlayer("Diana", TotemColor.RED, 0);
+        Player luca = createPlayer("Luca", TotemColor.BLUE, 0);
+        HunterCard firstCharacter = new HunterCard(Era.Era1, "CH_ONE", false);
+        HunterCard secondCharacter = new HunterCard(Era.Era1, "CH_TWO", false);
+        Game game = createOfferResolutionGame(
+                List.of(diana, luca),
+                List.of(firstCharacter, secondCharacter),
+                List.of(),
+                List.of(new OfferSlot('A', 1, 0, 0), new OfferSlot('B', 0, 0, 0)),
+                1,
+                0
+        );
+
+        GameException exception = assertThrows(GameException.class, () ->
+                game.takeCards("Diana", List.of("CH_ONE", "CH_TWO"), List.of(),
+                        List.of("CH_ONE", "CH_TWO")));
+
+        assertEquals(ErrorCode.INVALID_SELECTION, exception.getCode());
+        assertEquals(0, game.getCurrentPlayerIndex());
+        assertEquals("OfferResolutionPhase", game.getCurrentPhaseName());
+    }
+
+    /**
+     * Verifies that hunter food bonuses are applied in pick order against the growing tribe.
+     * Setup: Diana has 0 food and no hunters; the upper row holds a hunter without food bonus
+     * and a hunter with food bonus, upSel 2.
+     * Action: Diana takes them in order — first the one without bonus, then the one with bonus.
+     * Expected behavior: the no-bonus hunter grants nothing, then the bonus hunter grants 1 food
+     * per hunter now in the tribe (2), so Diana ends with 2 food.
+     * Regression covered: ordered card application makes each hunter count the hunters already added this turn.
+     */
+    @Test
+    void takeCardsShouldApplyHunterFoodBonusInPickOrder() {
+        Player diana = createPlayer("Diana", TotemColor.RED, 0);
+        Player luca = createPlayer("Luca", TotemColor.BLUE, 0);
+        HunterCard hunterNoBonus = new HunterCard(Era.Era1, "CH_HUNT_PLAIN", false);
+        HunterCard hunterWithBonus = new HunterCard(Era.Era1, "CH_HUNT_BONUS", true);
+        Game game = createOfferResolutionGame(
+                List.of(diana, luca),
+                List.of(hunterNoBonus, hunterWithBonus),
+                List.of(),
+                List.of(new OfferSlot('A', 2, 0, 0), new OfferSlot('B', 0, 0, 0)),
+                1,
+                0
+        );
+
+        game.takeCards("Diana", List.of("CH_HUNT_PLAIN", "CH_HUNT_BONUS"), List.of(),
+                List.of("CH_HUNT_PLAIN", "CH_HUNT_BONUS"));
+
+        assertEquals(2, diana.getFood());
+        assertEquals(1, game.getCurrentPlayerIndex());
+        assertEquals("OfferResolutionPhase", game.getCurrentPhaseName());
+    }
+
+    /**
+     * Verifies that the hunter pick order changes the food gained.
+     * Setup: the same two hunters as the in-order scenario, upSel 2, Diana with 0 food.
+     * Action: Diana takes the bonus hunter first, then the plain one.
+     * Expected behavior: the bonus hunter grants 1 food (a single hunter in the tribe) and the plain
+     * hunter grants nothing, so Diana ends with 1 food instead of 2.
+     * Regression covered: the food bonus depends on tribe size at application time, which the order controls.
+     */
+    @Test
+    void takeCardsShouldGrantLessHunterFoodWhenBonusHunterIsTakenFirst() {
+        Player diana = createPlayer("Diana", TotemColor.RED, 0);
+        Player luca = createPlayer("Luca", TotemColor.BLUE, 0);
+        HunterCard hunterNoBonus = new HunterCard(Era.Era1, "CH_HUNT_PLAIN", false);
+        HunterCard hunterWithBonus = new HunterCard(Era.Era1, "CH_HUNT_BONUS", true);
+        Game game = createOfferResolutionGame(
+                List.of(diana, luca),
+                List.of(hunterNoBonus, hunterWithBonus),
+                List.of(),
+                List.of(new OfferSlot('A', 2, 0, 0), new OfferSlot('B', 0, 0, 0)),
+                1,
+                0
+        );
+
+        game.takeCards("Diana", List.of("CH_HUNT_PLAIN", "CH_HUNT_BONUS"), List.of(),
+                List.of("CH_HUNT_BONUS", "CH_HUNT_PLAIN"));
+
+        assertEquals(1, diana.getFood());
     }
 
     private Player createPlayer(String nickname, TotemColor color, int food) {

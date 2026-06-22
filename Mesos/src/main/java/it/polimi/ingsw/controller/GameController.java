@@ -141,6 +141,8 @@
     public synchronized void acceptRecovery(String nickname, TotemColor color, VirtualView view) {
         if (currentPhase != null) {
             currentPhase.acceptRecovery(this, nickname, color, view);
+        } else if (view != null) {
+            view.onRecoveryCancelled("Recovery has already expired. Please create or join a new lobby.");
         }
     }
 
