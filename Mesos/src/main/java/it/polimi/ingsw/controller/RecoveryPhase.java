@@ -71,19 +71,6 @@ public class RecoveryPhase implements ControllerPhase {
     }
 
     /**
-     * Handles a legacy reconnect request by treating it as recovery acceptance.
-     *
-     * @param controller the main game controller
-     * @param nickname the player's original nickname
-     * @param color the player's original totem color
-     * @param view the reconnecting virtual view
-     */
-    @Override
-    public synchronized void reconnect(GameController controller, String nickname, TotemColor color, VirtualView view) {
-        acceptRecovery(controller, nickname, color, view);
-    }
-
-    /**
      * Accepts a player's saved-game recovery request.
      * The reconnecting client automatically sends the saved nickname and totem color,
      * which must match the restored snapshot. When all players are back, the game resumes.

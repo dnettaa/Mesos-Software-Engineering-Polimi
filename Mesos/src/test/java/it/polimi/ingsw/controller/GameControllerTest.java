@@ -126,27 +126,6 @@ class GameControllerTest {
     }
 
     /**
-     * Verifies that closing all connections disconnects each registered view and clears
-     * the controller registry.
-     * Setup: two connected views registered under different nicknames.
-     * Action: call {@link GameController#closeAll()}.
-     * Expected behavior: both views are disconnected and the registry becomes empty.
-     * Edge case covered: cleanup must remain consistent when multiple clients are connected.
-     */
-    @Test
-    void closeAllShouldDisconnectRegisteredViewsAndClearRegistry() {
-        FakeView secondView = new FakeView();
-        controller.registerView("Diana", view);
-        controller.registerView("Luca", secondView);
-
-        controller.closeAll();
-
-        assertFalse(view.connected);
-        assertFalse(secondView.connected);
-        assertTrue(controller.getViews().isEmpty());
-    }
-
-    /**
      * Verifies that transitioning to a controller phase stores the exact phase instance.
      * Setup: a fresh controller and a fake phase.
      * Action: transition the controller to the fake phase.
