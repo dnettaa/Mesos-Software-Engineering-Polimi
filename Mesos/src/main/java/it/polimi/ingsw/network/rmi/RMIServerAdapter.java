@@ -481,7 +481,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         /**
          * Marks this client as disconnected and notifies the controller.
          */
-        private void handleClientFailure(){
+        private synchronized void handleClientFailure(){
             if(!connected){
                 return;
             }
