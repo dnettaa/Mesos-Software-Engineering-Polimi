@@ -17,6 +17,12 @@ public class ServerMain {
     private static final int RMI_PORT = 1099;
 
     public static void main(String[] args){
+        // Bound RMI calls so a dead connection (e.g. unplugged network) fails fast
+        // instead of blocking the heartbeat forever on a silent socket.
+        System.setProperty("sun.rmi.transport.tcp.responseTimeout", "5000");
+        System.setProperty("sun.rmi.transport.connectionTimeout", "5000");
+        System.setProperty("sun.rmi.transport.proxy.connectTimeout", "5000");
+
         GameController controller = new GameController();
 
         System.out.println("Verifica salvataggi precedenti in corso...");

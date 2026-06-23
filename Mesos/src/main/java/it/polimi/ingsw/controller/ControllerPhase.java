@@ -66,19 +66,6 @@ public interface ControllerPhase {
      */
     void onDisconnect(String nickname);
 
-    /**
-     * Handles a player's reconnection request after a server crash recovery.
-     * The default implementation rejects the action when recovery is not allowed
-     * in the current controller phase.
-     *
-     * @param controller the main game controller
-     * @param nickname the player's original nickname
-     * @param color the player's original totem color
-     * @param view the reconnecting virtual view
-     */
-    default void reconnect(GameController controller, String nickname, TotemColor color, VirtualView view) {
-        throw new IllegalStateException("Reconnect not allowed in current phase");
-    }
 
     /**
      * Handles a player's request to accept saved-game recovery.

@@ -59,7 +59,7 @@ public class SocketServer implements Runnable{
     /**
      * Accept loop. For each incoming connection, creates a new
      * {@link SocketClientHandler} and submits it to the thread pool.
-     * Runs until {@link #stop()} is called.
+     * Runs until the server socket is closed.
      */
     @Override
     public void run(){
@@ -72,19 +72,5 @@ public class SocketServer implements Runnable{
                 if (running) throw new RuntimeException("Failed to accept connection", e);
             }
         }
-    }
-
-    /**
-     * Stops the server by closing the server socket and shutting down
-     * the thread pool. Any active client handlers are allowed to finish.
-     */
-    public void stop(){
-        running = false;
-        try{
-            serverSocket.close();
-        }catch(IOException e){
-            System.err.println("Failed to close server socket: " + e.getMessage());
-        }
-        executor.shutdown();
     }
 }
