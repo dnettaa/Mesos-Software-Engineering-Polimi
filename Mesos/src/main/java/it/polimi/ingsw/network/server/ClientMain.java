@@ -31,11 +31,10 @@ public class ClientMain {
      */
     public static void main(String[] args) throws RemoteException {
 
-        // Bound RMI calls so a dead connection (e.g. unplugged network) fails fast
-        // instead of blocking the heartbeat forever on a silent socket.
+        // Bound the wait for an RMI response so a dead connection (e.g. unplugged
+        // network) makes the heartbeat ping fail fast instead of blocking forever
+        // on a silent socket. Healthy calls return well under this limit.
         System.setProperty("sun.rmi.transport.tcp.responseTimeout", "5000");
-        System.setProperty("sun.rmi.transport.connectionTimeout", "5000");
-        System.setProperty("sun.rmi.transport.proxy.connectTimeout", "5000");
 
         Scanner scanner = new Scanner(System.in);
 

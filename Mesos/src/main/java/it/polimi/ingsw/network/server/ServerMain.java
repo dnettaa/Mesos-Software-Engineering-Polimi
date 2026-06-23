@@ -17,11 +17,10 @@ public class ServerMain {
     private static final int RMI_PORT = 1099;
 
     public static void main(String[] args){
-        // Bound RMI calls so a dead connection (e.g. unplugged network) fails fast
-        // instead of blocking the heartbeat forever on a silent socket.
+        // Bound the wait for an RMI response so a dead connection (e.g. unplugged
+        // network) makes the heartbeat ping fail fast instead of blocking forever
+        // on a silent socket. Healthy calls return well under this limit.
         System.setProperty("sun.rmi.transport.tcp.responseTimeout", "5000");
-        System.setProperty("sun.rmi.transport.connectionTimeout", "5000");
-        System.setProperty("sun.rmi.transport.proxy.connectTimeout", "5000");
 
         GameController controller = new GameController();
 
