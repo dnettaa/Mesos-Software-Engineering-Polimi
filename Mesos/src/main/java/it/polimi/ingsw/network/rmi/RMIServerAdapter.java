@@ -284,7 +284,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
          * @param call callback to enqueue
          */
         private void enqueue(RemoteCallback call) {
-            if (connected) outbox.offer(call);
+            if (connected) outbox.add(call);
         }
 
         /**
@@ -323,7 +323,7 @@ public class RMIServerAdapter extends UnicastRemoteObject implements ServerRMI{
         @Override
         public void disconnect(){
             connected = false;
-            outbox.offer(() -> {});
+            outbox.add(() -> {});
         }
 
         /**

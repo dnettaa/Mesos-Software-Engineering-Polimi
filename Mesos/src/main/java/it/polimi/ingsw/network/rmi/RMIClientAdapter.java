@@ -130,8 +130,6 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
             return;
         }
 
-        this.nickname = nickname;
-
         try{
             serverStub.createLobby(nickname, color, expectedPlayers, this);
         } catch(RemoteException e){
