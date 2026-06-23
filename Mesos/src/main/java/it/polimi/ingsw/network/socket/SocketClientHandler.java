@@ -26,12 +26,17 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author Luca Grecchi
  */
 public class SocketClientHandler implements VirtualView, Runnable {
+    /** A client that sends no message (not even a ping) for this long is considered dead. */
+    private static final int READ_TIMEOUT_MS = 6000;
+    /** How often a heartbeat is sent to the client to keep its read alive. */
+    private static final int PING_INTERVAL_MS = 2000;
+
     private final Socket socket;
     private final ObjectInputStream in;
     private final ObjectOutputStream out;
     private final GameController controller;
     private String nickname;
-    private boolean connected;
+    private volatile boolean connected;
     private final BlockingQueue<ServerMessage> outbox;
 
     /**
@@ -47,6 +52,7 @@ public class SocketClientHandler implements VirtualView, Runnable {
     public SocketClientHandler(Socket socket, GameController controller) {
         try {
             this.socket = socket;
+            this.socket.setSoTimeout(READ_TIMEOUT_MS);
             this.out = new ObjectOutputStream(socket.getOutputStream());
             this.in = new ObjectInputStream(socket.getInputStream());
         } catch (IOException e) {
@@ -69,12 +75,35 @@ public class SocketClientHandler implements VirtualView, Runnable {
         writerThread.setDaemon(true);
         writerThread.start();
 
+        Thread heartbeatThread = new Thread(this::heartbeatLoop);
+        heartbeatThread.setDaemon(true);
+        heartbeatThread.start();
+
         while(connected){
             try{
                 ClientMessage message = (ClientMessage) in.readObject();
                 message.execute(controller, this);
             }catch (IOException | ClassNotFoundException e){
+                // A SocketTimeoutException (subclass of IOException) means no message
+                // arrived within READ_TIMEOUT_MS: the client is considered dead.
                 if(connected) disconnect();
+            }
+        }
+    }
+
+    /**
+     * Heartbeat loop that runs on a dedicated thread.
+     * Periodically enqueues a {@link HeartbeatMessage} so the client's read does
+     * not time out while the server is otherwise idle.
+     */
+    private void heartbeatLoop(){
+        while(connected){
+            try{
+                Thread.sleep(PING_INTERVAL_MS);
+                if(connected) enqueue(new HeartbeatMessage());
+            }catch(InterruptedException e){
+                Thread.currentThread().interrupt();
+                return;
             }
         }
     }

@@ -25,6 +25,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class VirtualSocketServer implements VirtualServer, Runnable {
     private static final int RECONNECT_TIMEOUT_SECONDS = 20;
+    /** A server that sends no message (not even a heartbeat) for this long is considered dead. */
+    private static final int READ_TIMEOUT_MS = 6000;
+    /** How often a ping is sent to the server to keep its read alive. */
+    private static final int PING_INTERVAL_MS = 2000;
 
     private Socket socket;
     private ObjectInputStream in;
@@ -62,6 +66,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
 
         try{
             this.socket = new Socket(host, port);
+            this.socket.setSoTimeout(READ_TIMEOUT_MS);
             this.out = new ObjectOutputStream(socket.getOutputStream());
             this.out.flush();
             this.in = new ObjectInputStream(socket.getInputStream());
@@ -69,9 +74,31 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
             this.running = true;
             Thread readerThread = new Thread(this, "VirtualSocketServer-Reader");
             readerThread.start();
+            startHeartbeat();
         } catch (IOException e) {
             throw new RuntimeException("Failed to connect to server", e);
         }
+    }
+
+    /**
+     * Starts a background thread that pings the server every {@link #PING_INTERVAL_MS}.
+     * The pings keep the server's read alive and let this client's read timeout
+     * detect a dead server within {@link #READ_TIMEOUT_MS}.
+     */
+    private void startHeartbeat(){
+        Thread heartbeatThread = new Thread(() -> {
+            while(running){
+                try{
+                    Thread.sleep(PING_INTERVAL_MS);
+                    if(running) write(new PingMessage());
+                }catch(InterruptedException e){
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }, "VirtualSocketServer-Heartbeat");
+        heartbeatThread.setDaemon(true);
+        heartbeatThread.start();
     }
 
     /**
@@ -97,7 +124,12 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
      * If the client was waiting in the lobby, returns directly to the welcome screen.
      * If the client was in a game, starts the automatic recovery loop instead.
      */
-    private void handleServerCrash(){
+    private synchronized void handleServerCrash(){
+
+        if (!running) {
+            // Another thread (reader or heartbeat) already detected the crash.
+            return;
+        }
 
         running = false;
         recovering = true;
@@ -153,6 +185,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
         try {
 
             this.socket = new Socket(host, port);
+            this.socket.setSoTimeout(READ_TIMEOUT_MS);
 
             this.out = new ObjectOutputStream(socket.getOutputStream());
             this.out.flush();
@@ -163,6 +196,7 @@ public class VirtualSocketServer implements VirtualServer, Runnable {
 
             Thread readerThread = new Thread(this, "VirtualSocketServer-Reader");
             readerThread.start();
+            startHeartbeat();
 
             if (view.getClientModel().isInGame()) {
                 ScheduledExecutorService choiceTimeout = Executors.newSingleThreadScheduledExecutor(r -> {

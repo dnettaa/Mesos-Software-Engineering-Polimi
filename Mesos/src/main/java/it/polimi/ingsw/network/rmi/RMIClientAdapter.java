@@ -130,8 +130,6 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
             return;
         }
 
-        this.nickname = nickname;
-
         try{
             serverStub.createLobby(nickname, color, expectedPlayers, this);
         } catch(RemoteException e){
@@ -457,7 +455,12 @@ public class RMIClientAdapter extends UnicastRemoteObject implements ClientRMI, 
      *
      * @param message message shown to the user
      */
-    private void handleRemoteFailure(String message){
+    private synchronized void handleRemoteFailure(String message){
+        if (!connected) {
+            // Another thread (heartbeat or an action call) already detected the failure.
+            return;
+        }
+
         connected = false;
         recovering = true;
 

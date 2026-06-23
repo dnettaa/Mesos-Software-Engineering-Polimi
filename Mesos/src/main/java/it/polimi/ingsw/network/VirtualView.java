@@ -137,6 +137,12 @@ public interface VirtualView{
      */
     void onGameEnded(GameEndedDTO dto);
 
+    /**
+     * Notifies the client about the progress of a recovery attempt.
+     *
+     * @param reconnectedPlayers nicknames of the players who have already reconnected
+     * @param missingPlayers     nicknames of the players still missing
+     */
     void onRecoveryUpdate(List<String> reconnectedPlayers, List<String> missingPlayers);
 
     /**
