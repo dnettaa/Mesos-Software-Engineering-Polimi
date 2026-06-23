@@ -95,14 +95,29 @@ public class InGamePhase implements ControllerPhase {
     }
 
     /**
-     * Handles the disconnection of a player during the game.
-     * Notifies all remaining connected clients with the reason, then terminates
-     * the session so the server is ready for a new game.
+     * Handles the disconnection of a player.
+     * <p>
+     * If the match is already over, each client leaves on its own without
+     * affecting the others: the disconnected view is simply unregistered, and
+     * once the last player is gone the server shuts down.
+     * <p>
+     * If a player disconnects while the game is still in progress, all remaining
+     * connected clients are notified and the session is reset so the server is
+     * ready for a new game.
      *
      * @param nickname the nickname of the disconnected player
      */
     @Override
     public void onDisconnect(String nickname) {
+        if (game.isGameEnded()) {
+            controller.unregisterView(nickname);
+            if (!controller.hasConnectedViews()) {
+                System.out.println("All players have disconnected. Shutting down server.");
+                System.exit(0);
+            }
+            return;
+        }
+
         String reason = nickname + " disconnected. The game has ended.";
         for (VirtualView view : controller.getViews().values()) {
             if (view.isConnected()) {

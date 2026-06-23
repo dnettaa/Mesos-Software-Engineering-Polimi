@@ -225,6 +225,15 @@ public class GameController implements GameListener {
     }
 
     /**
+     * Returns whether at least one registered client view is still connected.
+     *
+     * @return {@code true} if any view is connected, {@code false} otherwise
+     */
+    public boolean hasConnectedViews() {
+        return views.values().stream().anyMatch(VirtualView::isConnected);
+    }
+
+    /**
      * Sends an error message to a specific player.
      *
      * @param nickname the recipient player
